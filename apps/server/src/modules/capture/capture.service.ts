@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  AiPrivacyScope,
-  AiStakes,
-  AiTaskType,
-  DocBlock,
-  extractPlainText,
-} from '@zettra/shared';
+import { AiPrivacyScope, AiStakes, AiTaskType, DocBlock, extractPlainText } from '@zettra/shared';
 import { Block, Space, Tag } from '../../entities/index';
 import { AiRouterService } from '../ai/ai-router.service';
 import { AliasIndexService } from '../linking/alias-index.service';
@@ -132,7 +126,9 @@ function parseTagProposal(raw: string): TagProposal {
   const json = JSON.parse(extractJson(raw)) as Record<string, unknown>;
   if (typeof json.confidence !== 'number') throw new Error('confidence missing/invalid');
   const tag = typeof json.tag === 'string' ? json.tag : null;
-  const fields = (json.fields && typeof json.fields === 'object' ? json.fields : {}) as TagProposal['fields'];
+  const fields = (
+    json.fields && typeof json.fields === 'object' ? json.fields : {}
+  ) as TagProposal['fields'];
   return { tag, confidence: json.confidence, fields };
 }
 

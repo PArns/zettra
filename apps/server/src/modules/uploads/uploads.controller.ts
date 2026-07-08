@@ -33,7 +33,9 @@ export class UploadsController {
   @Post('uploads')
   @UseGuards(AuthGuard)
   async upload(@Ctx() ctx: RequestContext, @Req() req: FastifyRequest): Promise<{ url: string }> {
-    const file = await (req as FastifyRequest & { file: () => Promise<MultipartFile | undefined> }).file();
+    const file = await (
+      req as FastifyRequest & { file: () => Promise<MultipartFile | undefined> }
+    ).file();
     if (!file) throw new BadRequestException('No file provided');
     const { url } = await this.uploads.save(ctx.tenantId, file.filename, file.file);
     return { url };
@@ -45,7 +47,9 @@ export class UploadsController {
     @Ctx() ctx: RequestContext,
     @Req() req: FastifyRequest,
   ): Promise<{ url: string; blockId: string }> {
-    const file = await (req as FastifyRequest & { file: () => Promise<MultipartFile | undefined> }).file();
+    const file = await (
+      req as FastifyRequest & { file: () => Promise<MultipartFile | undefined> }
+    ).file();
     if (!file) throw new BadRequestException('No file provided');
     const spaceId = ctx.visibleSpaceIds[0];
     if (!spaceId) throw new BadRequestException('No space available');

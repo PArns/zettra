@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  AiPrivacyScope,
-  AiStakes,
-  AiTaskType,
-  DocBlock,
-  extractPlainText,
-} from '@zettra/shared';
+import { AiPrivacyScope, AiStakes, AiTaskType, DocBlock, extractPlainText } from '@zettra/shared';
 import { Block, Space } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { AiRouterService } from '../ai/ai-router.service';

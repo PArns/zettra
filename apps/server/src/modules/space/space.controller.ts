@@ -56,6 +56,10 @@ export class SpaceController {
     @Param('id') id: string,
     @Body() body: GrantBody,
   ): Promise<Membership> {
-    return this.memberships.grant(ctx.tenantId, { spaceId: id, userId: body.userId, role: body.role });
+    return this.memberships.grant(ctx.tenantId, {
+      spaceId: id,
+      userId: body.userId,
+      role: body.role,
+    });
   }
 }

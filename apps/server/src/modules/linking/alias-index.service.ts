@@ -45,11 +45,14 @@ export class AliasIndexService {
   }
 
   /** Autocomplete: fuzzy-match visible entities by name for the `[[`/`#`/`@` menus (§8.6). */
-  async search(tenantId: string, spaceIds: string[], query: string, limit = 10): Promise<AliasEntry[]> {
+  async search(
+    tenantId: string,
+    spaceIds: string[],
+    query: string,
+    limit = 10,
+  ): Promise<AliasEntry[]> {
     const all = await this.build(tenantId, spaceIds);
     const q = query.toLowerCase();
-    return all
-      .filter((e) => e.alias.toLowerCase().includes(q))
-      .slice(0, limit);
+    return all.filter((e) => e.alias.toLowerCase().includes(q)).slice(0, limit);
   }
 }

@@ -24,14 +24,22 @@ export class SpaceService {
 
   async create(ctx: RequestContext, name: string, aiPolicy?: AiPrivacyScope): Promise<Space> {
     const space = await this.spaces.save(
-      this.spaces.create({ tenantId: ctx.tenantId, name, aiPolicy: aiPolicy ?? AiPrivacyScope.Default }),
+      this.spaces.create({
+        tenantId: ctx.tenantId,
+        name,
+        aiPolicy: aiPolicy ?? AiPrivacyScope.Default,
+      }),
     );
     if (ctx.userId) await this.memberships.ensureOwner(ctx.tenantId, space.id, ctx.userId);
     return space;
   }
 
   /** Set the shared AI privacy posture; resolves at the space, never per-user (§15.5). */
-  async setAiPolicy(ctx: RequestContext, spaceId: string, aiPolicy: AiPrivacyScope): Promise<Space> {
+  async setAiPolicy(
+    ctx: RequestContext,
+    spaceId: string,
+    aiPolicy: AiPrivacyScope,
+  ): Promise<Space> {
     await this.spaces.update({ id: spaceId, tenantId: ctx.tenantId }, { aiPolicy });
     return this.spaces.findOneOrFail({ where: { id: spaceId, tenantId: ctx.tenantId } });
   }

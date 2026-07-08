@@ -83,7 +83,9 @@ export class ViewService {
     const view = await this.views.findOne({ where: { id: viewId, tenantId: ctx.tenantId } });
     if (!view) throw new NotFoundException('View not found');
     const rows = await this.run(ctx, viewId);
-    const fields = view.tagId ? await this.tags.resolveEffectiveFields(ctx.tenantId, view.tagId) : [];
+    const fields = view.tagId
+      ? await this.tags.resolveEffectiveFields(ctx.tenantId, view.tagId)
+      : [];
     const withValues = await this.attachValues(rows);
     return { view, fields, rows: withValues };
   }

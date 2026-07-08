@@ -51,7 +51,9 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
 
   private spawn(name: QueueName, handler: (job: Job) => Promise<void>): void {
     const worker = new Worker(name, handler, { connection: this.connection, concurrency: 4 });
-    worker.on('failed', (job, err) => this.logger.warn(`${name} job ${job?.id} failed: ${err.message}`));
+    worker.on('failed', (job, err) =>
+      this.logger.warn(`${name} job ${job?.id} failed: ${err.message}`),
+    );
     this.workers.push(worker);
   }
 

@@ -6,7 +6,9 @@ const linker = new MentionLinkerService();
 
 describe('MentionLinkerService.annotate', () => {
   it('replaces a known alias in text with a reference node', () => {
-    const doc: DocBlock[] = [{ type: 'paragraph', content: [{ type: 'text', text: 'Met with Jane Doe today' }] }];
+    const doc: DocBlock[] = [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Met with Jane Doe today' }] },
+    ];
     const out = linker.annotate(doc, [{ blockId: 'p1', alias: 'Jane Doe' }]);
     const content = out[0]!.content!;
     expect(content).toEqual([
