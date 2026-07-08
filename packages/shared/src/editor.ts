@@ -21,6 +21,8 @@ export interface ReferenceProps {
 /** A minimal inline-node shape sufficient for `extractRefs` traversal. */
 export interface InlineNode {
   type?: string;
+  /** Plain text for `text` nodes (used by the ingest-time mention linker, §8.4). */
+  text?: string;
   props?: Partial<ReferenceProps> & Record<string, unknown>;
   content?: InlineNode[];
 }

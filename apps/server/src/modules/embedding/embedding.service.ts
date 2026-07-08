@@ -41,6 +41,17 @@ export class EmbeddingService {
     }
   }
 
+  /** Replace all chunk embeddings for a block+model (handles shrinking content). */
+  async replaceForBlock(tenantId: string, blockId: string, vectors: number[][]): Promise<void> {
+    await this.dataSource.query(
+      `DELETE FROM block_embedding WHERE "blockId" = $1 AND "model" = $2`,
+      [blockId, this.model],
+    );
+    for (let i = 0; i < vectors.length; i++) {
+      await this.upsertEmbedding(tenantId, blockId, i, vectors[i]!);
+    }
+  }
+
   /** Upsert one chunk embedding, keyed on (blockId, chunkIndex, model). Idempotent (§12). */
   async upsertEmbedding(
     tenantId: string,

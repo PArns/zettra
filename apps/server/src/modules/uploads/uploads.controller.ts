@@ -1,0 +1,88 @@
+import { createReadStream } from 'node:fs';
+import { basename } from 'node:path';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { BlockSource } from '@zettra/shared';
+import { AuthGuard } from '../auth/auth.guard';
+import { Ctx } from '../../common/current-context.decorator';
+import { RequestContext } from '../../common/request-context';
+import { UploadsService } from './uploads.service';
+import { BlockService } from '../block/block.service';
+
+/**
+ * Upload + file serving (§8.3). `POST /uploads` backs BlockNote's `uploadFile` (inline image
+ * upload). `POST /uploads/capture` creates an upload-source block that lands in the
+ * Briefkasten. `GET /files/:tenantId/:name` serves stored files (public, unguessable key).
+ */
+@Controller()
+export class UploadsController {
+  constructor(
+    private readonly uploads: UploadsService,
+    private readonly blocks: BlockService,
+  ) {}
+
+  @Post('uploads')
+  @UseGuards(AuthGuard)
+  async upload(@Ctx() ctx: RequestContext, @Req() req: FastifyRequest): Promise<{ url: string }> {
+    const file = await (req as FastifyRequest & { file: () => Promise<MultipartFile | undefined> }).file();
+    if (!file) throw new BadRequestException('No file provided');
+    const { url } = await this.uploads.save(ctx.tenantId, file.filename, file.file);
+    return { url };
+  }
+
+  @Post('uploads/capture')
+  @UseGuards(AuthGuard)
+  async capture(
+    @Ctx() ctx: RequestContext,
+    @Req() req: FastifyRequest,
+  ): Promise<{ url: string; blockId: string }> {
+    const file = await (req as FastifyRequest & { file: () => Promise<MultipartFile | undefined> }).file();
+    if (!file) throw new BadRequestException('No file provided');
+    const spaceId = ctx.visibleSpaceIds[0];
+    if (!spaceId) throw new BadRequestException('No space available');
+    const { url, key } = await this.uploads.save(ctx.tenantId, file.filename, file.file);
+    // Create an upload-source block in the Briefkasten with the file embedded (§8.3).
+    const block = await this.blocks.create(ctx, {
+      spaceId,
+      source: BlockSource.Upload,
+      sourceRef: key,
+      content: uploadDocument(file.filename, url),
+    });
+    return { url, blockId: block.id };
+  }
+
+  @Get('files/:tenantId/:name')
+  async serve(
+    @Param('tenantId') tenantId: string,
+    @Param('name') name: string,
+    @Res() res: FastifyReply,
+  ): Promise<void> {
+    const full = await this.uploads.resolve(`${tenantId}/${basename(name)}`);
+    res.header('cache-control', 'private, max-age=86400');
+    res.send(createReadStream(full));
+  }
+}
+
+/** Minimal BlockNote document embedding an uploaded image/file. */
+function uploadDocument(filename: string, url: string): unknown {
+  const isImage = /\.(png|jpe?g|gif|webp|svg)$/i.test(filename);
+  return [
+    isImage
+      ? { type: 'image', props: { url, caption: filename } }
+      : { type: 'file', props: { url, name: filename } },
+  ];
+}
+
+interface MultipartFile {
+  filename: string;
+  file: NodeJS.ReadableStream;
+}

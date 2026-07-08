@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import multipart from '@fastify/multipart';
 import { Logger } from 'nestjs-pino';
 import { AppDataSource } from './database/data-source';
 import { AppModule } from './app.module';
@@ -21,6 +22,8 @@ async function bootstrap(): Promise<void> {
     bufferLogs: true,
   });
   app.useLogger(app.get(Logger));
+  // Multipart for image/file uploads (§8.3). 25 MB cap.
+  await app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024 } });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableShutdownHooks();

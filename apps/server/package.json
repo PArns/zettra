@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
+    "@fastify/multipart": "^9.0.3",
+    "@fastify/static": "^8.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
@@ -25,6 +27,7 @@
     "bullmq": "^5.34.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "fastify": "^5.2.0",
     "ioredis": "^5.4.2",
     "nestjs-pino": "^4.2.0",
     "pg": "^8.13.1",

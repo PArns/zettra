@@ -9,6 +9,10 @@ export interface AppConfig {
   embeddingModel: string;
   llmModel: string;
   anthropicApiKey: string | undefined;
+  /** Directory where uploaded files are stored (§8.3 upload source). Mount a volume in prod. */
+  uploadDir: string;
+  /** Whether this process runs the in-process BullMQ workers (§8) alongside the API. */
+  runWorkers: boolean;
 }
 
 function required(name: string, fallback?: string): string {
@@ -34,6 +38,8 @@ export function loadConfig(): AppConfig {
     embeddingModel: process.env.EMBEDDING_MODEL ?? 'bge-m3',
     llmModel: process.env.LLM_MODEL ?? 'qwen3.6',
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    uploadDir: process.env.UPLOAD_DIR ?? '/data/uploads',
+    runWorkers: (process.env.RUN_WORKERS ?? 'true') !== 'false',
   };
 }
 

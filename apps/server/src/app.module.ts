@@ -16,6 +16,14 @@ import { EmbeddingModule } from './modules/embedding/embedding.module';
 import { ApprovalModule } from './modules/approval/approval.module';
 import { SyncModule } from './modules/sync/sync.module';
 import { HealthModule } from './modules/health/health.module';
+import { FieldModule } from './modules/field/field.module';
+import { LinkingModule } from './modules/linking/linking.module';
+import { CaptureModule } from './modules/capture/capture.module';
+import { CurationModule } from './modules/curation/curation.module';
+import { WorkersModule } from './modules/jobs/workers.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
+import { GraphModule } from './modules/graph/graph.module';
+import { SpaceModule } from './modules/space/space.module';
 
 /**
  * Root module wiring the domain-focused feature modules (§3). Global modules (AI, Jobs,
@@ -38,12 +46,20 @@ import { HealthModule } from './modules/health/health.module';
     // Feature modules
     AuthModule,
     TenantModule,
+    SpaceModule,
     TagModule,
+    FieldModule,
     BlockModule,
     ViewModule,
     EmbeddingModule,
+    LinkingModule,
     ApprovalModule,
+    CaptureModule,
+    CurationModule,
+    GraphModule,
+    UploadsModule,
     SyncModule,
+    WorkersModule,
     HealthModule,
   ],
   providers: [TenantContextService],

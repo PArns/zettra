@@ -6,6 +6,7 @@ export * from './approval';
 export * from './seed';
 export * from './editor';
 export * from './refs';
+export * from './text';
 export * from './routing';
 export * from './policy';
 export * from './dto';

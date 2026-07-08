@@ -37,6 +37,14 @@ export class BlockService {
       }),
     );
     await this.enqueueEmbed(ctx.tenantId, block.id);
+    // Captured (non-manual) blocks run the capture pipeline: tag/field proposal + linking (§8.3).
+    if ((dto.source ?? BlockSource.Manual) !== BlockSource.Manual) {
+      await this.queue.enqueue(
+        QUEUE.ProcessCapture,
+        { tenantId: ctx.tenantId, blockId: block.id },
+        `capture:${block.id}`,
+      );
+    }
     return block;
   }
 
