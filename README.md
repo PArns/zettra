@@ -75,13 +75,31 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
 - **Phase 1** — monorepo, tooling, Docker topology, health check.
 - **Phase 2** — all entities (§6), pgvector + HNSW migration, seed supertags on tenant
   creation, tenant-scoped services.
-- **Phase 3** — minimal email+password auth, space membership + the `visibleSpaceIds`
-  permission predicate (§15.2), RLS migration (defense-in-depth).
-- **Invariant logic (tested)** — the view compiler, `resolveProvider` (AI routing),
-  `resolveThresholds`/`decideLink` (approval), `extractRefs`, `#`/`[[`/`@` trigger detection.
-- **Seams for later phases** — the editor client + reference primitive (4), the sync
-  materialization + collab persistence hook (5), the view runner + Briefkasten (6), the
-  similarity query + embedding worker (7), BullMQ queues for capture/curation (8–9).
+- **Phase 3** — email+password auth, space membership + the `visibleSpaceIds` permission
+  predicate (§15.2), RLS migration (defense-in-depth).
+- **Phase 4** — BlockNote editor with the custom `reference`/`tag` inline primitive
+  (invariant 4), `#`/`@`/`[` suggestion menus with fuzzy search + create-if-not-exists,
+  and image/file upload (drag-drop + paste).
+- **Phase 5** — Hocuspocus collab server + debounced persistence hook; server-side
+  `materializeRefs` (mention-scoped deletes, invariant 5) and field-value materialization.
+- **Phase 6** — view compiler (typed columns, extendsId resolution) + view CRUD + the
+  table/board/list renderer and the Briefkasten.
+- **Phase 7** — Ollama `bge-m3` embed worker + live similarity query + the "Related" rail.
+- **Phase 8** — capture pipeline: upload capture, `process-capture` worker, AiRouter
+  tag/field proposal, idempotency.
+- **Phase 9** — mention linker (layer 1), curation worker (layer 3), approval-policy
+  resolution, the review queue with confirm/dismiss.
+- **Workers** — in-process BullMQ workers (embed, backfill/cleanup fields, capture,
+  curation), gated by `RUN_WORKERS`.
+- **Invariant logic (35 unit tests)** — view compiler, `resolveProvider` (AI routing),
+  `resolveThresholds`/`decideLink` (approval), `extractRefs`, mention linker, trigger
+  detection.
 
-See `CLAUDE.md` for the binding invariants and the phase map. `// SPEC-GAP:` comments mark
-scheduled-later work (spec §11).
+### Still scheduled (spec §11, marked `// SPEC-GAP:`)
+
+IMAP email polling and web-clipper capture sources; full BlockNote↔Yjs projection in the
+collab hook (`@blocknote/server-util`); bidirectional field↔editor sync; supertag schema
+evolution; hybrid (sparse+dense) search; the confidence-calibration loop; signed upload
+URLs; block-level permission overrides; Citus distribution (an ops step, §9).
+
+See `CLAUDE.md` for the binding invariants. `// SPEC-GAP:` comments mark scheduled work.
