@@ -10,6 +10,8 @@
     "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
+    "@blocknote/core": "^0.25.2",
+    "@blocknote/server-util": "^0.25.2",
     "@hocuspocus/extension-redis": "^2.15.0",
     "@hocuspocus/server": "^2.15.0",
     "@zettra/shared": "workspace:*",

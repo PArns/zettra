@@ -3,6 +3,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { DocBlock, extractRefs, RelationKind } from '@zettra/shared';
 import { Block, BlockRelation, BlockTag } from '../../entities/index';
 import { QUEUE, QueueService } from '../jobs/queue.service';
+import { NotificationService } from '../notification/notification.service';
 
 /**
  * Materializes editor references/tags into rows (§8.7 steps 2-3). The Yjs document is the
@@ -17,31 +18,37 @@ export class MaterializeService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly queue: QueueService,
+    private readonly notifications: NotificationService,
   ) {}
 
   async materialize(tenantId: string, blockId: string, doc: DocBlock[]): Promise<void> {
     const { referenceIds, tagIds } = extractRefs(doc);
 
+    let newMentions: string[] = [];
     await this.dataSource.transaction(async (manager) => {
       const block = await manager
         .getRepository(Block)
         .findOne({ where: { id: blockId, tenantId } });
       if (!block) return;
 
-      await this.syncMentions(manager, tenantId, blockId, referenceIds);
+      newMentions = await this.syncMentions(manager, tenantId, blockId, referenceIds);
       await this.syncTags(manager, tenantId, blockId, tagIds, block.createdBy);
     });
+
+    // Notify the owner of each newly-mentioned block (§15.6).
+    await this.notifyMentions(tenantId, blockId, newMentions);
 
     // Re-embed after content settles (§8.7 step 4), debounced by blockId.
     await this.queue.enqueue(QUEUE.Embed, { tenantId, blockId }, `embed:${blockId}`);
   }
 
+  /** Returns the target ids of newly-created mention edges. */
   private async syncMentions(
     manager: EntityManager,
     tenantId: string,
     blockId: string,
     referenceIds: Set<string>,
-  ): Promise<void> {
+  ): Promise<string[]> {
     const repo = manager.getRepository(BlockRelation);
     // ONLY mention edges — never touch suggested/relation (invariant 5).
     const existing = await repo.find({
@@ -65,6 +72,25 @@ export class MaterializeService {
     }
     if (toDelete.length) {
       await repo.remove(toDelete);
+    }
+    return toInsert;
+  }
+
+  private async notifyMentions(
+    tenantId: string,
+    sourceId: string,
+    targetIds: string[],
+  ): Promise<void> {
+    if (targetIds.length === 0) return;
+    const source = await this.dataSource.getRepository(Block).findOne({ where: { id: sourceId } });
+    for (const targetId of targetIds) {
+      const target = await this.dataSource
+        .getRepository(Block)
+        .findOne({ where: { id: targetId } });
+      const owner = target?.ownerUserId;
+      if (owner && owner !== source?.ownerUserId) {
+        await this.notifications.emit(tenantId, owner, 'mention', sourceId);
+      }
     }
   }
 

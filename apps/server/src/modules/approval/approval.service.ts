@@ -10,6 +10,7 @@ import {
   resolveThresholds,
 } from '@zettra/shared';
 import { ApprovalPolicy, BlockRelation } from '../../entities/index';
+import { NotificationService } from '../notification/notification.service';
 
 export interface CurationCandidate {
   sourceId: string;
@@ -29,6 +30,7 @@ export class ApprovalService {
   constructor(
     @InjectRepository(ApprovalPolicy) private readonly policies: Repository<ApprovalPolicy>,
     @InjectRepository(BlockRelation) private readonly relations: Repository<BlockRelation>,
+    private readonly notifications: NotificationService,
   ) {}
 
   /**
@@ -79,6 +81,10 @@ export class ApprovalService {
         approvedAt: confirmed ? new Date() : null,
       }),
     );
+    // Suggested links go to a review queue; notify the source block's owner (§15.6).
+    if (!confirmed && userId) {
+      await this.notifications.emit(tenantId, userId, 'review_request', candidate.sourceId);
+    }
     return { decision, relation };
   }
 

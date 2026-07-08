@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FieldType } from '@zettra/shared';
 import { FieldValue, TagField } from '../../entities/index';
+import { NotificationService } from '../notification/notification.service';
 
 /**
  * Field-value read/write (§8.7 step 5, invariant 2). Exactly one `value*` column is populated
@@ -14,6 +15,7 @@ export class FieldValueService {
   constructor(
     @InjectRepository(FieldValue) private readonly values: Repository<FieldValue>,
     @InjectRepository(TagField) private readonly fields: Repository<TagField>,
+    private readonly notifications: NotificationService,
   ) {}
 
   listForBlock(tenantId: string, blockId: string): Promise<FieldValue[]> {
@@ -36,7 +38,13 @@ export class FieldValueService {
     this.clear(row);
     this.assign(row, field.type, raw);
     row.updatedBy = userId;
-    return this.values.save(row);
+    const saved = await this.values.save(row);
+
+    // Assigning a `user` field (e.g. #task assignee) notifies the assignee (§15.6).
+    if (field.type === FieldType.User && typeof raw === 'string' && raw && raw !== userId) {
+      await this.notifications.emit(tenantId, raw, 'task_assignment', blockId);
+    }
+    return saved;
   }
 
   /** Backfill default values for a tag's fields on a block (§8.1). Idempotent. */

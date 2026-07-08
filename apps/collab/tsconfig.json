@@ -6,6 +6,7 @@
     "baseUrl": ".",
     "outDir": "./dist",
     "rootDir": "./src",
+    "lib": ["ES2023", "DOM"],
     "types": ["node"],
     "declaration": false,
     "declarationMap": false

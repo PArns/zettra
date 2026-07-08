@@ -7,6 +7,7 @@ import { BlockTag } from './block-tag.entity';
 import { FieldValue } from './field-value.entity';
 import { Membership } from './membership.entity';
 import { Notification } from './notification.entity';
+export type { NotificationKind } from './notification.entity';
 import { Space } from './space.entity';
 import { Tag } from './tag.entity';
 import { TagField } from './tag-field.entity';

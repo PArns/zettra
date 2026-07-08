@@ -77,6 +77,46 @@ export class GraphService {
       }));
   }
 
+  /**
+   * Dismiss-rate per confidence bucket (§8.5 calibration, §11). The observability signal for
+   * auto-linking quality: feed the review queue's confirm/dismiss decisions back to measure
+   * how well the curation confidence is calibrated.
+   */
+  async linkQualityBuckets(
+    ctx: RequestContext,
+  ): Promise<Array<{ bucket: string; confirmed: number; dismissed: number; dismissRate: number }>> {
+    const rows: Array<{ bucket: number; status: string; n: string }> = await this.relations.query(
+      `
+      SELECT floor(least(confidence, 0.999) * 10) AS bucket, status, count(*) AS n
+      FROM block_relation
+      WHERE "tenantId" = $1 AND confidence IS NOT NULL AND status IN ('confirmed','dismissed')
+      GROUP BY bucket, status
+      ORDER BY bucket
+      `,
+      [ctx.tenantId],
+    );
+    const buckets = new Map<number, { confirmed: number; dismissed: number }>();
+    for (const r of rows) {
+      const b = buckets.get(Number(r.bucket)) ?? { confirmed: 0, dismissed: 0 };
+      if (r.status === 'confirmed') b.confirmed += Number(r.n);
+      else b.dismissed += Number(r.n);
+      buckets.set(Number(r.bucket), b);
+    }
+    return [...buckets.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([b, v]) => {
+        const total = v.confirmed + v.dismissed;
+        const lo = (b / 10).toFixed(1);
+        const hi = ((b + 1) / 10).toFixed(1);
+        return {
+          bucket: `${lo}–${hi}`,
+          confirmed: v.confirmed,
+          dismissed: v.dismissed,
+          dismissRate: total ? v.dismissed / total : 0,
+        };
+      });
+  }
+
   /** The suggested-link review queue (§8.5). Only edges touching a visible space. */
   async reviewQueue(ctx: RequestContext): Promise<BlockRelation[]> {
     const suggested = await this.relations.find({
