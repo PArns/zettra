@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Env — never commit real secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Test coverage
+coverage/
+
+# Vite
+apps/client/dist/
+apps/client/.vite/
+
+# Ollama / docker volumes (if bind-mounted locally)
+.volumes/

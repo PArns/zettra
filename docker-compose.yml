@@ -1,0 +1,102 @@
+# Zettra production topology (§13.1). `web` is the only public entrypoint.
+# Dev overrides live in docker-compose.override.yml (auto-merged by compose).
+
+services:
+  postgres:
+    # MUST be the pgvector image — stock postgres:16 lacks the vector extension (§13.2).
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  ollama:
+    image: ollama/ollama
+    volumes:
+      - ollama:/root/.ollama
+    environment:
+      # Keep the model resident to avoid bimodal latency (§14.5).
+      OLLAMA_KEEP_ALIVE: 30m
+    healthcheck:
+      test: ['CMD-SHELL', 'ollama list || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # One-shot companion: pull the embedding model once into the shared volume, then exit (§13.2).
+  ollama-pull:
+    image: ollama/ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ollama:/root/.ollama
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ['/bin/sh', '-c', 'ollama pull ${EMBEDDING_MODEL:-bge-m3}']
+    restart: 'no'
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      OLLAMA_URL: ${OLLAMA_URL}
+      PORT: ${PORT:-3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    # Entrypoint runs migrations (incl. CREATE EXTENSION vector + HNSW) before boot (§13.3).
+
+  collab:
+    build:
+      context: .
+      dockerfile: apps/collab/Dockerfile
+    env_file: .env
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      APP_SECRET: ${APP_SECRET}
+      SERVER_INTERNAL_URL: ${SERVER_INTERNAL_URL:-http://server:3000}
+      COLLAB_PORT: ${COLLAB_PORT:-1234}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/client/Dockerfile
+    depends_on:
+      - server
+      - collab
+    ports:
+      - '8080:80'
+
+volumes:
+  pgdata:
+  redisdata:
+  ollama:

@@ -1,0 +1,37 @@
+# Dev overrides (§13.4), auto-merged by compose. Mounts source and runs watch/HMR.
+# postgres/redis/ollama are identical to prod.
+
+services:
+  server:
+    build:
+      target: builder
+    command: pnpm --filter @zettra/server dev
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps/server:/app/apps/server
+      - ./packages:/app/packages
+    ports:
+      - '3000:3000'
+
+  collab:
+    build:
+      target: builder
+    command: pnpm --filter @zettra/collab dev
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps/collab:/app/apps/collab
+      - ./packages:/app/packages
+    ports:
+      - '1234:1234'
+
+  web:
+    build:
+      target: builder
+    command: pnpm --filter @zettra/client dev -- --host 0.0.0.0 --port 5173
+    volumes:
+      - ./apps/client:/app/apps/client
+      - ./packages:/app/packages
+    ports:
+      - '5173:5173'
