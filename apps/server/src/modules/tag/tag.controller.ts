@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { IsArray, IsOptional, IsString, MinLength } from 'class-validator';
-import { CreateTagFieldDto } from '@zettra/shared';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { IsArray, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { CreateTagFieldDto, FieldType } from '@zettra/shared';
+import { TagField } from '../../entities/index';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
@@ -13,6 +14,13 @@ class CreateTagBody {
   @IsOptional() @IsString() color?: string;
   @IsOptional() @IsString() extendsId?: string;
   @IsOptional() @IsArray() fields?: CreateTagFieldDto[];
+}
+
+class TagFieldBody {
+  @IsString() @MinLength(1) name!: string;
+  @IsEnum(FieldType) type!: FieldType;
+  @IsOptional() config?: Record<string, unknown>;
+  @IsOptional() position?: number;
 }
 
 @Controller('tags')
@@ -33,6 +41,35 @@ export class TagController {
   @Get(':id/fields')
   fields(@Ctx() ctx: RequestContext, @Param('id') id: string): Promise<EffectiveField[]> {
     return this.tags.resolveEffectiveFields(ctx.tenantId, id);
+  }
+
+  // --- Schema evolution (§8.1, §11) ---
+
+  @Post(':id/fields')
+  addField(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+    @Body() body: TagFieldBody,
+  ): Promise<TagField> {
+    return this.tags.addField(ctx.tenantId, id, body);
+  }
+
+  @Patch('fields/:fieldId')
+  updateField(
+    @Ctx() ctx: RequestContext,
+    @Param('fieldId') fieldId: string,
+    @Body() body: Partial<TagFieldBody>,
+  ): Promise<TagField> {
+    return this.tags.updateField(ctx.tenantId, fieldId, body);
+  }
+
+  @Delete('fields/:fieldId')
+  async removeField(
+    @Ctx() ctx: RequestContext,
+    @Param('fieldId') fieldId: string,
+  ): Promise<{ ok: true }> {
+    await this.tags.removeField(ctx.tenantId, fieldId);
+    return { ok: true };
   }
 
   @Post(':id/apply/:blockId')

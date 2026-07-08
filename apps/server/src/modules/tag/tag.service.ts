@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateTagDto, FieldType } from '@zettra/shared';
-import { BlockTag, Tag, TagField } from '../../entities/index';
+import { CreateTagFieldDto, CreateTagDto, FieldType } from '@zettra/shared';
+import { BlockTag, FieldValue, Tag, TagField } from '../../entities/index';
 import { QUEUE, QueueService } from '../jobs/queue.service';
 
 export interface EffectiveField {
@@ -25,6 +25,7 @@ export class TagService {
     @InjectRepository(Tag) private readonly tags: Repository<Tag>,
     @InjectRepository(TagField) private readonly fields: Repository<TagField>,
     @InjectRepository(BlockTag) private readonly blockTags: Repository<BlockTag>,
+    @InjectRepository(FieldValue) private readonly fieldValues: Repository<FieldValue>,
     private readonly queue: QueueService,
   ) {}
 
@@ -122,5 +123,73 @@ export class TagService {
       { tenantId, blockId, tagId },
       `cleanup:${blockId}:${tagId}`,
     );
+  }
+
+  // --- Schema evolution (§8.1, §11) ---
+
+  /** Add a field to a supertag and backfill its default across every tagged block. */
+  async addField(tenantId: string, tagId: string, dto: CreateTagFieldDto): Promise<TagField> {
+    const tag = await this.tags.findOne({ where: { id: tagId, tenantId } });
+    if (!tag) throw new NotFoundException('Tag not found');
+    const count = await this.fields.count({ where: { tagId } });
+    const field = await this.fields.save(
+      this.fields.create({
+        tagId,
+        name: dto.name,
+        type: dto.type,
+        config: dto.config ?? {},
+        position: dto.position ?? count,
+      }),
+    );
+    await this.backfillTaggedBlocks(tenantId, tagId);
+    return field;
+  }
+
+  /**
+   * Rename/retype/reconfigure a field. SPEC-GAP: retyping does not migrate existing
+   * `field_value` rows to the new typed column — a follow-up backfill/reconciliation job
+   * owns that. Renames are safe (values key on fieldId, not name).
+   */
+  async updateField(
+    tenantId: string,
+    fieldId: string,
+    patch: Partial<CreateTagFieldDto>,
+  ): Promise<TagField> {
+    const field = await this.fields.findOne({ where: { id: fieldId } });
+    if (!field) throw new NotFoundException('Field not found');
+    const tag = await this.tags.findOne({ where: { id: field.tagId, tenantId } });
+    if (!tag) throw new NotFoundException('Field not in this tenant');
+    Object.assign(field, {
+      name: patch.name ?? field.name,
+      type: patch.type ?? field.type,
+      config: patch.config ?? field.config,
+      position: patch.position ?? field.position,
+    });
+    return this.fields.save(field);
+  }
+
+  /** Remove a field from a supertag and delete its orphaned values across all blocks. */
+  async removeField(tenantId: string, fieldId: string): Promise<void> {
+    const field = await this.fields.findOne({ where: { id: fieldId } });
+    if (!field) throw new NotFoundException('Field not found');
+    const tag = await this.tags.findOne({ where: { id: field.tagId, tenantId } });
+    if (!tag) throw new NotFoundException('Field not in this tenant');
+    await this.fieldValues.delete({ tenantId, fieldId });
+    await this.fields.delete({ id: fieldId });
+  }
+
+  /** Enqueue a backfill job for every block currently carrying the tag. */
+  private async backfillTaggedBlocks(tenantId: string, tagId: string): Promise<void> {
+    const rows = await this.blockTags.find({
+      where: { tenantId, tagId },
+      select: { blockId: true },
+    });
+    for (const row of rows) {
+      await this.queue.enqueue(
+        QUEUE.BackfillFields,
+        { tenantId, blockId: row.blockId, tagId },
+        `backfill:${row.blockId}:${tagId}`,
+      );
+    }
   }
 }
