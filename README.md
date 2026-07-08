@@ -85,10 +85,15 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
 - **Phase 6** — view compiler (typed columns, extendsId resolution) + view CRUD + the
   table/board/list renderer and the Briefkasten.
 - **Phase 7** — Ollama `bge-m3` embed worker + live similarity query + the "Related" rail.
-- **Phase 8** — capture pipeline: upload capture, `process-capture` worker, AiRouter
-  tag/field proposal, idempotency.
+- **Phase 8** — capture pipeline: a generic `/capture` endpoint (text / web-clip /
+  IMAP-ready with idempotent `sourceRef`) + upload capture, the `process-capture` worker,
+  AiRouter tag/field proposal.
 - **Phase 9** — mention linker (layer 1), curation worker (layer 3), approval-policy
   resolution, the review queue with confirm/dismiss.
+- **Phase 10** — dismiss-rate-per-confidence-bucket calibration metric; calendar + gallery
+  layouts; notifications (@-mention, task assignment, review request) with a topbar bell.
+- **Real Yjs↔rows sync** — the collab hook projects settled docs via `ServerBlockNoteEditor`
+  with the shared custom schema, so materialize/embed/curation run on correct content.
 - **Workers** — in-process BullMQ workers (embed, backfill/cleanup fields, capture,
   curation), gated by `RUN_WORKERS`.
 - **Invariant logic (35 unit tests)** — view compiler, `resolveProvider` (AI routing),
@@ -97,9 +102,10 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
 
 ### Still scheduled (spec §11, marked `// SPEC-GAP:`)
 
-IMAP email polling and web-clipper capture sources; full BlockNote↔Yjs projection in the
-collab hook (`@blocknote/server-util`); bidirectional field↔editor sync; supertag schema
-evolution; hybrid (sparse+dense) search; the confidence-calibration loop; signed upload
-URLs; block-level permission overrides; Citus distribution (an ops step, §9).
+A live IMAP poller (the ingest endpoint exists; only the scheduled fetch loop is pending);
+bidirectional field↔editor sync (editing a field in a board reflecting inline); supertag
+schema evolution (retyping a field on already-tagged blocks); hybrid (sparse+dense) search;
+signed/access-scoped upload URLs; block-level permission overrides; Citus distribution (an
+ops step, §9).
 
 See `CLAUDE.md` for the binding invariants. `// SPEC-GAP:` comments mark scheduled work.

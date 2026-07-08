@@ -63,6 +63,9 @@ services:
       REDIS_URL: ${REDIS_URL}
       OLLAMA_URL: ${OLLAMA_URL}
       PORT: ${PORT:-3000}
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -100,3 +103,4 @@ volumes:
   pgdata:
   redisdata:
   ollama:
+  uploads:
