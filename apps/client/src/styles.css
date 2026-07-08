@@ -532,6 +532,108 @@ table.zx tr:hover td {
   justify-content: space-between;
 }
 
+/* ---------- Gallery ---------- */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+.gallery-thumb {
+  height: 88px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    135deg,
+    var(--accent-soft),
+    color-mix(in srgb, #a78bfa 18%, transparent)
+  );
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+/* ---------- Notifications ---------- */
+.bell {
+  position: relative;
+}
+.bell .badge-count {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+}
+.popover {
+  position: absolute;
+  top: 46px;
+  right: 12px;
+  width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  overflow: hidden;
+}
+.popover .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.popover .n-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  cursor: pointer;
+}
+.popover .n-item:hover {
+  background: var(--surface-hover);
+}
+.popover .n-item.unread {
+  background: var(--accent-soft);
+}
+
+/* ---------- Tag menu ---------- */
+.menu {
+  position: relative;
+}
+.menu-list {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 40;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.menu-list .m-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.menu-list .m-item:hover {
+  background: var(--accent-soft);
+}
+
 /* ---------- Empty states ---------- */
 .empty {
   text-align: center;

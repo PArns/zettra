@@ -77,6 +77,13 @@ export interface EntityHit {
   blockId: string;
   alias: string;
 }
+export interface Notification {
+  id: string;
+  kind: 'mention' | 'task_assignment' | 'review_request';
+  sourceBlockId: string | null;
+  read: boolean;
+  createdAt: string;
+}
 
 export const api = {
   register: (i: { tenantName: string; email: string; password: string }) =>
@@ -114,6 +121,12 @@ export const api = {
 
   applyTag: (tagId: string, blockId: string) =>
     request(`/tags/${tagId}/apply/${blockId}`, { method: 'POST' }),
+
+  notifications: () => request<Notification[]>('/notifications'),
+  markNotificationsRead: () => request('/notifications/read-all', { method: 'POST' }),
+
+  capture: (i: { text: string; title?: string; url?: string }) =>
+    request<BlockDto>('/capture', { method: 'POST', body: JSON.stringify(i) }),
 
   /** Upload a file (image) → returns its served URL. Backs BlockNote's uploadFile. */
   async upload(file: File): Promise<string> {

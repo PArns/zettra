@@ -8,6 +8,8 @@ import { InboxPane } from './components/InboxPane';
 import { ViewPane } from './components/ViewPane';
 import { ReviewQueue } from './components/ReviewQueue';
 import { RightRail } from './components/RightRail';
+import { NotificationsBell } from './components/NotificationsBell';
+import { ApplyTagMenu } from './components/ApplyTagMenu';
 import { Editor } from './editor/Editor';
 
 export function App() {
@@ -114,9 +116,11 @@ export function App() {
           )}
           <div className="crumb">{crumb}</div>
           <div className="spacer" />
+          {selected && <ApplyTagMenu blockId={selected} />}
           <button className="ghost" onClick={capture}>
             ✎ Capture
           </button>
+          <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
           <button className="icon" title="Toggle theme" onClick={() => setTheme(toggleTheme())}>
             {theme === 'dark' ? '☀' : '☾'}
           </button>
