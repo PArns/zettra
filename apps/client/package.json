@@ -1,0 +1,31 @@
+{
+  "name": "@zettra/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint \"src/**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "@blocknote/core": "^0.25.1",
+    "@blocknote/mantine": "^0.25.1",
+    "@blocknote/react": "^0.25.1",
+    "@hocuspocus/provider": "^2.15.0",
+    "@zettra/editor-ext": "workspace:*",
+    "@zettra/shared": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "yjs": "^13.6.20"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  }
+}
