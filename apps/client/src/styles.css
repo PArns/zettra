@@ -1157,6 +1157,17 @@ body {
   .menu-list .m-item:hover {
     background: var(--accent-soft);
   }
+  .search-askai {
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+  }
+  .search-askai-glyph {
+    color: var(--accent);
+  }
+  .search-askai-q {
+    color: var(--text-muted);
+  }
 
   /* ---------- Empty states ---------- */
   .empty {

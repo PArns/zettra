@@ -9,8 +9,15 @@ interface Hit {
   preview: string;
 }
 
-/** Topbar hybrid-search box (§11): debounced query → dense+FTS results dropdown. */
-export function SearchBox({ onOpen }: { onOpen: (id: string) => void }) {
+/** Topbar hybrid-search box (§11): debounced query → dense+FTS results dropdown, plus an
+ *  "Ask AI" affordance that hands the query to the grounded chat (§1). */
+export function SearchBox({
+  onOpen,
+  onAskAi,
+}: {
+  onOpen: (id: string) => void;
+  onAskAi?: (question: string) => void;
+}) {
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -71,6 +78,23 @@ export function SearchBox({ onOpen }: { onOpen: (id: string) => void }) {
       />
       {open && (
         <div className="menu-list" style={{ width: 360, left: 'auto', right: 0 }}>
+          {onAskAi && q.trim() && (
+            <div
+              className="m-item search-askai"
+              {...clickable(() => {
+                const question = q.trim();
+                setOpen(false);
+                setQ('');
+                setHits(null);
+                onAskAi(question);
+              })}
+            >
+              <span className="search-askai-glyph">✦</span>
+              <span>
+                {t('search.askAi')} <span className="search-askai-q">“{q.trim()}”</span>
+              </span>
+            </div>
+          )}
           {loading && <div className="m-item">{t('search.searching')}</div>}
           {!loading && hits && hits.length === 0 && (
             <div className="m-item">{t('search.noMatches')}</div>

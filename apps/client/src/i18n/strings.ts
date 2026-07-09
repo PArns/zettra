@@ -171,6 +171,7 @@ const en = {
   'search.placeholder': 'Search everything…',
   'search.searching': 'Searching…',
   'search.noMatches': 'No matches.',
+  'search.askAi': 'Ask AI',
 
   'field.pick': 'Select…',
   'field.search': 'Search…',
@@ -410,6 +411,7 @@ const de: Catalog = {
   'search.placeholder': 'Alles durchsuchen…',
   'search.searching': 'Suche…',
   'search.noMatches': 'Keine Treffer.',
+  'search.askAi': 'KI fragen',
 
   'field.pick': 'Auswählen…',
   'field.search': 'Suchen…',
@@ -647,6 +649,7 @@ const es: Catalog = {
   'search.placeholder': 'Buscar en todo…',
   'search.searching': 'Buscando…',
   'search.noMatches': 'Sin coincidencias.',
+  'search.askAi': 'Preguntar a la IA',
 
   'field.pick': 'Seleccionar…',
   'field.search': 'Buscar…',
@@ -883,6 +886,7 @@ const fr: Catalog = {
   'search.placeholder': 'Tout rechercher…',
   'search.searching': 'Recherche…',
   'search.noMatches': 'Aucun résultat.',
+  'search.askAi': 'Demander à l’IA',
 
   'field.pick': 'Sélectionner…',
   'field.search': 'Rechercher…',

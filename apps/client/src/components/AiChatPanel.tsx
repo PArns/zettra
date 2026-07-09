@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import { useT } from '../i18n';
 import { clickable } from '../lib/a11y';
@@ -16,9 +16,12 @@ interface ChatMessage {
 export function AiChatPanel({
   onClose,
   onOpenBlock,
+  initialQuestion,
 }: {
   onClose: () => void;
   onOpenBlock: (id: string) => void;
+  /** When set, the panel opens and immediately asks this question (from the "Ask AI" affordance). */
+  initialQuestion?: string;
 }) {
   const t = useT();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -36,10 +39,9 @@ export function AiChatPanel({
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  async function send() {
-    const q = input.trim();
-    if (!q || busy) return;
-    setInput('');
+  const ask = useCallback(async (question: string) => {
+    const q = question.trim();
+    if (!q) return;
     setMessages((m) => [...m, { role: 'user', text: q }]);
     setBusy(true);
     try {
@@ -50,6 +52,22 @@ export function AiChatPanel({
     } finally {
       setBusy(false);
     }
+  }, []);
+
+  // Fire the initial question exactly once when the panel is opened from "Ask AI".
+  const asked = useRef(false);
+  useEffect(() => {
+    if (initialQuestion && !asked.current) {
+      asked.current = true;
+      void ask(initialQuestion);
+    }
+  }, [initialQuestion, ask]);
+
+  function send() {
+    if (busy) return;
+    const q = input;
+    setInput('');
+    void ask(q);
   }
 
   return (

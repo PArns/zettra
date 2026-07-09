@@ -39,6 +39,8 @@ export function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  // Question handed to the chat by the "Ask AI" search affordance (auto-asked on open).
+  const [chatQuestion, setChatQuestion] = useState<string | undefined>(undefined);
   // When set, we're impersonating another user; holds the admin's own token to restore.
   const [impersonatorToken, setImpersonatorToken] = useState<string | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -216,14 +218,26 @@ export function App() {
           )}
           <div className="crumb">{crumb}</div>
           <div className="spacer" />
-          <SearchBox onOpen={(id) => setSelected(id)} />
+          <SearchBox
+            onOpen={(id) => setSelected(id)}
+            onAskAi={(question) => {
+              setChatQuestion(question);
+              setShowChat(true);
+            }}
+          />
           {selected && (
             <ApplyTagMenu blockId={selected} onApplied={() => setRailRefresh((n) => n + 1)} />
           )}
           <button className="ghost" onClick={capture} disabled={capturing}>
             {capturing ? t('top.capturing') : `✎ ${t('top.capture')}`}
           </button>
-          <IconButton label={t('chat.title')} onClick={() => setShowChat((v) => !v)}>
+          <IconButton
+            label={t('chat.title')}
+            onClick={() => {
+              setChatQuestion(undefined);
+              setShowChat((v) => !v);
+            }}
+          >
             ✦
           </IconButton>
           <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
@@ -296,6 +310,8 @@ export function App() {
 
       {showChat && (
         <AiChatPanel
+          key={chatQuestion ?? '__manual__'}
+          initialQuestion={chatQuestion}
           onClose={() => setShowChat(false)}
           onOpenBlock={(id) => {
             setSelected(id);
