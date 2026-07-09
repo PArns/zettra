@@ -176,6 +176,15 @@ const en = {
   'field.search': 'Search…',
   'field.clear': 'Clear',
 
+  'welcome.title': 'Welcome to Zettra',
+  'welcome.subtitle': 'Your second brain that thinks in connections. Start with one of these:',
+  'welcome.captureTitle': 'Capture a thought',
+  'welcome.captureBody': 'Jot anything down — it lands in your Briefkasten, ready to organize.',
+  'welcome.tagTitle': 'Create a supertag',
+  'welcome.tagBody': 'Turn notes into typed entities with their own fields and views.',
+  'welcome.dropTitle': 'Drop a file',
+  'welcome.dropBody': 'Drag files, images, or links into the dropbox — they auto-tag.',
+
   'notif.title': 'Notifications',
   'notif.unread': 'unread',
   'notif.caughtUp': "You're all caught up.",
@@ -354,6 +363,16 @@ const de: Catalog = {
   'field.search': 'Suchen…',
   'field.clear': 'Entfernen',
 
+  'welcome.title': 'Willkommen bei Zettra',
+  'welcome.subtitle': 'Dein zweites Gehirn, das in Verbindungen denkt. Starte mit einem davon:',
+  'welcome.captureTitle': 'Gedanken erfassen',
+  'welcome.captureBody': 'Schreib etwas auf — es landet im Briefkasten, bereit zum Ordnen.',
+  'welcome.tagTitle': 'Supertag erstellen',
+  'welcome.tagBody': 'Mach aus Notizen typisierte Entitäten mit eigenen Feldern und Ansichten.',
+  'welcome.dropTitle': 'Datei ablegen',
+  'welcome.dropBody':
+    'Zieh Dateien, Bilder oder Links in die Dropbox — sie werden automatisch getaggt.',
+
   'notif.title': 'Benachrichtigungen',
   'notif.unread': 'ungelesen',
   'notif.caughtUp': 'Du bist auf dem neuesten Stand.',
@@ -529,6 +548,15 @@ const es: Catalog = {
   'field.search': 'Buscar…',
   'field.clear': 'Quitar',
 
+  'welcome.title': 'Bienvenido a Zettra',
+  'welcome.subtitle': 'Tu segundo cerebro que piensa en conexiones. Empieza con una de estas:',
+  'welcome.captureTitle': 'Captura una idea',
+  'welcome.captureBody': 'Anota lo que sea — llega a tu bandeja, lista para organizar.',
+  'welcome.tagTitle': 'Crea una superetiqueta',
+  'welcome.tagBody': 'Convierte notas en entidades tipadas con sus propios campos y vistas.',
+  'welcome.dropTitle': 'Suelta un archivo',
+  'welcome.dropBody': 'Arrastra archivos, imágenes o enlaces a la bandeja — se etiquetan solos.',
+
   'notif.title': 'Notificaciones',
   'notif.unread': 'sin leer',
   'notif.caughtUp': 'Estás al día.',
@@ -703,6 +731,16 @@ const fr: Catalog = {
   'field.pick': 'Sélectionner…',
   'field.search': 'Rechercher…',
   'field.clear': 'Effacer',
+
+  'welcome.title': 'Bienvenue sur Zettra',
+  'welcome.subtitle':
+    'Votre second cerveau qui pense en connexions. Commencez par l’une de celles-ci :',
+  'welcome.captureTitle': 'Capturez une idée',
+  'welcome.captureBody': 'Notez n’importe quoi — ça arrive dans votre boîte, prêt à organiser.',
+  'welcome.tagTitle': 'Créez un supertag',
+  'welcome.tagBody': 'Transformez des notes en entités typées avec leurs champs et vues.',
+  'welcome.dropTitle': 'Déposez un fichier',
+  'welcome.dropBody': 'Glissez fichiers, images ou liens dans la boîte — ils se taguent seuls.',
 
   'notif.title': 'Notifications',
   'notif.unread': 'non lues',

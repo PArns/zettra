@@ -1,21 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { AiPrivacyScope } from '@zettra/shared';
+import { AiPrivacyScope, welcomeDoc } from '@zettra/shared';
 import { Space } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { MembershipService } from '../membership/membership.service';
+import { BlockService } from '../block/block.service';
 import { LimitsService } from '../limits/limits.service';
 
 /**
- * Spaces (§5). Creating a space grants the creator an owner membership. Listing is scoped to
- * the acting user's memberships (§15.2).
+ * Spaces (§5). Creating a space grants the creator an owner membership and seeds a starter
+ * welcome note (§8.2). Listing is scoped to the acting user's memberships (§15.2).
  */
 @Injectable()
 export class SpaceService {
+  private readonly logger = new Logger(SpaceService.name);
+
   constructor(
     @InjectRepository(Space) private readonly spaces: Repository<Space>,
     private readonly memberships: MembershipService,
+    private readonly blocks: BlockService,
     private readonly limits: LimitsService,
   ) {}
 
@@ -34,6 +38,19 @@ export class SpaceService {
       }),
     );
     if (ctx.userId) await this.memberships.ensureOwner(ctx.tenantId, space.id, ctx.userId);
+
+    // Seed the starter template. The new space isn't in the request's visibleSpaceIds yet, so
+    // scope a context that includes it (the creator owns it). Best-effort: a template failure
+    // (e.g. a block-count cap) must never fail space creation.
+    try {
+      const scoped: RequestContext = {
+        ...ctx,
+        visibleSpaceIds: [...ctx.visibleSpaceIds, space.id],
+      };
+      await this.blocks.create(scoped, { spaceId: space.id, content: welcomeDoc(name) });
+    } catch (err) {
+      this.logger.warn(`Starter template skipped for space ${space.id}: ${(err as Error).message}`);
+    }
     return space;
   }
 

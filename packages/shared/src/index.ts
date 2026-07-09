@@ -14,3 +14,4 @@ export * from './rrf';
 export * from './routing';
 export * from './policy';
 export * from './dto';
+export * from './space-template';

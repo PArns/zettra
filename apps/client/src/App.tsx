@@ -10,6 +10,7 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { SupertagDialog } from './components/SupertagDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
+import { WelcomePane } from './components/WelcomePane';
 import { DropZone } from './components/DropZone';
 import { ForReviewPane } from './components/ForReviewPane';
 import { ViewPane } from './components/ViewPane';
@@ -211,6 +212,12 @@ export function App() {
               <div className="pane-narrow">
                 {nav.kind === 'inbox' && (
                   <>
+                    {inbox.length === 0 && tags.length === 0 && (
+                      <WelcomePane
+                        onCapture={capture}
+                        onCreateTag={() => setTagEdit({ tag: null })}
+                      />
+                    )}
                     <DropZone
                       spaceId={spaces[0]?.id ?? me?.spaces[0]}
                       onCaptured={(b) => {
