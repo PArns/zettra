@@ -194,6 +194,7 @@ export const api = {
   viewData: (id: string) => request<ViewData>(`/views/${id}/data`),
 
   inbox: () => request<BlockDto[]>('/views/inbox'),
+  todayItems: () => request<BlockDto[]>('/views/today-items'),
   forReview: () => request<BlockDto[]>('/views/for-review'),
   markReviewed: (id: string) => request<BlockDto>(`/blocks/${id}/reviewed`, { method: 'POST' }),
   block: (id: string) => request<BlockDto>(`/blocks/${id}`),

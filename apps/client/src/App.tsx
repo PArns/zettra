@@ -281,7 +281,7 @@ export function App() {
             <div className="pane">
               <div className="pane-narrow">
                 {nav.kind === 'today' && (
-                  <TodayPane captures={inbox} onOpen={(id) => setSelected(id)} />
+                  <TodayPane onOpen={(id) => setSelected(id)} />
                 )}
                 {nav.kind === 'calendar' && <CalendarPane onOpen={(id) => setSelected(id)} />}
                 {nav.kind === 'inbox' && (

@@ -37,17 +37,17 @@ describe('Auth', () => {
     expect(onAuthed).toHaveBeenCalled();
   });
 
-  it('switches to the login form and shows the workspace id field', () => {
+  it('login form is email-first — no workspace UUID field', () => {
     render(<Auth onAuthed={() => {}} />);
     fireEvent.click(screen.getByRole('tab', { name: /sign in/i }));
-    expect(screen.getByText(/Workspace ID/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Workspace ID/i)).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/you@example.com/i)).toBeInTheDocument();
   });
 
   it('surfaces an error when the API rejects', async () => {
     mockedApi.login.mockRejectedValue(new Error('API 401: bad creds'));
     const { container } = render(<Auth onAuthed={() => {}} />);
     fireEvent.click(screen.getByRole('tab', { name: /sign in/i }));
-    fireEvent.change(screen.getByPlaceholderText('uuid'), { target: { value: 'tid' } });
     fireEvent.change(screen.getByPlaceholderText(/you@example.com/i), {
       target: { value: 'a@b.c' },
     });

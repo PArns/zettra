@@ -69,6 +69,14 @@ export class ViewController {
     return blocks.map((b) => toBlockDto(b, tags.get(b.id) ?? []));
   }
 
+  /** The Today feed — everything the acting user can see that was created or updated today (§6). */
+  @Get('today-items')
+  async todayItems(@Ctx() ctx: RequestContext): Promise<BlockDto[]> {
+    const blocks = await this.views.todayItems(ctx);
+    const tags = await this.blocks.tagIdsForMany(blocks.map((b) => b.id));
+    return blocks.map((b) => toBlockDto(b, tags.get(b.id) ?? []));
+  }
+
   /** Entities carrying a supertag — the option list for a `relation`-typed field picker. */
   @Get('tag/:tagId/entities')
   entities(

@@ -29,18 +29,14 @@ function fmt(iso: string): string {
  * upcoming), date-field items scheduled today (pulled from the calendar agenda), and the freshest
  * captures. A calm daily start gathered from all sources.
  */
-export function TodayPane({
-  captures,
-  onOpen,
-}: {
-  captures: BlockDto[];
-  onOpen: (id: string) => void;
-}) {
+export function TodayPane({ onOpen }: { onOpen: (id: string) => void }) {
   const t = useT();
   const toast = useToast();
   const today = todayIso();
   const [reminders, setReminders] = useState<ReminderView[]>([]);
   const [scheduled, setScheduled] = useState<AgendaItem[]>([]);
+  // Everything created OR updated today (not just fresh untagged captures).
+  const [todayBlocks, setTodayBlocks] = useState<BlockDto[]>([]);
 
   const load = () =>
     api
@@ -54,6 +50,10 @@ export function TodayPane({
     api
       .calendarAgenda(today, today)
       .then((a) => setScheduled(a.days[0]?.items.filter((i) => i.kind === 'field') ?? []))
+      .catch(() => undefined);
+    api
+      .todayItems()
+      .then(setTodayBlocks)
       .catch(() => undefined);
   }, [today]);
 
@@ -69,7 +69,7 @@ export function TodayPane({
   const overdue = reminders.filter((r) => dayOf(r.remindAt) < today);
   const dueToday = reminders.filter((r) => dayOf(r.remindAt) === today);
   const upcoming = reminders.filter((r) => dayOf(r.remindAt) > today);
-  const empty = reminders.length === 0 && scheduled.length === 0 && captures.length === 0;
+  const empty = reminders.length === 0 && scheduled.length === 0 && todayBlocks.length === 0;
 
   const reminderGroup = (title: string, list: ReminderView[], tone: string) =>
     list.length > 0 && (
@@ -134,19 +134,24 @@ export function TodayPane({
         </div>
       )}
 
-      {captures.length > 0 && (
+      {todayBlocks.length > 0 && (
         <div className="today-group">
-          <div className="today-group-head">{t('today.captures')}</div>
-          {captures.slice(0, 8).map((b) => (
-            <div key={b.id} className="card today-item" {...clickable(() => onOpen(b.id))}>
-              <div style={{ flex: 1 }}>
-                <div className="today-title">{blockTitle(b)}</div>
-                <div className="today-meta">
-                  <span className="source-pill">{b.source}</span> · {relativeTime(b.createdAt)}
+          <div className="today-group-head">{t('nav.today')}</div>
+          {todayBlocks.map((b) => {
+            const created = dayOf(b.createdAt) === today;
+            return (
+              <div key={b.id} className="card today-item" {...clickable(() => onOpen(b.id))}>
+                <div style={{ flex: 1 }}>
+                  <div className="today-title">{blockTitle(b)}</div>
+                  <div className="today-meta">
+                    <span className="source-pill">{b.source}</span> ·{' '}
+                    {created ? t('today.created') : t('today.updated')} ·{' '}
+                    {relativeTime(created ? b.createdAt : (b.updatedAt ?? b.createdAt))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

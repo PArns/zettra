@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import {
+  BlockVisibility,
   CreateViewDto,
   DocBlock,
   extractPlainText,
@@ -181,6 +182,28 @@ export class ViewService {
       ],
     };
     return this.runDefinition(ctx, def);
+  }
+
+  /**
+   * The Today feed (§6): everything the acting user can see that was created OR updated today
+   * (UTC day). Permission-scoped (visible spaces + block-level visibility, invariant 11).
+   */
+  async todayItems(ctx: RequestContext): Promise<Block[]> {
+    if (ctx.visibleSpaceIds.length === 0) return [];
+    const now = new Date();
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    return this.blocks
+      .createQueryBuilder('block')
+      .where('block.tenantId = :tenantId', { tenantId: ctx.tenantId })
+      .andWhere('block.spaceId IN (:...spaces)', { spaces: ctx.visibleSpaceIds })
+      .andWhere('(block.visibility = :vis OR block.ownerUserId = :uid)', {
+        vis: BlockVisibility.Space,
+        uid: ctx.userId,
+      })
+      .andWhere('(block.createdAt >= :start OR block.updatedAt >= :start)', { start })
+      .orderBy('block.updatedAt', 'DESC')
+      .take(50)
+      .getMany();
   }
 
   private async resolveFieldTypes(

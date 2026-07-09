@@ -235,6 +235,8 @@ const en = {
   'today.upcoming': 'Upcoming',
   'today.scheduled': 'Scheduled today',
   'today.captures': 'Fresh captures',
+  'today.created': 'Created',
+  'today.updated': 'Updated',
   'today.emptyTitle': 'Nothing for today',
   'today.emptyHint': 'Reminders and fresh captures gather here.',
 
@@ -482,6 +484,8 @@ const de: Catalog = {
   'today.upcoming': 'Demnächst',
   'today.scheduled': 'Heute geplant',
   'today.captures': 'Neue Erfassungen',
+  'today.created': 'Erstellt',
+  'today.updated': 'Aktualisiert',
   'today.emptyTitle': 'Nichts für heute',
   'today.emptyHint': 'Erinnerungen und frische Erfassungen sammeln sich hier.',
 
@@ -725,6 +729,8 @@ const es: Catalog = {
   'today.upcoming': 'Próximo',
   'today.scheduled': 'Programado hoy',
   'today.captures': 'Capturas recientes',
+  'today.created': 'Creado',
+  'today.updated': 'Actualizado',
   'today.emptyTitle': 'Nada para hoy',
   'today.emptyHint': 'Los recordatorios y las capturas recientes aparecerán aquí.',
 
@@ -969,6 +975,8 @@ const fr: Catalog = {
   'today.upcoming': 'À venir',
   'today.scheduled': 'Prévu aujourd’hui',
   'today.captures': 'Captures récentes',
+  'today.created': 'Créé',
+  'today.updated': 'Mis à jour',
   'today.emptyTitle': 'Rien pour aujourd’hui',
   'today.emptyHint': 'Les rappels et les captures récentes apparaîtront ici.',
 

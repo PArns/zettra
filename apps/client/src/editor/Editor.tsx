@@ -231,15 +231,19 @@ export function Editor({
     return filterSuggestionItems([...getDefaultReactSlashMenuItems(editor), ...custom], query);
   };
 
+  const syncLabel =
+    sync === 'synced'
+      ? 'Synced'
+      : sync === 'offline'
+        ? 'Offline — changes saved locally'
+        : 'Connecting…';
   return (
-    <div>
-      <div className="editor-status">
+    <div className="editor-shell">
+      {/* Discreet: when synced it's just a small dot in the corner (title tooltip); a problem
+          state (connecting/offline) spells itself out so it's noticeable. */}
+      <div className={`editor-status ${sync}`} title={syncLabel}>
         <span className={`sync-dot ${sync}`} />
-        {sync === 'synced'
-          ? 'Synced'
-          : sync === 'offline'
-            ? 'Offline — changes saved locally'
-            : 'Connecting…'}
+        {sync !== 'synced' && <span className="sync-label">{syncLabel}</span>}
       </div>
       <div className="editor-host">
         <BlockNoteView
