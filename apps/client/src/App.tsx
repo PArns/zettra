@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { BlockDto } from '@zettra/shared';
 import { api, getToken, setToken, type Space, type Tag, type View } from './lib/api';
-import { currentTheme, toggleTheme } from './lib/theme';
+import { ThemeSwitcher } from './ui';
 import { Auth } from './components/Auth';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
@@ -25,7 +25,6 @@ export function App() {
   const [reviewCount, setReviewCount] = useState(0);
   const [nav, setNav] = useState<Nav>({ kind: 'inbox' });
   const [selected, setSelected] = useState<string | null>(null);
-  const [theme, setTheme] = useState(currentTheme());
   const [capturing, setCapturing] = useState(false);
   const [railRefresh, setRailRefresh] = useState(0);
   const toast = useToast();
@@ -145,14 +144,7 @@ export function App() {
             {capturing ? 'Capturing…' : '✎ Capture'}
           </button>
           <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
-          <button
-            className="icon"
-            title="Toggle theme"
-            aria-label="Toggle light/dark theme"
-            onClick={() => setTheme(toggleTheme())}
-          >
-            {theme === 'dark' ? '☀' : '☾'}
-          </button>
+          <ThemeSwitcher />
         </div>
 
         {selected ? (

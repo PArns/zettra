@@ -39,14 +39,14 @@ describe('Auth', () => {
 
   it('switches to the login form and shows the workspace id field', () => {
     render(<Auth onAuthed={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+    fireEvent.click(screen.getByRole('tab', { name: /sign in/i }));
     expect(screen.getByText(/Workspace ID/i)).toBeInTheDocument();
   });
 
   it('surfaces an error when the API rejects', async () => {
     mockedApi.login.mockRejectedValue(new Error('API 401: bad creds'));
     const { container } = render(<Auth onAuthed={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+    fireEvent.click(screen.getByRole('tab', { name: /sign in/i }));
     fireEvent.change(screen.getByPlaceholderText('uuid'), { target: { value: 'tid' } });
     fireEvent.change(screen.getByPlaceholderText(/you@example.com/i), {
       target: { value: 'a@b.c' },

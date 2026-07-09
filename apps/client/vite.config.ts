@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 /**
  * Vite + Vitest config. In dev, proxy `/api` → server and `/collab` (WebSocket) → collab so
@@ -8,7 +9,7 @@ import react from '@vitejs/plugin-react';
  * under jsdom with Testing Library.
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
     proxy: {

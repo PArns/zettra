@@ -110,6 +110,24 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
 - **Structured field editing** — an editable field panel that writes `field_value` and
   reflects in table/board/calendar views.
 
+### Design system & UI
+
+- **TailwindCSS v4 + custom theme** — semantic design tokens (`--bg`, `--surface`, `--accent`,
+  …) defined once in `apps/client/src/index.css` and exposed to utilities via `@theme inline`.
+  Legacy component CSS lives in the `components` cascade layer so the Tailwind kit always wins.
+- **Light / dark / system switcher** — `src/lib/theme.ts` persists the mode and stamps
+  `data-theme` on `<html>`; "system" tracks the OS live via `matchMedia`. The BlockNote editor
+  re-themes reactively. Try `?theme=dark` on any route.
+- **Reusable component kit** (`src/ui/`) — `Button`, `Card`, `Badge`, `Input`/`Field`,
+  `Spinner`, `EmptyState`, `Avatar`, `Segmented`, `ThemeSwitcher`, `IconButton` — all
+  token-driven and theme-aware.
+- **Content blocks** (`src/blocks/`) — Notion/Obsidian-parity widgets: callouts, web-bookmark
+  cards, a weather widget, a **kanban board** (drag-and-drop), a **table with live formulas**
+  (a hand-written, unit-tested spreadsheet engine — no `eval`), a **cover-image header**, and
+  an interactive checklist.
+- **Component gallery** — open `/?demo=1` for a standalone showcase of every block and kit
+  primitive with sample data (no backend required).
+
 ### Scaling to Citus (ops step, §9)
 
 The v1 model is single-Postgres with row-level tenancy + RLS. It migrates to Citus **without
@@ -123,6 +141,8 @@ Schema-/DB-per-tenant is only for hard physical-isolation compliance needs.
 Inline field nodes **inside the prose editor** (editing fields in the rail + views already
 works; embedding an editable field token mid-paragraph is the remaining slice of §11's
 bidirectional sync); retyping a field's type migrating existing `field_value` rows; sparse
-BGE-M3 vectors in hybrid search (the storage seam is reserved).
+BGE-M3 vectors in hybrid search (the storage seam is reserved); wiring the `src/blocks/`
+widgets (callout, kanban, formula table, cover, weather, bookmark) into the BlockNote schema
+as first-class editor block types (they ship today as reusable components + the gallery).
 
 See `CLAUDE.md` for the binding invariants. `// SPEC-GAP:` comments mark scheduled work.

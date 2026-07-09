@@ -10,7 +10,19 @@ import {
 import '@blocknote/mantine/style.css';
 import { api, getToken } from '../lib/api';
 import { useToast } from '../components/Toast';
+import { resolvedTheme } from '../lib/theme';
 import { schema } from './inline';
+
+/** Track the resolved light/dark theme so the editor re-themes when the switcher changes it. */
+function useResolvedTheme(): 'light' | 'dark' {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => resolvedTheme());
+  useEffect(() => {
+    const obs = new MutationObserver(() => setTheme(resolvedTheme()));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => obs.disconnect();
+  }, []);
+  return theme;
+}
 
 type SyncState = 'connecting' | 'synced' | 'offline';
 
@@ -24,6 +36,7 @@ type SyncState = 'connecting' | 'synced' | 'offline';
 export function Editor({ blockId, userName = 'You' }: { blockId: string; userName?: string }) {
   const toast = useToast();
   const [sync, setSync] = useState<SyncState>('connecting');
+  const theme = useResolvedTheme();
 
   const provider = useMemo(
     () =>
@@ -110,7 +123,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
             : 'Connecting…'}
       </div>
       <div className="editor-host">
-        <BlockNoteView editor={editor} theme={currentTheme()}>
+        <BlockNoteView editor={editor} theme={theme}>
           {/* # → tag, @ → person reference, [ → general reference (§8.6). */}
           <SuggestionMenuController triggerCharacter="#" getItems={referenceItems('tag')} />
           <SuggestionMenuController triggerCharacter="@" getItems={referenceItems('reference')} />
@@ -119,10 +132,4 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
       </div>
     </div>
   );
-}
-
-function currentTheme(): 'light' | 'dark' {
-  const attr = document.documentElement.getAttribute('data-theme');
-  if (attr === 'dark' || attr === 'light') return attr;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }

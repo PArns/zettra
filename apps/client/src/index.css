@@ -1,0 +1,152 @@
+@import 'tailwindcss';
+
+/* Manual dark mode driven by [data-theme] on <html> (set by the theme switcher, including
+   the resolved value of "system"). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ---- Semantic design tokens (light) ---- */
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f1f2f7;
+  --surface-3: #e9eaf1;
+  --hover: #edeef4;
+  --border: #e5e6ee;
+  --border-strong: #d5d6e1;
+  --text: #191922;
+  --muted: #55566a;
+  --faint: #767892;
+  --accent: #6d5efc;
+  --accent-2: #a855f7;
+  --accent-contrast: #ffffff;
+  --ring: color-mix(in srgb, var(--accent) 40%, transparent);
+  --shadow-sm: 0 1px 2px rgba(20, 20, 45, 0.06);
+  --shadow: 0 6px 24px rgba(20, 20, 45, 0.09);
+  --shadow-lg: 0 18px 50px rgba(20, 20, 45, 0.16);
+  --green: #16a34a;
+  --amber: #d97706;
+  --red: #e5484d;
+  --blue: #2563eb;
+  /* Legacy aliases so the pre-Tailwind component classes keep resolving. */
+  --text-muted: var(--muted);
+  --text-faint: var(--faint);
+  --surface-hover: var(--hover);
+  --accent-hover: #5b4de0;
+  --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent);
+  --accent-ring: var(--ring);
+  --radius: 10px;
+  --radius-sm: 7px;
+  --shadow-md: var(--shadow);
+  --font: var(--font-sans);
+  --mono: var(--font-mono);
+  color-scheme: light;
+}
+
+/* ---- Semantic design tokens (dark) ---- */
+[data-theme='dark'] {
+  --bg: #0b0b11;
+  --surface: #14141c;
+  --surface-2: #1b1b25;
+  --surface-3: #23232f;
+  --hover: #23232f;
+  --border: #262633;
+  --border-strong: #34343f;
+  --text: #ecedf3;
+  --muted: #a7a8bd;
+  --faint: #77788e;
+  --accent: #7c6dff;
+  --accent-2: #b06bff;
+  --accent-contrast: #ffffff;
+  --ring: color-mix(in srgb, var(--accent) 55%, transparent);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 22px 60px rgba(0, 0, 0, 0.65);
+  --accent-soft: color-mix(in srgb, var(--accent) 26%, transparent);
+  --accent-hover: #6a58ff;
+  color-scheme: dark;
+}
+
+/* Expose tokens to Tailwind utilities (bg-surface, text-muted, border-border, …).
+   `inline` keeps the utilities referencing the live CSS vars, so theme switching is instant. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-hover: var(--hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-green: var(--green);
+  --color-amber: var(--amber);
+  --color-red: var(--red);
+  --color-blue: var(--blue);
+
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 22px;
+
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  border-color: var(--border);
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* Subtle entrance animations reused by the kit. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.animate-pop {
+  animation: pop 0.2s ease both;
+}

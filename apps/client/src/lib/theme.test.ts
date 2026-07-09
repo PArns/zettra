@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { currentTheme, initTheme, toggleTheme } from './theme';
+import { getMode, initTheme, resolvedTheme, setMode } from './theme';
 
 beforeEach(() => {
   localStorage.clear();
@@ -7,26 +7,34 @@ beforeEach(() => {
 });
 
 describe('theme', () => {
-  it('toggles between light and dark and persists the choice', () => {
-    const first = toggleTheme();
-    expect(['light', 'dark']).toContain(first);
-    expect(document.documentElement.getAttribute('data-theme')).toBe(first);
-    expect(localStorage.getItem('zettra.theme')).toBe(first);
-
-    const second = toggleTheme();
-    expect(second).not.toBe(first);
-    expect(document.documentElement.getAttribute('data-theme')).toBe(second);
+  it('defaults to system mode when nothing is persisted', () => {
+    expect(getMode()).toBe('system');
   });
 
-  it('initTheme restores the persisted theme onto <html>', () => {
+  it('setMode persists the choice and stamps data-theme', () => {
+    setMode('dark');
+    expect(getMode()).toBe('dark');
+    expect(localStorage.getItem('zettra.theme')).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(resolvedTheme()).toBe('dark');
+
+    setMode('light');
+    expect(getMode()).toBe('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(resolvedTheme()).toBe('light');
+  });
+
+  it('system mode resolves to a concrete light/dark via matchMedia', () => {
+    setMode('system');
+    // jsdom's matchMedia polyfill reports no dark preference, so system → light.
+    expect(getMode()).toBe('system');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+  });
+
+  it('initTheme restores the persisted mode onto <html>', () => {
     localStorage.setItem('zettra.theme', 'dark');
     initTheme();
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    expect(currentTheme()).toBe('dark');
-  });
-
-  it('currentTheme reads the data-theme attribute when set', () => {
-    document.documentElement.setAttribute('data-theme', 'light');
-    expect(currentTheme()).toBe('light');
+    expect(resolvedTheme()).toBe('dark');
   });
 });
