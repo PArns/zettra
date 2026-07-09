@@ -80,7 +80,7 @@ export function Demo() {
       <main className="mx-auto max-w-4xl px-6 py-10">
         <div className="animate-fade-up">
           <CoverHeader
-            cover="linear-gradient(120deg, #6d5efc 0%, #a855f7 45%, #ec4899 100%)"
+            cover="linear-gradient(120deg, #0e7490 0%, #0891b2 45%, #2563eb 100%)"
             icon="🧠"
             title="Product roadmap"
             meta="Your second brain — entities as rows, rich text as JSON, connections you can trust."

@@ -21,6 +21,10 @@ export class User {
   @Column({ type: 'text', nullable: true, select: false })
   passwordHash!: string | null;
 
+  /** Per-user preferences (theme mode + accent palette, …). Client-owned JSON. */
+  @Column({ type: 'jsonb', default: () => `'{}'::jsonb` })
+  settings!: Record<string, unknown>;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 }

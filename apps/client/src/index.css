@@ -16,8 +16,9 @@
   --text: #191922;
   --muted: #55566a;
   --faint: #767892;
-  --accent: #6d5efc;
-  --accent-2: #a855f7;
+  /* Default accent: blue → turquoise. Overridable per user via [data-accent] (see below). */
+  --accent: #0891b2;
+  --accent-2: #3b82f6;
   --accent-contrast: #ffffff;
   --ring: color-mix(in srgb, var(--accent) 40%, transparent);
   --shadow-sm: 0 1px 2px rgba(20, 20, 45, 0.06);
@@ -31,7 +32,7 @@
   --text-muted: var(--muted);
   --text-faint: var(--faint);
   --surface-hover: var(--hover);
-  --accent-hover: #5b4de0;
+  --accent-hover: #0b7e97;
   --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent);
   --accent-ring: var(--ring);
   --radius: 10px;
@@ -43,7 +44,7 @@
 }
 
 /* ---- Semantic design tokens (dark) ---- */
-/* A deep, near-black Tana-style palette with a violet accent. */
+/* A deep, near-black Tana-style palette. The accent is theme-agnostic (see [data-accent]). */
 [data-theme='dark'] {
   --bg: #0a0a0e;
   --surface: #121218;
@@ -55,16 +56,46 @@
   --text: #edeef4;
   --muted: #a2a3b8;
   --faint: #6f7086;
-  --accent: #8b7bff;
-  --accent-2: #c07bff;
   --accent-contrast: #ffffff;
   --ring: color-mix(in srgb, var(--accent) 55%, transparent);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.55);
   --shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
   --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.7);
   --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
-  --accent-hover: #7a68ff;
   color-scheme: dark;
+}
+
+/* ---- Accent palettes (user-selectable, saved to user settings). Placed after light/dark so
+   they win for --accent regardless of theme; --ring / --accent-soft derive from --accent. ---- */
+[data-accent='teal'] {
+  --accent: #0891b2;
+  --accent-2: #3b82f6;
+  --accent-hover: #0b7e97;
+}
+[data-accent='blue'] {
+  --accent: #2563eb;
+  --accent-2: #22d3ee;
+  --accent-hover: #1e56cf;
+}
+[data-accent='violet'] {
+  --accent: #7c6dff;
+  --accent-2: #c07bff;
+  --accent-hover: #6a58ff;
+}
+[data-accent='emerald'] {
+  --accent: #059669;
+  --accent-2: #34d399;
+  --accent-hover: #047d59;
+}
+[data-accent='rose'] {
+  --accent: #e11d48;
+  --accent-2: #fb7185;
+  --accent-hover: #c4173c;
+}
+[data-accent='amber'] {
+  --accent: #d97706;
+  --accent-2: #f59e0b;
+  --accent-hover: #bd6804;
 }
 
 /* Expose tokens to Tailwind utilities (bg-surface, text-muted, border-border, …).

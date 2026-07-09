@@ -7,10 +7,12 @@ import { AnnotationLayer } from './annotate/AnnotationLayer';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initTheme, setMode } from './lib/theme';
+import { initAccent, isAccent, setAccent } from './lib/accent';
 import './index.css';
 import './styles.css';
 
 initTheme();
+initAccent();
 
 const params = new URLSearchParams(window.location.search);
 
@@ -19,6 +21,9 @@ const themeParam = params.get('theme');
 if (themeParam === 'light' || themeParam === 'dark' || themeParam === 'system') {
   setMode(themeParam);
 }
+// Optional `?accent=teal|blue|violet|…` override for previews.
+const accentParam = params.get('accent');
+if (isAccent(accentParam)) setAccent(accentParam);
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root');

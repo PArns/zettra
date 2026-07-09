@@ -22,6 +22,13 @@ export interface UserDto {
   displayName: string | null;
 }
 
+/** Client-owned per-user preferences, persisted server-side (§2). */
+export interface UserSettingsDto {
+  themeMode?: 'light' | 'dark' | 'system';
+  accent?: string;
+  language?: 'de' | 'en';
+}
+
 export interface CreateBlockDto {
   spaceId: string;
   parentId?: string | null;

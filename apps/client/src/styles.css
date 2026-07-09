@@ -520,6 +520,79 @@ body {
     color: var(--accent);
   }
 
+  /* ---------- Modal + settings ---------- */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: color-mix(in srgb, #000 45%, transparent);
+    backdrop-filter: blur(2px);
+    animation: toast-in 0.15s ease;
+  }
+  .modal {
+    width: 100%;
+    max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: pop 0.16s ease;
+  }
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .settings-body {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    min-height: 300px;
+  }
+  .settings-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 10px;
+    border-right: 1px solid var(--border);
+  }
+  .settings-tab {
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+  }
+  .settings-tab:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+  .settings-tab.active {
+    background: var(--accent-soft);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .settings-panel {
+    padding: 20px;
+  }
+  .settings-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
   /* ---------- Drop zone (§8.3) ---------- */
   .dropzone {
     border: 1.5px dashed var(--border-strong);

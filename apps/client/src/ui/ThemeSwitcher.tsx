@@ -9,7 +9,13 @@ const OPTIONS = [
 ];
 
 /** Light / system / dark control bound to the theme store. */
-export function ThemeSwitcher({ size = 'sm' }: { size?: 'sm' | 'md' }) {
+export function ThemeSwitcher({
+  size = 'sm',
+  onChange,
+}: {
+  size?: 'sm' | 'md';
+  onChange?: (mode: ThemeMode) => void;
+}) {
   const [mode, setLocal] = useState<ThemeMode>(() => getMode());
 
   // Keep in sync if another tab changed the persisted mode.
@@ -28,6 +34,7 @@ export function ThemeSwitcher({ size = 'sm' }: { size?: 'sm' | 'md' }) {
       onChange={(m) => {
         setMode(m);
         setLocal(m);
+        onChange?.(m);
       }}
     />
   );

@@ -39,6 +39,11 @@ export interface Space {
   name: string;
   aiPolicy: string;
 }
+export interface UserSettings {
+  themeMode?: 'light' | 'dark' | 'system';
+  accent?: string;
+  language?: 'de' | 'en';
+}
 export interface View {
   id: string;
   name: string;
@@ -92,7 +97,27 @@ export const api = {
     request<AuthTokenDto>('/auth/register', { method: 'POST', body: JSON.stringify(i) }),
   login: (i: { tenantId: string; email: string; password: string }) =>
     request<AuthTokenDto>('/auth/login', { method: 'POST', body: JSON.stringify(i) }),
-  me: () => request<{ userId: string; tenantId: string; spaces: string[] }>('/auth/me'),
+  me: () =>
+    request<{
+      userId: string;
+      tenantId: string;
+      spaces: string[];
+      email: string | null;
+      displayName: string | null;
+    }>('/auth/me'),
+  getSettings: () => request<UserSettings>('/auth/me/settings'),
+  saveSettings: (patch: UserSettings) =>
+    request<UserSettings>('/auth/me/settings', { method: 'PUT', body: JSON.stringify(patch) }),
+  updateProfile: (patch: { displayName?: string; email?: string }) =>
+    request<{ email: string; displayName: string | null }>('/auth/me/profile', {
+      method: 'PUT',
+      body: JSON.stringify(patch),
+    }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<{ ok: true }>('/auth/me/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
 
   spaces: () => request<Space[]>('/spaces'),
   tags: () => request<Tag[]>('/tags'),

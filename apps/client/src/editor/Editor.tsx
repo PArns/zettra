@@ -82,7 +82,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
       collaboration: {
         provider,
         fragment: provider.document.getXmlFragment('document'),
-        user: { name: userName, color: '#6d5efc' },
+        user: { name: userName, color: '#0891b2' },
       },
     },
     [provider],

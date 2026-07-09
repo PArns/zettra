@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { BlockDto } from '@zettra/shared';
 import { api, getToken, setToken, type Space, type Tag, type View } from './lib/api';
-import { ThemeSwitcher } from './ui';
+import { IconButton } from './ui';
+import { setMode } from './lib/theme';
+import { setAccent } from './lib/accent';
 import { Auth } from './components/Auth';
+import { SettingsDialog } from './components/SettingsDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
 import { DropZone } from './components/DropZone';
@@ -20,6 +23,8 @@ export function App() {
   const [authed, setAuthed] = useState(!!getToken());
   const [me, setMe] = useState<{ tenantId: string; spaces: string[] } | null>(null);
   const [email, setEmail] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
   const [views, setViews] = useState<View[]>([]);
   const [spaces, setSpaces] = useState<Space[]>([]);
@@ -44,6 +49,8 @@ export function App() {
         api.review().catch(() => []),
       ]);
       setMe(meRes);
+      if (meRes.email) setEmail(meRes.email);
+      if (meRes.displayName) setDisplayName(meRes.displayName);
       setTags(t);
       setViews(v);
       setSpaces(s);
@@ -61,16 +68,16 @@ export function App() {
   }, [authed, refresh]);
 
   useEffect(() => {
-    // Best-effort read of the signed-in email from the token payload for the avatar.
-    const token = getToken();
-    if (token) {
-      try {
-        const claims = JSON.parse(atob(token.split('.')[1] ?? ''));
-        if (claims.email) setEmail(String(claims.email));
-      } catch {
-        /* ignore */
-      }
-    }
+    // Apply the user's server-side theme + accent preferences after sign-in.
+    if (!authed) return;
+    api
+      .getSettings()
+      .then((s) => {
+        if (s.themeMode) setMode(s.themeMode);
+        if (s.accent) setAccent(s.accent);
+        if (s.language) document.documentElement.lang = s.language;
+      })
+      .catch(() => undefined);
   }, [authed]);
 
   async function capture() {
@@ -162,7 +169,9 @@ export function App() {
             {capturing ? 'Capturing…' : '✎ Capture'}
           </button>
           <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
-          <ThemeSwitcher />
+          <IconButton label="Settings" onClick={() => setShowSettings(true)}>
+            ⚙
+          </IconButton>
         </div>
 
         {selected ? (
@@ -211,6 +220,18 @@ export function App() {
           </div>
         )}
       </div>
+
+      {showSettings && (
+        <SettingsDialog
+          email={email}
+          displayName={displayName}
+          onClose={() => setShowSettings(false)}
+          onProfileSaved={(p) => {
+            setEmail(p.email);
+            setDisplayName(p.displayName ?? '');
+          }}
+        />
+      )}
     </div>
   );
 }

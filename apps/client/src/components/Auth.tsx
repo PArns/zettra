@@ -58,11 +58,16 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
       {/* Marketing panel */}
       <aside
         className="relative hidden flex-col justify-between overflow-hidden p-12 text-white lg:flex"
-        style={{ background: 'linear-gradient(150deg, #4f3fd4 0%, #6d5efc 40%, #a855f7 100%)' }}
+        style={{ background: 'linear-gradient(150deg, #0e7490 0%, #0891b2 42%, #2563eb 100%)' }}
       >
         <div
           className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full opacity-40 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #ec4899, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, #22d3ee, transparent 70%)' }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full opacity-30 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #3b82f6, transparent 70%)' }}
           aria-hidden
         />
         <div className="relative flex items-center gap-2.5">

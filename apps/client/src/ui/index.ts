@@ -9,4 +9,5 @@ export { EmptyState } from './EmptyState';
 export { Avatar } from './Avatar';
 export { Segmented, type SegmentedOption } from './Segmented';
 export { ThemeSwitcher } from './ThemeSwitcher';
+export { AccentPicker } from './AccentPicker';
 export { IconButton } from './IconButton';
