@@ -171,6 +171,10 @@ const en = {
   'search.searching': 'Searching…',
   'search.noMatches': 'No matches.',
 
+  'field.pick': 'Select…',
+  'field.search': 'Search…',
+  'field.clear': 'Clear',
+
   'notif.title': 'Notifications',
   'notif.unread': 'unread',
   'notif.caughtUp': "You're all caught up.",
@@ -344,6 +348,10 @@ const de: Catalog = {
   'search.searching': 'Suche…',
   'search.noMatches': 'Keine Treffer.',
 
+  'field.pick': 'Auswählen…',
+  'field.search': 'Suchen…',
+  'field.clear': 'Entfernen',
+
   'notif.title': 'Benachrichtigungen',
   'notif.unread': 'ungelesen',
   'notif.caughtUp': 'Du bist auf dem neuesten Stand.',
@@ -514,6 +522,10 @@ const es: Catalog = {
   'search.searching': 'Buscando…',
   'search.noMatches': 'Sin coincidencias.',
 
+  'field.pick': 'Seleccionar…',
+  'field.search': 'Buscar…',
+  'field.clear': 'Quitar',
+
   'notif.title': 'Notificaciones',
   'notif.unread': 'sin leer',
   'notif.caughtUp': 'Estás al día.',
@@ -683,6 +695,10 @@ const fr: Catalog = {
   'search.placeholder': 'Tout rechercher…',
   'search.searching': 'Recherche…',
   'search.noMatches': 'Aucun résultat.',
+
+  'field.pick': 'Sélectionner…',
+  'field.search': 'Rechercher…',
+  'field.clear': 'Effacer',
 
   'notif.title': 'Notifications',
   'notif.unread': 'non lues',

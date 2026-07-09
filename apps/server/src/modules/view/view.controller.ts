@@ -69,6 +69,15 @@ export class ViewController {
     return blocks.map((b) => toBlockDto(b, tags.get(b.id) ?? []));
   }
 
+  /** Entities carrying a supertag — the option list for a `relation`-typed field picker. */
+  @Get('tag/:tagId/entities')
+  entities(
+    @Ctx() ctx: RequestContext,
+    @Param('tagId') tagId: string,
+  ): Promise<{ blockId: string; title: string }[]> {
+    return this.views.entitiesForTag(ctx, tagId);
+  }
+
   @Get(':id/rows')
   run(@Ctx() ctx: RequestContext, @Param('id') id: string): Promise<Block[]> {
     return this.views.run(ctx, id);

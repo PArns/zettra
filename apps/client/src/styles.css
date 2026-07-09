@@ -787,6 +787,64 @@ body {
     width: auto;
     margin: 0;
   }
+  .ref-picker {
+    position: relative;
+    width: 100%;
+  }
+  .ref-picker-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+  .ref-picker-trigger .placeholder {
+    color: var(--text-faint);
+  }
+  .ref-picker-clear {
+    color: var(--text-faint);
+    font-size: 12px;
+    line-height: 1;
+    padding: 2px;
+    border-radius: var(--radius-sm);
+  }
+  .ref-picker-clear:hover {
+    color: var(--text);
+  }
+  .ref-picker .menu-list {
+    width: 100%;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .ref-picker-search {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .ref-picker .m-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    align-items: flex-start;
+  }
+  .ref-picker .m-item.on {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .ref-picker .m-item.muted {
+    color: var(--text-faint);
+  }
+  .ref-picker-sub {
+    font-size: 11px;
+    color: var(--text-faint);
+  }
 
   /* ---------- Drop zone (§8.3) ---------- */
   .dropzone {

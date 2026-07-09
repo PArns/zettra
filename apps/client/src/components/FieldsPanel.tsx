@@ -1,7 +1,20 @@
-import { useEffect, useState } from 'react';
-import { api, type EffectiveField } from '../lib/api';
+import { useEffect, useRef, useState } from 'react';
+import { api, type EffectiveField, type EntityOption, type Member, type Tag } from '../lib/api';
 import { useT } from '../i18n';
+import { clickable } from '../lib/a11y';
 import { useToast } from './Toast';
+
+/** Resolve a relation field's target supertag id from its config (id preferred, else by name). */
+function relationTargetId(
+  field: EffectiveField,
+  tagsByName: Map<string, string>,
+): string | undefined {
+  const byId = field.config?.targetTagId;
+  if (typeof byId === 'string' && byId) return byId;
+  const byName = field.config?.targetTagName;
+  if (typeof byName === 'string' && byName) return tagsByName.get(byName);
+  return undefined;
+}
 
 /**
  * Editable structured fields for the open block (§8.1, §11). Edits write to `field_value` via
@@ -12,6 +25,9 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
   const [fields, setFields] = useState<EffectiveField[]>([]);
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [visibility, setVisibility] = useState<'space' | 'private'>('space');
+  const [members, setMembers] = useState<Member[]>([]);
+  const [entitiesByTag, setEntitiesByTag] = useState<Record<string, EntityOption[]>>({});
+  const [tagsByName, setTagsByName] = useState<Map<string, string>>(new Map());
   const toast = useToast();
   const t = useT();
 
@@ -21,12 +37,40 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
       const block = await api.block(blockId).catch(() => null);
       if (!block || !live) return;
       setVisibility(block.visibility === 'private' ? 'private' : 'space');
-      const perTag = await Promise.all(block.tagIds.map((t) => api.tagFields(t).catch(() => [])));
+      const perTag = await Promise.all(
+        block.tagIds.map((tid) => api.tagFields(tid).catch(() => [])),
+      );
       const all = dedupe(perTag.flat());
       const vals = await api.fieldValues(blockId).catch(() => []);
       if (!live) return;
       setFields(all);
       setValues(Object.fromEntries(vals.map((v) => [v.fieldId, firstNonNull(v)])));
+
+      // Load option lists for relation/user fields so their pickers can render.
+      const needsMembers = all.some((f) => f.type === 'user');
+      const tags = all.some((f) => f.type === 'relation')
+        ? await api.tags().catch(() => [] as Tag[])
+        : [];
+      if (!live) return;
+      const nameMap = new Map(tags.map((t) => [t.name, t.id]));
+      setTagsByName(nameMap);
+      if (needsMembers) {
+        const m = await api.members().catch(() => []);
+        if (live) setMembers(m);
+      }
+      const targetIds = [
+        ...new Set(
+          all
+            .filter((f) => f.type === 'relation')
+            .map((f) => relationTargetId(f, nameMap))
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ];
+      for (const tid of targetIds) {
+        const opts = await api.tagEntities(tid).catch(() => []);
+        if (!live) return;
+        setEntitiesByTag((prev) => ({ ...prev, [tid]: opts }));
+      }
     })();
     return () => {
       live = false;
@@ -81,6 +125,8 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
             field={f}
             value={values[f.id]}
             onChange={(v) => save(f, v)}
+            members={members}
+            entities={entitiesByTag[relationTargetId(f, tagsByName) ?? ''] ?? []}
           />
         </div>
       ))}
@@ -93,11 +139,15 @@ function FieldInput({
   field,
   value,
   onChange,
+  members,
+  entities,
 }: {
   id: string;
   field: EffectiveField;
   value: unknown;
   onChange: (v: unknown) => void;
+  members: Member[];
+  entities: EntityOption[];
 }) {
   const options = (field.config?.options as string[] | undefined) ?? [];
   switch (field.type) {
@@ -175,6 +225,28 @@ function FieldInput({
           onBlur={(e) => onChange(e.target.value)}
         />
       );
+    case 'relation':
+      return (
+        <RefPicker
+          id={id}
+          value={value != null ? String(value) : ''}
+          options={entities.map((e) => ({ value: e.blockId, label: e.title }))}
+          onChange={onChange}
+        />
+      );
+    case 'user':
+      return (
+        <RefPicker
+          id={id}
+          value={value != null ? String(value) : ''}
+          options={members.map((m) => ({
+            value: m.id,
+            label: m.displayName ?? m.email,
+            sub: m.displayName ? m.email : undefined,
+          }))}
+          onChange={onChange}
+        />
+      );
     default:
       return (
         <input
@@ -184,6 +256,112 @@ function FieldInput({
         />
       );
   }
+}
+
+interface RefOption {
+  value: string;
+  label: string;
+  sub?: string;
+}
+
+/** A searchable single-select picker over reference options (relation entities or members). */
+function RefPicker({
+  id,
+  value,
+  options,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  options: RefOption[];
+  onChange: (v: string) => void;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const needle = q.trim().toLowerCase();
+  const filtered = needle
+    ? options.filter((o) => `${o.label} ${o.sub ?? ''}`.toLowerCase().includes(needle))
+    : options;
+
+  return (
+    <div className="menu ref-picker" ref={ref}>
+      <button
+        id={id}
+        type="button"
+        className="ref-picker-trigger"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className={selected ? '' : 'placeholder'}>
+          {selected ? selected.label : t('field.pick')}
+        </span>
+        {value && (
+          <span
+            className="ref-picker-clear"
+            role="button"
+            aria-label={t('field.clear')}
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange('');
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation();
+                onChange('');
+              }
+            }}
+          >
+            ✕
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="menu-list">
+          <input
+            className="ref-picker-search"
+            autoFocus
+            value={q}
+            placeholder={t('field.search')}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          {filtered.map((o) => (
+            <div
+              key={o.value}
+              className={`m-item ${o.value === value ? 'on' : ''}`}
+              {...clickable(() => {
+                onChange(o.value);
+                setOpen(false);
+                setQ('');
+              })}
+            >
+              <span className="ref-picker-label">{o.label}</span>
+              {o.sub && <span className="ref-picker-sub">{o.sub}</span>}
+            </div>
+          ))}
+          {filtered.length === 0 && <div className="m-item muted">{t('search.noMatches')}</div>}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function dedupe(fields: EffectiveField[]): EffectiveField[] {

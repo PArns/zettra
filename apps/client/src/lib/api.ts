@@ -61,6 +61,17 @@ export interface EffectiveField {
   config: Record<string, unknown>;
   position: number;
 }
+/** A lightweight entity option for a relation-field picker. */
+export interface EntityOption {
+  blockId: string;
+  title: string;
+}
+/** A workspace member's public identity, for a user-field picker. */
+export interface Member {
+  id: string;
+  displayName: string | null;
+  email: string;
+}
 export interface ViewData {
   view: View;
   fields: EffectiveField[];
@@ -170,6 +181,10 @@ export const api = {
       body: JSON.stringify({ fieldId, value }),
     }),
   tagFields: (tagId: string) => request<EffectiveField[]>(`/tags/${tagId}/fields`),
+  /** Entities carrying a supertag — the option list for a relation field. */
+  tagEntities: (tagId: string) => request<EntityOption[]>(`/views/tag/${tagId}/entities`),
+  /** Workspace members visible to the caller — the option list for a user field. */
+  members: () => request<Member[]>('/members'),
   setVisibility: (blockId: string, visibility: 'space' | 'private') =>
     request<BlockDto>(`/blocks/${blockId}/visibility`, {
       method: 'PUT',

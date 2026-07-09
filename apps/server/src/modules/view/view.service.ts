@@ -1,7 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
-import { CreateViewDto, FieldType, ViewDefinition, ViewLayout } from '@zettra/shared';
+import {
+  CreateViewDto,
+  DocBlock,
+  extractPlainText,
+  FieldType,
+  ViewDefinition,
+  ViewLayout,
+} from '@zettra/shared';
 import { Block, FieldValue, View } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { TagService, EffectiveField } from '../tag/tag.service';
@@ -128,6 +135,24 @@ export class ViewService {
     return this.applyCompiled(compiled).getMany();
   }
 
+  /**
+   * Blocks carrying a supertag, as lightweight `{ blockId, title }` entities — the population a
+   * `relation`-typed field can point at. Runs through the same permission-scoped compiler as
+   * views (§15.2), so private blocks the caller can't read never appear.
+   */
+  async entitiesForTag(
+    ctx: RequestContext,
+    tagId: string,
+  ): Promise<{ blockId: string; title: string }[]> {
+    const blocks = await this.runDefinition(ctx, {
+      tagId,
+      filters: [],
+      sorts: [],
+      groupBy: null,
+    });
+    return blocks.map((b) => ({ blockId: b.id, title: entityTitle(b) }));
+  }
+
   /** The Briefkasten: untagged blocks owned by the acting user (§8.2, §15.3). */
   async inbox(ctx: RequestContext): Promise<Block[]> {
     const def: ViewDefinition = {
@@ -191,4 +216,11 @@ function firstNonNull(v: FieldValue): unknown {
   if (v.valueBool !== null) return v.valueBool;
   if (v.valueJson !== null && v.valueJson !== undefined) return v.valueJson;
   return null;
+}
+
+/** First non-empty line of a block's prose, capped — the display label for an entity. */
+function entityTitle(block: Block): string {
+  const doc: DocBlock[] = Array.isArray(block.content) ? (block.content as DocBlock[]) : [];
+  const text = extractPlainText(doc).trim();
+  return text ? text.split('\n')[0].slice(0, 80) : 'Untitled';
 }
