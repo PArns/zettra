@@ -11,8 +11,9 @@ services:
     volumes:
       - ./apps/server:/app/apps/server
       - ./packages:/app/packages
+    # Host port on a 5000 base to avoid local collisions; container port stays internal.
     ports:
-      - '3000:3000'
+      - '5000:3000'
 
   collab:
     build:
@@ -24,7 +25,7 @@ services:
       - ./apps/collab:/app/apps/collab
       - ./packages:/app/packages
     ports:
-      - '1234:1234'
+      - '5001:1234'
 
   web:
     build:
@@ -34,4 +35,4 @@ services:
       - ./apps/client:/app/apps/client
       - ./packages:/app/packages
     ports:
-      - '5173:5173'
+      - '5002:5173'
