@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreateTagFieldDto, CreateTagDto, FieldType, wouldCycle } from '@zettra/shared';
 import { Block, BlockTag, FieldValue, Tag, TagField } from '../../entities/index';
 import { QUEUE, QueueService } from '../jobs/queue.service';
+import { migrateFieldValue, type ValueColumn } from '../field/field-coerce';
 
 export interface EffectiveField {
   id: string;
@@ -214,9 +215,9 @@ export class TagService {
   }
 
   /**
-   * Rename/retype/reconfigure a field. SPEC-GAP: retyping does not migrate existing
-   * `field_value` rows to the new typed column — a follow-up backfill/reconciliation job
-   * owns that. Renames are safe (values key on fieldId, not name).
+   * Rename/retype/reconfigure a field. Retyping migrates every existing `field_value` row to the
+   * new type's typed column (invariant 2) via {@link migrateFieldValue}, dropping values that
+   * can't survive the target type. Renames are safe (values key on fieldId, not name).
    */
   async updateField(
     tenantId: string,
@@ -227,13 +228,42 @@ export class TagService {
     if (!field) throw new NotFoundException('Field not found');
     const tag = await this.tags.findOne({ where: { id: field.tagId, tenantId } });
     if (!tag) throw new NotFoundException('Field not in this tenant');
+    const oldType = field.type;
+    const newType = patch.type ?? field.type;
     Object.assign(field, {
       name: patch.name ?? field.name,
-      type: patch.type ?? field.type,
+      type: newType,
       config: patch.config ?? field.config,
       position: patch.position ?? field.position,
     });
-    return this.fields.save(field);
+    const saved = await this.fields.save(field);
+    if (patch.type && newType !== oldType) {
+      await this.migrateFieldValues(tenantId, fieldId, oldType, newType);
+    }
+    return saved;
+  }
+
+  /** Re-route every stored value for a retyped field into the new type's typed column. */
+  private async migrateFieldValues(
+    tenantId: string,
+    fieldId: string,
+    oldType: FieldType,
+    newType: FieldType,
+  ): Promise<void> {
+    const rows = await this.fieldValues.find({ where: { tenantId, fieldId } });
+    for (const row of rows) {
+      const coerced = migrateFieldValue(oldType, newType, row);
+      row.valueText = null;
+      row.valueNumber = null;
+      row.valueDate = null;
+      row.valueBool = null;
+      row.valueJson = null;
+      if (coerced) {
+        // One column populated per row (invariant 2); the rest were just cleared.
+        (row as Record<ValueColumn, unknown>)[coerced.column] = coerced.value;
+      }
+      await this.fieldValues.save(row);
+    }
   }
 
   /** Remove a field from a supertag and delete its orphaned values across all blocks. */
