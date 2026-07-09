@@ -1,8 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AiPrivacyScope, AiStakes, AiTaskType, DocBlock, extractPlainText } from '@zettra/shared';
-import { Block, Space, Tag } from '../../entities/index';
+import {
+  AiPrivacyScope,
+  AiStakes,
+  AiTaskType,
+  DocBlock,
+  extractDueDates,
+  extractPlainText,
+} from '@zettra/shared';
+import { Block, Reminder, Space, Tag } from '../../entities/index';
 import { AiRouterService } from '../ai/ai-router.service';
 import { clampConfidence, extractJson } from '../ai/ai-json';
 import { AliasIndexService } from '../linking/alias-index.service';
@@ -31,6 +38,7 @@ export class CaptureService {
     @InjectRepository(Block) private readonly blocks: Repository<Block>,
     @InjectRepository(Tag) private readonly tags: Repository<Tag>,
     @InjectRepository(Space) private readonly spaces: Repository<Space>,
+    @InjectRepository(Reminder) private readonly reminders: Repository<Reminder>,
     private readonly ai: AiRouterService,
     private readonly aliasIndex: AliasIndexService,
     private readonly mentionLinker: MentionLinkerService,
@@ -53,6 +61,9 @@ export class CaptureService {
     await this.blocks.save(block);
 
     if (!text) return;
+
+    // Detect deadlines / appointments in the captured text and surface them as reminders (§5).
+    await this.detectDeadlines(block, text);
 
     // Ask the router to propose a supertag + fields.
     const tagList = await this.tags.find({ where: { tenantId } });
@@ -117,6 +128,31 @@ export class CaptureService {
     if (block.needsReview) return;
     block.needsReview = true;
     await this.blocks.save(block);
+  }
+
+  /**
+   * Detect deadlines / appointments in captured text (e.g. a mail asking for a meeting "in 2
+   * weeks") and create reminders for the block owner (§5). Only future dates; idempotent (skips
+   * a date already reminded on this block). Pure extraction is unit-tested in shared.
+   */
+  private async detectDeadlines(block: Block, text: string): Promise<void> {
+    const refIso = block.createdAt.toISOString().slice(0, 10);
+    const dates = extractDueDates(text, refIso).filter((d) => d.iso >= refIso);
+    for (const d of dates.slice(0, 5)) {
+      const remindAt = new Date(`${d.iso}T09:00:00Z`);
+      const exists = await this.reminders.findOne({ where: { blockId: block.id, remindAt } });
+      if (exists) continue;
+      await this.reminders.save(
+        this.reminders.create({
+          tenantId: block.tenantId,
+          blockId: block.id,
+          userId: block.ownerUserId,
+          remindAt,
+          note: d.match.slice(0, 80),
+          status: 'pending',
+        }),
+      );
+    }
   }
 }
 

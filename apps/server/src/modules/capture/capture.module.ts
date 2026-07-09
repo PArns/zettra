@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Block, Space, Tag } from '../../entities/index';
+import { Block, Reminder, Space, Tag } from '../../entities/index';
 import { CaptureService } from './capture.service';
 import { CaptureController } from './capture.controller';
 import { ImapPollerService } from './imap-poller.service';
@@ -13,7 +13,7 @@ import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Block, Tag, Space]),
+    TypeOrmModule.forFeature([Block, Tag, Space, Reminder]),
     LinkingModule,
     TagModule,
     FieldModule,
