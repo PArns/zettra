@@ -469,6 +469,95 @@ body {
     color: var(--accent);
   }
 
+  /* ---------- Custom editor blocks (callout / quote / divider / bookmark) ---------- */
+  .zx-callout {
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px;
+    margin: 4px 0;
+    border-radius: var(--radius);
+    border: 1px solid color-mix(in srgb, var(--ck, var(--accent)) 35%, transparent);
+    background: color-mix(in srgb, var(--ck, var(--accent)) 9%, transparent);
+  }
+  .zx-callout-glyph {
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .zx-callout-glyph:hover {
+    transform: scale(1.12);
+  }
+  .zx-callout-body {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.55;
+  }
+  .zx-quote {
+    margin: 6px 0;
+    padding: 4px 0 4px 16px;
+    border-left: 3px solid var(--accent);
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .zx-divider {
+    padding: 8px 0;
+  }
+  .zx-divider hr {
+    border: none;
+    border-top: 1px solid var(--border-strong);
+    margin: 0;
+  }
+  .zx-bookmark {
+    display: block;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin: 4px 0;
+    background: var(--surface);
+    transition:
+      border-color 0.14s ease,
+      box-shadow 0.14s ease;
+  }
+  .zx-bookmark:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-sm);
+  }
+  .zx-bookmark-title {
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .zx-bookmark-desc {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 3px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .zx-bookmark-host {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-faint);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .zx-bookmark-host img {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+
   /* ---------- Notifications ---------- */
   .bell {
     position: relative;

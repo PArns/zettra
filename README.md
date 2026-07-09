@@ -1,8 +1,8 @@
 # Zettra
 
-A self-hosted, web-based, Notion/Tana-style collaborative **second brain**: a universal
-**Briefkasten** (inbox) capture layer, **supertag**-driven structure, saved **views**, and
-AI-assisted **smart connections** between nodes.
+A self-hosted, web-based, collaborative **second brain**: a universal **Briefkasten** (inbox)
+capture layer, **supertag**-driven structure, saved **views**, and AI-assisted **smart
+connections** between nodes.
 
 > This repository implements the Zettra build specification phase by phase. This branch
 > establishes the **data + service foundation** (spec §1): the monorepo, the full data model,
@@ -121,10 +121,14 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
 - **Reusable component kit** (`src/ui/`) — `Button`, `Card`, `Badge`, `Input`/`Field`,
   `Spinner`, `EmptyState`, `Avatar`, `Segmented`, `ThemeSwitcher`, `IconButton` — all
   token-driven and theme-aware.
-- **Content blocks** (`src/blocks/`) — Notion/Obsidian-parity widgets: callouts, web-bookmark
-  cards, a weather widget, a **kanban board** (drag-and-drop), a **table with live formulas**
-  (a hand-written, unit-tested spreadsheet engine — no `eval`), a **cover-image header**, and
-  an interactive checklist.
+- **Custom editor blocks** — callout/admonition, blockquote, divider, and web-bookmark are
+  real BlockNote block types (inserted from the `/` slash menu), registered in **both** the
+  client React schema and the collab server DOM schema (`@zettra/shared` holds the shared prop
+  schemas) so they survive the Yjs round-trip. BlockNote 0.25 ships none of these.
+- **Content blocks** (`src/blocks/`) — richer widgets rendered as reusable components: a
+  weather widget, a **kanban board** (drag-and-drop), a **table with live formulas** (a
+  hand-written, unit-tested spreadsheet engine — no `eval`), a **cover-image header**, and an
+  interactive checklist.
 - **Component gallery** — open `/?demo=1` for a standalone showcase of every block and kit
   primitive with sample data (no backend required).
 
@@ -141,8 +145,9 @@ Schema-/DB-per-tenant is only for hard physical-isolation compliance needs.
 Inline field nodes **inside the prose editor** (editing fields in the rail + views already
 works; embedding an editable field token mid-paragraph is the remaining slice of §11's
 bidirectional sync); retyping a field's type migrating existing `field_value` rows; sparse
-BGE-M3 vectors in hybrid search (the storage seam is reserved); wiring the `src/blocks/`
-widgets (callout, kanban, formula table, cover, weather, bookmark) into the BlockNote schema
-as first-class editor block types (they ship today as reusable components + the gallery).
+BGE-M3 vectors in hybrid search (the storage seam is reserved); toggle/collapsible blocks,
+LaTeX math (KaTeX) and Mermaid diagrams as editor blocks; promoting the kanban/formula-table
+widgets from reusable components to first-class BlockNote block types (callout, quote, divider
+and bookmark already are).
 
 See `CLAUDE.md` for the binding invariants. `// SPEC-GAP:` comments mark scheduled work.

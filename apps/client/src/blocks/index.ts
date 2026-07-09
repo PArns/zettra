@@ -1,4 +1,4 @@
-/** Content blocks — Notion/Obsidian-parity widgets used in pages and the demo showcase. */
+/** Content blocks — rich widgets used in pages and the demo showcase. */
 export { Callout } from './Callout';
 export { BookmarkCard, type Bookmark } from './BookmarkCard';
 export { WeatherCard, type Weather } from './WeatherCard';

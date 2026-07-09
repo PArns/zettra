@@ -9,7 +9,7 @@ export interface Bookmark {
   image?: string;
 }
 
-/** Rich link preview card (Notion "web bookmark" block). */
+/** Rich link preview card (web bookmark). */
 export function BookmarkCard({ bookmark }: { bookmark: Bookmark }) {
   const host = safeHost(bookmark.url);
   return (

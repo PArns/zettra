@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
 /**
- * Page header with a cover image and an overlapping icon (Notion-style). The cover can be an
- * image URL or a CSS gradient string.
+ * Page header with a cover image and an overlapping icon. The cover can be an image URL or a
+ * CSS gradient string.
  */
 export function CoverHeader({
   cover,

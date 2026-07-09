@@ -11,7 +11,7 @@ const KIND: Record<Kind, { glyph: string; accent: string; label: string }> = {
   note: { glyph: '📝', accent: 'var(--accent)', label: 'Note' },
 };
 
-/** Colored callout/admonition box (Notion/Obsidian style). */
+/** Colored callout/admonition box. */
 export function Callout({
   kind = 'info',
   title,

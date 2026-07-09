@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { BlockNoteView } from '@blocknote/mantine';
+import { filterSuggestionItems, insertOrUpdateBlock } from '@blocknote/core';
 import {
+  getDefaultReactSlashMenuItems,
   SuggestionMenuController,
   useCreateBlockNote,
   type DefaultReactSuggestionItem,
 } from '@blocknote/react';
 import '@blocknote/mantine/style.css';
+import { bookmarkHost } from '@zettra/shared';
 import { api, getToken } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { resolvedTheme } from '../lib/theme';
@@ -112,6 +115,50 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
     };
   };
 
+  // The `/` slash menu: BlockNote defaults plus our custom blocks (§4 — callout, quote,
+  // divider, bookmark). Filtered client-side by the typed query.
+  const slashItems = async (query: string): Promise<DefaultReactSuggestionItem[]> => {
+    const custom: DefaultReactSuggestionItem[] = [
+      {
+        title: 'Callout',
+        subtext: 'Highlighted info / tip / warning box',
+        aliases: ['callout', 'admonition', 'note', 'info'],
+        group: 'Blocks',
+        onItemClick: () =>
+          insertOrUpdateBlock(editor, { type: 'callout', props: { kind: 'info' } }),
+      },
+      {
+        title: 'Quote',
+        subtext: 'Blockquote',
+        aliases: ['quote', 'blockquote', 'citation'],
+        group: 'Blocks',
+        onItemClick: () => insertOrUpdateBlock(editor, { type: 'quote' }),
+      },
+      {
+        title: 'Divider',
+        subtext: 'Horizontal rule',
+        aliases: ['divider', 'hr', 'separator', 'rule'],
+        group: 'Blocks',
+        onItemClick: () => insertOrUpdateBlock(editor, { type: 'divider' }),
+      },
+      {
+        title: 'Bookmark',
+        subtext: 'Rich link preview card',
+        aliases: ['bookmark', 'link', 'embed', 'url'],
+        group: 'Blocks',
+        onItemClick: () => {
+          const url = window.prompt('Bookmark URL')?.trim();
+          if (!url) return;
+          insertOrUpdateBlock(editor, {
+            type: 'bookmark',
+            props: { url, title: bookmarkHost(url) },
+          });
+        },
+      },
+    ];
+    return filterSuggestionItems([...getDefaultReactSlashMenuItems(editor), ...custom], query);
+  };
+
   return (
     <div>
       <div className="editor-status">
@@ -123,7 +170,9 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
             : 'Connecting…'}
       </div>
       <div className="editor-host">
-        <BlockNoteView editor={editor} theme={theme}>
+        <BlockNoteView editor={editor} theme={theme} slashMenu={false}>
+          {/* / → block insert menu (defaults + custom blocks). */}
+          <SuggestionMenuController triggerCharacter="/" getItems={slashItems} />
           {/* # → tag, @ → person reference, [ → general reference (§8.6). */}
           <SuggestionMenuController triggerCharacter="#" getItems={referenceItems('tag')} />
           <SuggestionMenuController triggerCharacter="@" getItems={referenceItems('reference')} />
