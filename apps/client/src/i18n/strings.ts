@@ -219,6 +219,14 @@ const en = {
   'reminder.dismiss': 'Dismiss',
   'reminder.notePlaceholder': 'Note (optional)',
 
+  'nav.today': 'Today',
+  'today.overdue': 'Overdue',
+  'today.dueToday': 'Today',
+  'today.upcoming': 'Upcoming',
+  'today.captures': 'Fresh captures',
+  'today.emptyTitle': 'Nothing for today',
+  'today.emptyHint': 'Reminders and fresh captures gather here.',
+
   'notif.title': 'Notifications',
   'notif.unread': 'unread',
   'notif.caughtUp': "You're all caught up.",
@@ -441,6 +449,14 @@ const de: Catalog = {
   'reminder.dismiss': 'Verwerfen',
   'reminder.notePlaceholder': 'Notiz (optional)',
 
+  'nav.today': 'Heute',
+  'today.overdue': 'Überfällig',
+  'today.dueToday': 'Heute',
+  'today.upcoming': 'Demnächst',
+  'today.captures': 'Neue Erfassungen',
+  'today.emptyTitle': 'Nichts für heute',
+  'today.emptyHint': 'Erinnerungen und frische Erfassungen sammeln sich hier.',
+
   'notif.title': 'Benachrichtigungen',
   'notif.unread': 'ungelesen',
   'notif.caughtUp': 'Du bist auf dem neuesten Stand.',
@@ -658,6 +674,14 @@ const es: Catalog = {
   'reminder.done': 'Hecho',
   'reminder.dismiss': 'Descartar',
   'reminder.notePlaceholder': 'Nota (opcional)',
+
+  'nav.today': 'Hoy',
+  'today.overdue': 'Vencido',
+  'today.dueToday': 'Hoy',
+  'today.upcoming': 'Próximo',
+  'today.captures': 'Capturas recientes',
+  'today.emptyTitle': 'Nada para hoy',
+  'today.emptyHint': 'Los recordatorios y las capturas recientes aparecerán aquí.',
 
   'notif.title': 'Notificaciones',
   'notif.unread': 'sin leer',
@@ -877,6 +901,14 @@ const fr: Catalog = {
   'reminder.done': 'Terminé',
   'reminder.dismiss': 'Ignorer',
   'reminder.notePlaceholder': 'Note (facultatif)',
+
+  'nav.today': 'Aujourd’hui',
+  'today.overdue': 'En retard',
+  'today.dueToday': 'Aujourd’hui',
+  'today.upcoming': 'À venir',
+  'today.captures': 'Captures récentes',
+  'today.emptyTitle': 'Rien pour aujourd’hui',
+  'today.emptyHint': 'Les rappels et les captures récentes apparaîtront ici.',
 
   'notif.title': 'Notifications',
   'notif.unread': 'non lues',

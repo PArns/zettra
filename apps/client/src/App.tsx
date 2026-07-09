@@ -11,6 +11,7 @@ import { AdminConsole } from './components/AdminConsole';
 import { SupertagDialog } from './components/SupertagDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
+import { TodayPane } from './components/TodayPane';
 import { WelcomePane } from './components/WelcomePane';
 import { DropZone } from './components/DropZone';
 import { ForReviewPane } from './components/ForReviewPane';
@@ -154,13 +155,15 @@ export function App() {
   const crumb =
     selected != null
       ? t('top.note')
-      : nav.kind === 'inbox'
-        ? t('nav.briefkasten')
-        : nav.kind === 'review'
-          ? t('nav.connections')
-          : nav.kind === 'forReview'
-            ? t('nav.forReview')
-            : nav.name;
+      : nav.kind === 'today'
+        ? t('nav.today')
+        : nav.kind === 'inbox'
+          ? t('nav.briefkasten')
+          : nav.kind === 'review'
+            ? t('nav.connections')
+            : nav.kind === 'forReview'
+              ? t('nav.forReview')
+              : nav.name;
 
   return (
     <div className={`app${navOpen ? ' nav-open' : ''}`}>
@@ -243,6 +246,9 @@ export function App() {
           <div className="content no-rail">
             <div className="pane">
               <div className="pane-narrow">
+                {nav.kind === 'today' && (
+                  <TodayPane captures={inbox} onOpen={(id) => setSelected(id)} />
+                )}
                 {nav.kind === 'inbox' && (
                   <>
                     {inbox.length === 0 && tags.length === 0 && (

@@ -4,6 +4,7 @@ import { useT } from '../i18n';
 import { TagTree } from './TagTree';
 
 export type Nav =
+  | { kind: 'today' }
   | { kind: 'inbox' }
   | { kind: 'review' }
   | { kind: 'forReview' }
@@ -50,6 +51,12 @@ export function Sidebar(props: {
 
       <div className="sidebar-scroll">
         <div className="nav-section">
+          <div
+            className={`nav-item ${isActive({ kind: 'today' }) ? 'active' : ''}`}
+            {...clickable(() => props.onNav({ kind: 'today' }))}
+          >
+            <span className="emoji">☀️</span> {t('nav.today')}
+          </div>
           <div
             className={`nav-item ${isActive({ kind: 'inbox' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'inbox' }))}

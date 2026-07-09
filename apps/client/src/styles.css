@@ -1745,4 +1745,45 @@ body {
     width: 100%;
     margin-bottom: 6px;
   }
+
+  /* ---------- Today briefing (§6) ---------- */
+  .today {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .today-group {
+    margin-bottom: 18px;
+  }
+  .today-group-head {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
+    margin: 4px 2px 8px;
+  }
+  .today-group-head.overdue {
+    color: var(--red);
+  }
+  .today-group-head.due {
+    color: var(--accent);
+  }
+  .today-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .today-title {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .today-meta {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 }
