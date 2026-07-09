@@ -5,6 +5,7 @@ import { AiPrivacyScope } from '@zettra/shared';
 import { Space } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { MembershipService } from '../membership/membership.service';
+import { LimitsService } from '../limits/limits.service';
 
 /**
  * Spaces (§5). Creating a space grants the creator an owner membership. Listing is scoped to
@@ -15,6 +16,7 @@ export class SpaceService {
   constructor(
     @InjectRepository(Space) private readonly spaces: Repository<Space>,
     private readonly memberships: MembershipService,
+    private readonly limits: LimitsService,
   ) {}
 
   listVisible(ctx: RequestContext): Promise<Space[]> {
@@ -23,6 +25,7 @@ export class SpaceService {
   }
 
   async create(ctx: RequestContext, name: string, aiPolicy?: AiPrivacyScope): Promise<Space> {
+    await this.limits.assertCanCreate(ctx.tenantId, 'spaces');
     const space = await this.spaces.save(
       this.spaces.create({
         tenantId: ctx.tenantId,

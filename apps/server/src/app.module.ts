@@ -24,6 +24,7 @@ import { WorkersModule } from './modules/jobs/workers.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { GraphModule } from './modules/graph/graph.module';
 import { SpaceModule } from './modules/space/space.module';
+import { LimitsModule } from './modules/limits/limits.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { SearchModule } from './modules/search/search.module';
 
@@ -50,6 +51,7 @@ import { SearchModule } from './modules/search/search.module';
     AuthModule,
     TenantModule,
     SpaceModule,
+    LimitsModule,
     TagModule,
     FieldModule,
     BlockModule,

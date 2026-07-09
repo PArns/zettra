@@ -119,6 +119,18 @@ export const api = {
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
 
+  tenantLimits: () =>
+    request<{
+      tier: 'free' | 'pro' | 'team';
+      limits: {
+        members: number | null;
+        spaces: number | null;
+        blocks: number | null;
+        storageMb: number | null;
+      };
+      usage: { members: number; spaces: number; blocks: number; storageMb: number };
+    }>('/tenant/limits'),
+
   spaces: () => request<Space[]>('/spaces'),
   tags: () => request<Tag[]>('/tags'),
   views: () => request<View[]>('/views'),

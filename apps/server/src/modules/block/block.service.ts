@@ -5,6 +5,7 @@ import { CreateBlockDto, BlockSource, BlockVisibility } from '@zettra/shared';
 import { Block, BlockTag } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { QUEUE, QueueService } from '../jobs/queue.service';
+import { LimitsService } from '../limits/limits.service';
 
 /**
  * Block CRUD. Every read is permission-scoped to the acting user's visible spaces (§15.2),
@@ -16,12 +17,14 @@ export class BlockService {
     @InjectRepository(Block) private readonly blocks: Repository<Block>,
     @InjectRepository(BlockTag) private readonly blockTags: Repository<BlockTag>,
     private readonly queue: QueueService,
+    private readonly limits: LimitsService,
   ) {}
 
   async create(ctx: RequestContext, dto: CreateBlockDto): Promise<Block> {
     if (!ctx.visibleSpaceIds.includes(dto.spaceId)) {
       throw new ForbiddenException('No access to target space');
     }
+    await this.limits.assertCanCreate(ctx.tenantId, 'blocks');
     const block = await this.blocks.save(
       this.blocks.create({
         tenantId: ctx.tenantId,

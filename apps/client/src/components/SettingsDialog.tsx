@@ -4,7 +4,39 @@ import { getAccent, setAccent } from '../lib/accent';
 import { AccentPicker, Button, Field, Input, Segmented, ThemeSwitcher } from '../ui';
 import { useToast } from './Toast';
 
-type Tab = 'appearance' | 'profile' | 'security';
+type Tab = 'appearance' | 'profile' | 'security' | 'plan';
+
+interface Plan {
+  tier: 'free' | 'pro' | 'team';
+  limits: {
+    members: number | null;
+    spaces: number | null;
+    blocks: number | null;
+    storageMb: number | null;
+  };
+  usage: { members: number; spaces: number; blocks: number; storageMb: number };
+}
+
+function UsageBar({ label, used, limit }: { label: string; used: number; limit: number | null }) {
+  const pct = limit == null ? 0 : Math.min(100, Math.round((used / limit) * 100));
+  return (
+    <div className="usage-row">
+      <div className="usage-head">
+        <span>{label}</span>
+        <span className="usage-num">
+          {used}
+          {limit == null ? ' / ∞' : ` / ${limit}`}
+        </span>
+      </div>
+      <div className="usage-track">
+        <div
+          className="usage-fill"
+          style={{ width: `${limit == null ? 4 : pct}%`, opacity: limit == null ? 0.4 : 1 }}
+        />
+      </div>
+    </div>
+  );
+}
 
 /**
  * Account & preferences dialog (§2): appearance (theme mode + accent), profile (name, email,
@@ -33,6 +65,7 @@ export function SettingsDialog({
 
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
   const [savingPw, setSavingPw] = useState(false);
+  const [plan, setPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     api
@@ -40,6 +73,10 @@ export function SettingsDialog({
       .then((s) => {
         if (s.language) setLanguage(s.language);
       })
+      .catch(() => undefined);
+    api
+      .tenantLimits()
+      .then(setPlan)
       .catch(() => undefined);
   }, []);
 
@@ -99,7 +136,7 @@ export function SettingsDialog({
 
         <div className="settings-body">
           <nav className="settings-tabs">
-            {(['appearance', 'profile', 'security'] as Tab[]).map((t) => (
+            {(['appearance', 'profile', 'security', 'plan'] as Tab[]).map((t) => (
               <button
                 key={t}
                 className={`settings-tab ${tab === t ? 'active' : ''}`}
@@ -109,7 +146,9 @@ export function SettingsDialog({
                   ? '🎨 Appearance'
                   : t === 'profile'
                     ? '👤 Profile'
-                    : '🔒 Security'}
+                    : t === 'security'
+                      ? '🔒 Security'
+                      : '💳 Plan'}
               </button>
             ))}
           </nav>
@@ -207,6 +246,34 @@ export function SettingsDialog({
                 <Button variant="primary" onClick={savePassword} disabled={savingPw}>
                   {savingPw ? 'Saving…' : 'Change password'}
                 </Button>
+              </div>
+            )}
+
+            {tab === 'plan' && (
+              <div className="stack">
+                <div className="plan-badge">
+                  Current plan: <strong>{plan ? plan.tier.toUpperCase() : '—'}</strong>
+                </div>
+                {plan && (
+                  <div className="stack" style={{ gap: 12 }}>
+                    <UsageBar
+                      label="Members"
+                      used={plan.usage.members}
+                      limit={plan.limits.members}
+                    />
+                    <UsageBar label="Spaces" used={plan.usage.spaces} limit={plan.limits.spaces} />
+                    <UsageBar label="Blocks" used={plan.usage.blocks} limit={plan.limits.blocks} />
+                    <UsageBar
+                      label="Storage (MB)"
+                      used={plan.usage.storageMb}
+                      limit={plan.limits.storageMb}
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-faint">
+                  Limits are enforced when creating spaces and blocks. Change the tier on the tenant
+                  to upgrade.
+                </p>
               </div>
             )}
           </div>

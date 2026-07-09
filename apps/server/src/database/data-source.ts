@@ -11,6 +11,7 @@ import { Indexes1700000000005 } from './migrations/1700000000005-Indexes';
 import { NotificationActor1700000000006 } from './migrations/1700000000006-NotificationActor';
 import { HierarchyAndReview1700000000007 } from './migrations/1700000000007-HierarchyAndReview';
 import { UserSettings1700000000008 } from './migrations/1700000000008-UserSettings';
+import { TenantTier1700000000009 } from './migrations/1700000000009-TenantTier';
 
 const config = loadConfig();
 
@@ -33,6 +34,7 @@ export const dataSourceOptions: DataSourceOptions = {
     NotificationActor1700000000006,
     HierarchyAndReview1700000000007,
     UserSettings1700000000008,
+    TenantTier1700000000009,
   ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],
