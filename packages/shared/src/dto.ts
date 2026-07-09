@@ -15,6 +15,19 @@ export interface AuthTokenDto {
   user: UserDto;
 }
 
+/** One signed-in workspace for the current credentials (email-first login, §2). */
+export interface WorkspaceSessionDto {
+  tenantId: string;
+  tenantName: string;
+  accessToken: string;
+  user: UserDto;
+}
+
+/** Result of an email+password login: every workspace those credentials unlock. */
+export interface LoginResultDto {
+  sessions: WorkspaceSessionDto[];
+}
+
 export interface UserDto {
   id: string;
   tenantId: string;

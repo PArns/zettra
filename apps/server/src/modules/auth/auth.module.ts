@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../../entities/index';
+import { Tenant, User } from '../../entities/index';
 import { loadConfig } from '../../config/configuration';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -10,7 +10,7 @@ import { TenantModule } from '../tenant/tenant.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Tenant]),
     TenantModule,
     JwtModule.register({
       secret: loadConfig().appSecret,

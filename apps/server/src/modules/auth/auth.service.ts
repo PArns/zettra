@@ -2,8 +2,8 @@ import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuthTokenDto, UserDto, UserSettingsDto } from '@zettra/shared';
-import { User } from '../../entities/index';
+import { AuthTokenDto, LoginResultDto, UserDto, UserSettingsDto } from '@zettra/shared';
+import { Tenant, User } from '../../entities/index';
 import { hashPassword, verifyPassword } from '../../common/password';
 import { TenantService } from '../tenant/tenant.service';
 import { JwtPayload } from './auth.guard';
@@ -24,6 +24,7 @@ export interface RegisterInput {
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     private readonly jwt: JwtService,
     private readonly tenants: TenantService,
   ) {}
@@ -48,6 +49,35 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
     return this.tokenFor(user.id, tenantId, this.toDto(user, tenantId));
+  }
+
+  /**
+   * Email-first login (§2): find every account with this email across workspaces, and return a
+   * signed session for each whose password matches. Workspaces are only revealed AFTER a correct
+   * password, so this never leaks which workspaces an email belongs to. The client picks one when
+   * several match; a single match logs straight in — no tenant UUID required.
+   */
+  async loginByEmail(email: string, password: string): Promise<LoginResultDto> {
+    const users = await this.users
+      .createQueryBuilder('u')
+      .addSelect('u.passwordHash')
+      .where('u.email = :email', { email })
+      .getMany();
+
+    const sessions: LoginResultDto['sessions'] = [];
+    for (const user of users) {
+      if (!user.passwordHash || !(await verifyPassword(password, user.passwordHash))) continue;
+      const tenant = await this.tenantRepo.findOne({ where: { id: user.tenantId } });
+      sessions.push({
+        tenantId: user.tenantId,
+        tenantName: tenant?.name ?? 'Workspace',
+        accessToken: (await this.tokenFor(user.id, user.tenantId, this.toDto(user, user.tenantId)))
+          .accessToken,
+        user: this.toDto(user, user.tenantId),
+      });
+    }
+    if (sessions.length === 0) throw new UnauthorizedException('Invalid credentials');
+    return { sessions };
   }
 
   /** Current user's identity + visible spaces + role (§2, §15.2). */

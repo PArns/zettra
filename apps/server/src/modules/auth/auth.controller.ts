@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
-import { IsEmail, IsIn, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
-import { AuthTokenDto, UserSettingsDto } from '@zettra/shared';
+import { IsEmail, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import { AuthTokenDto, LoginResultDto, UserSettingsDto } from '@zettra/shared';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
@@ -14,7 +14,6 @@ class RegisterBody {
 }
 
 class LoginBody {
-  @IsUUID() tenantId!: string;
   @IsEmail() email!: string;
   @IsString() password!: string;
 }
@@ -45,8 +44,8 @@ export class AuthController {
   }
 
   @Post('login')
-  login(@Body() body: LoginBody): Promise<AuthTokenDto> {
-    return this.auth.login(body.tenantId, body.email, body.password);
+  login(@Body() body: LoginBody): Promise<LoginResultDto> {
+    return this.auth.loginByEmail(body.email, body.password);
   }
 
   @Get('me')
