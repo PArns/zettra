@@ -169,6 +169,10 @@ function compileStructural(
       wheres.push(`${BLOCK}."spaceId" = :${p}`);
       return;
     }
+    case 'needs_review':
+      // The "For Review" bucket: captures awaiting human triage (§8.3).
+      wheres.push(`${BLOCK}."needsReview" = true`);
+      return;
   }
 }
 

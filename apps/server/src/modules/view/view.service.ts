@@ -143,6 +143,21 @@ export class ViewService {
     return this.runDefinition(ctx, def);
   }
 
+  /** The "For Review" bucket: the acting user's captures awaiting triage (§8.3). */
+  async forReview(ctx: RequestContext): Promise<Block[]> {
+    const def: ViewDefinition = {
+      tagId: null,
+      filters: [],
+      sorts: [],
+      groupBy: null,
+      structural: [
+        { kind: 'needs_review' },
+        ...(ctx.userId ? [{ kind: 'owned_by' as const, userId: ctx.userId }] : []),
+      ],
+    };
+    return this.runDefinition(ctx, def);
+  }
+
   private async resolveFieldTypes(
     ctx: RequestContext,
     def: ViewDefinition,

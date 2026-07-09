@@ -34,7 +34,8 @@ export interface ViewSort {
 export type StructuralFilter =
   | { kind: 'untagged' }
   | { kind: 'owned_by'; userId: string }
-  | { kind: 'in_space'; spaceId: string };
+  | { kind: 'in_space'; spaceId: string }
+  | { kind: 'needs_review' };
 
 export interface ViewDefinition {
   tagId: string | null;

@@ -1,8 +1,12 @@
 import type { Space, Tag, View } from '../lib/api';
 import { clickable } from '../lib/a11y';
+import { TagTree } from './TagTree';
 
 export type Nav =
-  { kind: 'inbox' } | { kind: 'review' } | { kind: 'view'; id: string; name: string };
+  | { kind: 'inbox' }
+  | { kind: 'review' }
+  | { kind: 'forReview' }
+  | { kind: 'view'; id: string; name: string };
 
 export function Sidebar(props: {
   tags: Tag[];
@@ -10,8 +14,10 @@ export function Sidebar(props: {
   spaces: Space[];
   inboxCount: number;
   reviewCount: number;
+  forReviewCount: number;
   nav: Nav;
   onNav: (n: Nav) => void;
+  onReparentTag: (tagId: string, parentId: string | null) => void;
   onCapture: () => void;
   email: string;
   onSignOut: () => void;
@@ -21,7 +27,7 @@ export function Sidebar(props: {
     (n.kind === nav.kind && n.kind !== 'view') ||
     (n.kind === 'view' && nav.kind === 'view' && n.id === nav.id);
 
-  const tagFor = (v: View) => tags.find((t) => t.id === v.tagId);
+  const activeViewId = nav.kind === 'view' ? nav.id : null;
 
   return (
     <aside className="sidebar">
@@ -45,35 +51,30 @@ export function Sidebar(props: {
             {props.inboxCount > 0 && <span className="count">{props.inboxCount}</span>}
           </div>
           <div
+            className={`nav-item ${isActive({ kind: 'forReview' }) ? 'active' : ''}`}
+            {...clickable(() => props.onNav({ kind: 'forReview' }))}
+          >
+            <span className="emoji">🗂️</span> For Review
+            {props.forReviewCount > 0 && <span className="count">{props.forReviewCount}</span>}
+          </div>
+          <div
             className={`nav-item ${isActive({ kind: 'review' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'review' }))}
           >
-            <span className="emoji">✨</span> Review queue
+            <span className="emoji">✨</span> Connections
             {props.reviewCount > 0 && <span className="count">{props.reviewCount}</span>}
           </div>
         </div>
 
         <div className="nav-section">
-          <div className="label">Supertags</div>
-          {views
-            .filter((v) => v.tagId)
-            .map((v) => {
-              const tag = tagFor(v);
-              return (
-                <div
-                  key={v.id}
-                  className={`nav-item ${isActive({ kind: 'view', id: v.id, name: v.name }) ? 'active' : ''}`}
-                  {...clickable(() => props.onNav({ kind: 'view', id: v.id, name: v.name }))}
-                >
-                  <span className="emoji">{tag?.icon ?? '#'}</span> {v.name}
-                </div>
-              );
-            })}
-          {views.filter((v) => v.tagId).length === 0 && (
-            <div className="nav-item" style={{ opacity: 0.6 }}>
-              No views yet
-            </div>
-          )}
+          <div className="label">Tags</div>
+          <TagTree
+            tags={tags}
+            views={views}
+            activeViewId={activeViewId}
+            onOpenView={(v) => props.onNav({ kind: 'view', id: v.id, name: v.name })}
+            onReparent={props.onReparentTag}
+          />
         </div>
 
         <div className="nav-section">

@@ -6,6 +6,7 @@ export * from './approval';
 export * from './seed';
 export * from './editor';
 export * from './blocks';
+export * from './tag-tree';
 export * from './refs';
 export * from './text';
 export * from './rrf';

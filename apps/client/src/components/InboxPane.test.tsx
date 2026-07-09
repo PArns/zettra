@@ -15,6 +15,7 @@ function block(id: string, text: string): BlockDto {
     source: BlockSource.WebClip,
     sourceRef: null,
     visibility: BlockVisibility.Space,
+    needsReview: false,
     ownerUserId: 'u1',
     createdBy: 'u1',
     createdAt: new Date('2026-07-09T12:00:00Z').toISOString(),

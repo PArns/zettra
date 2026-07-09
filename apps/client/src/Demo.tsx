@@ -8,6 +8,19 @@ import {
   WeatherCard,
 } from './blocks';
 import { Badge, Button, Card, ThemeSwitcher } from './ui';
+import { ToastProvider } from './components/Toast';
+import { DropZone } from './components/DropZone';
+import { TagTree } from './components/TagTree';
+import type { Tag } from './lib/api';
+
+const DEMO_TAGS: Tag[] = [
+  { id: 'p', name: 'Projects', icon: '📁', color: null, parentId: null, defaultViewId: null },
+  { id: 'p1', name: 'Website', icon: '🌐', color: null, parentId: 'p', defaultViewId: null },
+  { id: 'p2', name: 'Mobile app', icon: '📱', color: null, parentId: 'p', defaultViewId: null },
+  { id: 'a', name: 'Areas', icon: '🗂️', color: null, parentId: null, defaultViewId: null },
+  { id: 'a1', name: 'Health', icon: '🏃', color: null, parentId: 'a', defaultViewId: null },
+  { id: 'people', name: 'People', icon: '👤', color: null, parentId: null, defaultViewId: null },
+];
 
 function Section({
   title,
@@ -181,6 +194,30 @@ export function Demo() {
               }}
             />
           </div>
+        </Section>
+
+        <Section kicker="Capture & organize" title="Dropbox & tag tree">
+          <ToastProvider>
+            <div className="grid gap-4 sm:grid-cols-[1fr_260px]">
+              <DropZone spaceId={undefined} onCaptured={() => undefined} />
+              <Card padded={false} className="overflow-hidden p-2">
+                <div className="px-2 pb-1.5 pt-1 text-xs font-semibold uppercase tracking-wider text-faint">
+                  Tags
+                </div>
+                <TagTree
+                  tags={DEMO_TAGS}
+                  views={[]}
+                  activeViewId={null}
+                  onOpenView={() => undefined}
+                  onReparent={() => undefined}
+                />
+              </Card>
+            </div>
+          </ToastProvider>
+          <p className="mt-2 text-xs text-faint">
+            Drop audio, images, files or a link — each is captured and auto-tagged; anything the AI
+            can’t place lands in “For Review”. Tags nest into a drag-to-reorganize folder tree.
+          </p>
         </Section>
 
         <Section kicker="Foundations" title="Kit primitives">

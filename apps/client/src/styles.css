@@ -469,6 +469,94 @@ body {
     color: var(--accent);
   }
 
+  /* ---------- Drop zone (§8.3) ---------- */
+  .dropzone {
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-2);
+    padding: 22px 18px;
+    margin-bottom: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      transform 0.06s ease;
+  }
+  .dropzone:hover {
+    border-color: var(--accent);
+  }
+  .dropzone.over {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: scale(1.006);
+  }
+  .dropzone.busy {
+    opacity: 0.75;
+    pointer-events: none;
+  }
+  .dropzone-glyph {
+    font-size: 26px;
+  }
+  .dropzone-title {
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  .dropzone-hint {
+    color: var(--text-faint);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  /* ---------- Tag tree (§8.1) ---------- */
+  .tag-tree.drop-target {
+    outline: 2px dashed var(--accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  .nav-item.tag-node {
+    gap: 4px;
+  }
+  .nav-item.tag-node.drop-target {
+    background: var(--accent-soft);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .tag-caret {
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+    color: var(--text-faint);
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .tag-caret:hover {
+    color: var(--text);
+    background: transparent;
+  }
+  .tag-node .tag-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---------- For Review cards ---------- */
+  .review-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .review-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+
   /* ---------- Custom editor blocks (callout / quote / divider / bookmark) ---------- */
   .zx-callout {
     display: flex;

@@ -40,6 +40,8 @@ export interface BlockDto {
   source: BlockSource;
   sourceRef: string | null;
   visibility: BlockVisibility;
+  /** Awaiting human triage in the "For Review" bucket (§8.3): capture couldn't auto-tag it. */
+  needsReview: boolean;
   ownerUserId: string | null;
   createdBy: string | null;
   createdAt: string;
@@ -52,6 +54,8 @@ export interface CreateTagDto {
   icon?: string;
   color?: string;
   extendsId?: string | null;
+  /** Organizational folder parent (distinct from extendsId inheritance). */
+  parentId?: string | null;
   fields?: CreateTagFieldDto[];
 }
 

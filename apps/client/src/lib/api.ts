@@ -31,6 +31,7 @@ export interface Tag {
   name: string;
   icon: string | null;
   color: string | null;
+  parentId: string | null;
   defaultViewId: string | null;
 }
 export interface Space {
@@ -99,9 +100,15 @@ export const api = {
   viewData: (id: string) => request<ViewData>(`/views/${id}/data`),
 
   inbox: () => request<BlockDto[]>('/views/inbox'),
+  forReview: () => request<BlockDto[]>('/views/for-review'),
+  markReviewed: (id: string) => request<BlockDto>(`/blocks/${id}/reviewed`, { method: 'POST' }),
   block: (id: string) => request<BlockDto>(`/blocks/${id}`),
-  createBlock: (i: { spaceId: string; content?: unknown }) =>
-    request<BlockDto>('/blocks', { method: 'POST', body: JSON.stringify(i) }),
+  createBlock: (i: {
+    spaceId: string;
+    content?: unknown;
+    source?: 'manual' | 'upload' | 'web_clip' | 'voice' | 'email';
+    sourceRef?: string;
+  }) => request<BlockDto>('/blocks', { method: 'POST', body: JSON.stringify(i) }),
 
   related: (id: string) => request<RelatedResult[]>(`/blocks/${id}/related`),
   backlinks: (id: string) => request<BacklinkResult[]>(`/blocks/${id}/backlinks`),
@@ -146,6 +153,11 @@ export const api = {
 
   applyTag: (tagId: string, blockId: string) =>
     request(`/tags/${tagId}/apply/${blockId}`, { method: 'POST' }),
+  setTagParent: (tagId: string, parentId: string | null) =>
+    request<Tag>(`/tags/${tagId}/parent`, {
+      method: 'PATCH',
+      body: JSON.stringify({ parentId }),
+    }),
 
   notifications: () => request<Notification[]>('/notifications'),
   markNotificationsRead: () => request('/notifications/read-all', { method: 'POST' }),

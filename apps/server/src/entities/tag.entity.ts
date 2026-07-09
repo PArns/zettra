@@ -21,6 +21,11 @@ export class Tag {
   @Column({ type: 'uuid', nullable: true })
   extendsId!: string | null;
 
+  /** Organizational folder/tree parent — distinct from `extendsId` inheritance. */
+  @Column({ type: 'uuid', nullable: true })
+  @Index()
+  parentId!: string | null;
+
   @Column({ type: 'text', nullable: true })
   icon!: string | null;
 

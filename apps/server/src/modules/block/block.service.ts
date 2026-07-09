@@ -153,6 +153,13 @@ export class BlockService {
     return this.blocks.save(block);
   }
 
+  /** Clear the review flag after a capture has been triaged (§8.3). */
+  async markReviewed(ctx: RequestContext, id: string): Promise<Block> {
+    const block = await this.get(ctx, id);
+    block.needsReview = false;
+    return this.blocks.save(block);
+  }
+
   private enqueueEmbed(tenantId: string, blockId: string): Promise<void> {
     // Debounced by blockId so an edit storm collapses to one embed job (§8.7).
     return this.queue.enqueue(QUEUE.Embed, { tenantId, blockId }, `embed:${blockId}`);

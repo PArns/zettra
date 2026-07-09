@@ -13,6 +13,7 @@ class CreateTagBody {
   @IsOptional() @IsString() icon?: string;
   @IsOptional() @IsString() color?: string;
   @IsOptional() @IsString() extendsId?: string;
+  @IsOptional() @IsString() parentId?: string;
   @IsOptional() @IsArray() fields?: CreateTagFieldDto[];
 }
 
@@ -21,6 +22,10 @@ class TagFieldBody {
   @IsEnum(FieldType) type!: FieldType;
   @IsOptional() config?: Record<string, unknown>;
   @IsOptional() position?: number;
+}
+
+class SetParentBody {
+  @IsOptional() @IsString() parentId?: string | null;
 }
 
 @Controller('tags')
@@ -89,5 +94,15 @@ export class TagController {
   ): Promise<{ ok: true }> {
     await this.tags.removeTag(ctx.tenantId, blockId, id);
     return { ok: true };
+  }
+
+  /** Move a tag under a new folder parent (or to the root with `parentId: null`). */
+  @Patch(':id/parent')
+  setParent(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+    @Body() body: SetParentBody,
+  ): Promise<Tag> {
+    return this.tags.setParent(ctx.tenantId, id, body.parentId ?? null);
   }
 }

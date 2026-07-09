@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateTagFieldDto, CreateTagDto, FieldType } from '@zettra/shared';
-import { BlockTag, FieldValue, Tag, TagField } from '../../entities/index';
+import { CreateTagFieldDto, CreateTagDto, FieldType, wouldCycle } from '@zettra/shared';
+import { Block, BlockTag, FieldValue, Tag, TagField } from '../../entities/index';
 import { QUEUE, QueueService } from '../jobs/queue.service';
 
 export interface EffectiveField {
@@ -26,6 +26,7 @@ export class TagService {
     @InjectRepository(TagField) private readonly fields: Repository<TagField>,
     @InjectRepository(BlockTag) private readonly blockTags: Repository<BlockTag>,
     @InjectRepository(FieldValue) private readonly fieldValues: Repository<FieldValue>,
+    @InjectRepository(Block) private readonly blocks: Repository<Block>,
     private readonly queue: QueueService,
   ) {}
 
@@ -41,6 +42,7 @@ export class TagService {
         icon: dto.icon ?? null,
         color: dto.color ?? null,
         extendsId: dto.extendsId ?? null,
+        parentId: dto.parentId ?? null,
       }),
     );
     for (const [position, f] of (dto.fields ?? []).entries()) {
@@ -55,6 +57,28 @@ export class TagService {
       );
     }
     return tag;
+  }
+
+  /**
+   * Move a tag under a new organizational parent (the folder tree). Rejects self-parenting and
+   * any move that would create a cycle, so the tree stays a tree (§8.1).
+   */
+  async setParent(tenantId: string, tagId: string, parentId: string | null): Promise<Tag> {
+    const tag = await this.tags.findOne({ where: { id: tagId, tenantId } });
+    if (!tag) throw new NotFoundException('Tag not found');
+    if (parentId) {
+      const parent = await this.tags.findOne({ where: { id: parentId, tenantId } });
+      if (!parent) throw new NotFoundException('Parent tag not found');
+      const all = await this.tags.find({
+        where: { tenantId },
+        select: { id: true, parentId: true },
+      });
+      if (wouldCycle(all, tagId, parentId)) {
+        throw new BadRequestException('Moving the tag there would create a cycle');
+      }
+    }
+    tag.parentId = parentId;
+    return this.tags.save(tag);
   }
 
   /**
@@ -105,6 +129,8 @@ export class TagService {
     const row = await this.blockTags.save(
       this.blockTags.create({ tenantId, blockId, tagId, createdBy: userId }),
     );
+    // Categorizing a block resolves it out of the "For Review" bucket (§8.3).
+    await this.blocks.update({ id: blockId, tenantId }, { needsReview: false });
     await this.queue.enqueue(
       QUEUE.BackfillFields,
       { tenantId, blockId, tagId },

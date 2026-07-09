@@ -55,6 +55,19 @@ describe('compileView', () => {
     expect(c.params.struct1_owner).toBe('u1');
   });
 
+  it('compiles the needs_review structural filter for the For Review bucket', () => {
+    const def: ViewDefinition = {
+      tagId: null,
+      filters: [],
+      sorts: [],
+      groupBy: null,
+      structural: [{ kind: 'needs_review' }, { kind: 'owned_by', userId: 'u1' }],
+    };
+    const c = compileView(def, new Map(), ctx);
+    expect(c.wheres).toContain('block."needsReview" = true');
+    expect(c.wheres).toContain('block."ownerUserId" = :struct1_owner');
+  });
+
   it('joins field_value once per field and compiles operators to the right column', () => {
     const fields = new Map<string, FieldType>([
       ['fld-status', FieldType.Select],

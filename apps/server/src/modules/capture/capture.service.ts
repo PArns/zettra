@@ -88,16 +88,15 @@ export class CaptureService {
       proposal = result;
     } catch (err) {
       this.logger.warn(`Capture tagging failed for ${blockId}: ${(err as Error).message}`);
-      return; // Leave untagged in the inbox.
+      await this.flagForReview(block); // Couldn't classify → send to "For Review".
+      return;
     }
 
-    if (!proposal.tag) return;
-    const tag = tagList.find((t) => t.name === proposal.tag);
-    if (!tag) return;
-
+    const tag = proposal.tag ? tagList.find((t) => t.name === proposal.tag) : undefined;
     const thresholds = await this.approval.resolveFor(tenantId, block.spaceId, block.ownerUserId);
-    if (proposal.confidence < thresholds.autoApprove) {
-      // Not confident enough to auto-tag; leave in inbox (§8.3 step 3).
+    if (!tag || proposal.confidence < thresholds.autoApprove) {
+      // No confident tag → leave for human triage in the "For Review" bucket (§8.3 step 3).
+      await this.flagForReview(block);
       return;
     }
 
@@ -109,7 +108,15 @@ export class CaptureService {
         await this.fieldValues.set(tenantId, blockId, field.id, value, null);
       }
     }
+    // applyTag() has already cleared any prior review flag (§8.3).
     this.logger.log(`Auto-tagged ${blockId} as #${tag.name} (${proposal.confidence.toFixed(2)})`);
+  }
+
+  /** Mark a block as awaiting human triage (idempotent). */
+  private async flagForReview(block: Block): Promise<void> {
+    if (block.needsReview) return;
+    block.needsReview = true;
+    await this.blocks.save(block);
   }
 }
 

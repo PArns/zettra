@@ -13,6 +13,7 @@ export function toBlockDto(b: Block, tagIds: string[]): BlockDto {
     source: b.source,
     sourceRef: b.sourceRef,
     visibility: b.visibility,
+    needsReview: b.needsReview,
     ownerUserId: b.ownerUserId,
     createdBy: b.createdBy,
     createdAt: b.createdAt.toISOString(),

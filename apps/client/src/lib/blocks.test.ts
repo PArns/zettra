@@ -14,6 +14,7 @@ function makeBlock(content: unknown): BlockDto {
     source: BlockSource.Manual,
     sourceRef: null,
     visibility: BlockVisibility.Space,
+    needsReview: false,
     ownerUserId: 'u1',
     createdBy: 'u1',
     createdAt: new Date().toISOString(),

@@ -61,6 +61,14 @@ export class ViewController {
     return blocks.map((b) => toBlockDto(b, tags.get(b.id) ?? []));
   }
 
+  /** The "For Review" bucket — the acting user's captures awaiting triage (§8.3). */
+  @Get('for-review')
+  async forReview(@Ctx() ctx: RequestContext): Promise<BlockDto[]> {
+    const blocks = await this.views.forReview(ctx);
+    const tags = await this.blocks.tagIdsForMany(blocks.map((b) => b.id));
+    return blocks.map((b) => toBlockDto(b, tags.get(b.id) ?? []));
+  }
+
   @Get(':id/rows')
   run(@Ctx() ctx: RequestContext, @Param('id') id: string): Promise<Block[]> {
     return this.views.run(ctx, id);

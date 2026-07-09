@@ -9,6 +9,7 @@ import { Search1700000000003 } from './migrations/1700000000003-Search';
 import { BlockVisibility1700000000004 } from './migrations/1700000000004-BlockVisibility';
 import { Indexes1700000000005 } from './migrations/1700000000005-Indexes';
 import { NotificationActor1700000000006 } from './migrations/1700000000006-NotificationActor';
+import { HierarchyAndReview1700000000007 } from './migrations/1700000000007-HierarchyAndReview';
 
 const config = loadConfig();
 
@@ -29,6 +30,7 @@ export const dataSourceOptions: DataSourceOptions = {
     BlockVisibility1700000000004,
     Indexes1700000000005,
     NotificationActor1700000000006,
+    HierarchyAndReview1700000000007,
   ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],

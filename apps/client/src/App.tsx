@@ -5,6 +5,8 @@ import { ThemeSwitcher } from './ui';
 import { Auth } from './components/Auth';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
+import { DropZone } from './components/DropZone';
+import { ForReviewPane } from './components/ForReviewPane';
 import { ViewPane } from './components/ViewPane';
 import { ReviewQueue } from './components/ReviewQueue';
 import { RightRail } from './components/RightRail';
@@ -22,6 +24,7 @@ export function App() {
   const [views, setViews] = useState<View[]>([]);
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [inbox, setInbox] = useState<BlockDto[]>([]);
+  const [forReview, setForReview] = useState<BlockDto[]>([]);
   const [reviewCount, setReviewCount] = useState(0);
   const [nav, setNav] = useState<Nav>({ kind: 'inbox' });
   const [selected, setSelected] = useState<string | null>(null);
@@ -31,12 +34,13 @@ export function App() {
 
   const refresh = useCallback(async () => {
     try {
-      const [meRes, t, v, s, i, r] = await Promise.all([
+      const [meRes, t, v, s, i, fr, r] = await Promise.all([
         api.me(),
         api.tags(),
         api.views(),
         api.spaces(),
         api.inbox(),
+        api.forReview().catch(() => []),
         api.review().catch(() => []),
       ]);
       setMe(meRes);
@@ -44,6 +48,7 @@ export function App() {
       setViews(v);
       setSpaces(s);
       setInbox(i);
+      setForReview(fr);
       setReviewCount(r.length);
     } catch {
       setToken(null);
@@ -95,14 +100,25 @@ export function App() {
 
   if (!authed) return <Auth onAuthed={() => setAuthed(true)} />;
 
+  async function reparentTag(tagId: string, parentId: string | null) {
+    try {
+      await api.setTagParent(tagId, parentId);
+      setTags(await api.tags());
+    } catch (err) {
+      toast.error(`Could not move tag: ${(err as Error).message}`);
+    }
+  }
+
   const crumb =
     selected != null
       ? 'Note'
       : nav.kind === 'inbox'
         ? 'Briefkasten'
         : nav.kind === 'review'
-          ? 'Review queue'
-          : nav.name;
+          ? 'Connections'
+          : nav.kind === 'forReview'
+            ? 'For Review'
+            : nav.name;
 
   return (
     <div className="app">
@@ -112,11 +128,13 @@ export function App() {
         spaces={spaces}
         inboxCount={inbox.length}
         reviewCount={reviewCount}
+        forReviewCount={forReview.length}
         nav={nav}
         onNav={(n) => {
           setNav(n);
           setSelected(null);
         }}
+        onReparentTag={reparentTag}
         onCapture={capture}
         email={email || 'you'}
         onSignOut={signOut}
@@ -165,7 +183,24 @@ export function App() {
             <div className="pane">
               <div className="pane-narrow">
                 {nav.kind === 'inbox' && (
-                  <InboxPane blocks={inbox} onOpen={(id) => setSelected(id)} />
+                  <>
+                    <DropZone
+                      spaceId={spaces[0]?.id ?? me?.spaces[0]}
+                      onCaptured={(b) => {
+                        setInbox((prev) => [b, ...prev]);
+                        // The item may auto-tag out of the inbox; reconcile shortly after.
+                        window.setTimeout(() => void refresh(), 1500);
+                      }}
+                    />
+                    <InboxPane blocks={inbox} onOpen={(id) => setSelected(id)} />
+                  </>
+                )}
+                {nav.kind === 'forReview' && (
+                  <ForReviewPane
+                    blocks={forReview}
+                    onOpen={(id) => setSelected(id)}
+                    onResolved={refresh}
+                  />
                 )}
                 {nav.kind === 'review' && <ReviewQueue onChange={refresh} />}
                 {nav.kind === 'view' && (

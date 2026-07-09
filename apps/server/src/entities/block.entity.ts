@@ -53,6 +53,14 @@ export class Block {
   @Column({ type: 'text', default: BlockVisibility.Space })
   visibility!: BlockVisibility;
 
+  /**
+   * Awaiting human triage in the "For Review" bucket (§8.3). Set when capture cannot confidently
+   * auto-tag a block; cleared when a tag is applied or the user marks it reviewed.
+   */
+  @Column({ type: 'boolean', default: false })
+  @Index()
+  needsReview!: boolean;
+
   /** External identity for capture idempotency (unique per tenantId + sourceRef). */
   @Column({ type: 'text', nullable: true })
   sourceRef!: string | null;
