@@ -14,9 +14,13 @@ export default tseslint.config(
   prettier,
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      // No `any` types anywhere (user requirement) — use `unknown` + narrowing instead.
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       '@typescript-eslint/no-empty-object-type': 'off',
     },
   },

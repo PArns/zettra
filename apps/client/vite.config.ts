@@ -1,9 +1,11 @@
-import { defineConfig } from 'vite';
+/// <reference types="vitest" />
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 /**
- * Vite config. In dev, proxy `/api` → server and `/collab` (WebSocket) → collab so the client
- * talks to a single origin, mirroring the nginx routing in prod (§13.1).
+ * Vite + Vitest config. In dev, proxy `/api` → server and `/collab` (WebSocket) → collab so
+ * the client talks to a single origin, mirroring the nginx routing in prod (§13.1). Tests run
+ * under jsdom with Testing Library.
  */
 export default defineConfig({
   plugins: [react()],
@@ -20,5 +22,11 @@ export default defineConfig({
       '@zettra/editor-ext': new URL('../../packages/editor-ext/src/index.ts', import.meta.url)
         .pathname,
     },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 });
