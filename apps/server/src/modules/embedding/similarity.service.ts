@@ -28,9 +28,11 @@ export class SimilarityService {
     if (ctx.visibleSpaceIds.length === 0) return [];
     const vectorLiteral = `[${queryEmbedding.join(',')}]`;
 
-    // ef_search tunes recall/latency; set per-query as a session-local (§8.4).
-    await this.dataSource.query(`SET LOCAL hnsw.ef_search = 40`);
-
+    // Exact cosine over the tenant's visible embeddings (the join to `block` filters by
+    // tenant/space/visibility first, so this is O(tenant's blocks), not global). Correct
+    // recall within the tenant is preferred over HNSW acceleration here.
+    // SPEC-GAP: for very large tenants, switch to an HNSW-accelerated overfetch candidate
+    // set (or pgvector iterative-scan) wrapped by this permission filter.
     const rows: Array<{ blockId: string; distance: number }> = await this.dataSource.query(
       `
       SELECT be."blockId" AS "blockId", MIN(be."embedding" <=> $1::vector) AS distance

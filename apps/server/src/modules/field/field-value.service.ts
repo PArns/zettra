@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { FieldType } from '@zettra/shared';
 import { FieldValue, TagField } from '../../entities/index';
 import { NotificationService } from '../notification/notification.service';
+import { coerceFieldValue, ValueColumn } from './field-coerce';
 
 /**
  * Field-value read/write (§8.7 step 5, invariant 2). Exactly one `value*` column is populated
@@ -30,8 +31,14 @@ export class FieldValueService {
     raw: unknown,
     userId: string | null,
   ): Promise<FieldValue> {
-    const field = await this.fields.findOne({ where: { id: fieldId } });
-    if (!field) throw new Error(`Unknown field ${fieldId}`);
+    // Enforce that the field's tag belongs to this tenant (§7.6) — `tag_field` has no
+    // tenantId column, so join through `tag` rather than trusting the caller's fieldId.
+    const field = await this.fields
+      .createQueryBuilder('f')
+      .innerJoin('tag', 't', 't.id = f."tagId" AND t."tenantId" = :tenantId', { tenantId })
+      .where('f.id = :fieldId', { fieldId })
+      .getOne();
+    if (!field) throw new Error(`Unknown field ${fieldId} for tenant`);
 
     const existing = await this.values.findOne({ where: { blockId, fieldId } });
     const row = existing ?? this.values.create({ tenantId, blockId, fieldId });
@@ -82,29 +89,10 @@ export class FieldValueService {
   }
 
   private assign(row: FieldValue, type: FieldType, raw: unknown): void {
-    if (raw === null || raw === undefined) return;
-    switch (type) {
-      case FieldType.Number:
-        row.valueNumber = String(Number(raw));
-        return;
-      case FieldType.Date:
-        row.valueDate = raw instanceof Date ? raw : new Date(String(raw));
-        return;
-      case FieldType.Checkbox:
-        row.valueBool = Boolean(raw);
-        return;
-      case FieldType.MultiSelect:
-        row.valueJson = Array.isArray(raw) ? raw : [raw];
-        return;
-      case FieldType.Text:
-      case FieldType.Select:
-      case FieldType.Relation:
-      case FieldType.User:
-      case FieldType.Url:
-      case FieldType.File:
-        row.valueText = String(raw);
-        return;
-    }
+    const coerced = coerceFieldValue(type, raw);
+    if (!coerced) return;
+    // One column populated per row (invariant 2); clear() already reset the others.
+    (row as Record<ValueColumn, unknown>)[coerced.column] = coerced.value;
   }
 }
 

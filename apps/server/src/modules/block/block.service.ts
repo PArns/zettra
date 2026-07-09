@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateBlockDto, BlockSource, BlockVisibility } from '@zettra/shared';
 import { Block, BlockTag } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
@@ -87,6 +87,22 @@ export class BlockService {
   async tagIdsFor(blockId: string): Promise<string[]> {
     const rows = await this.blockTags.find({ where: { blockId }, select: { tagId: true } });
     return rows.map((r) => r.tagId);
+  }
+
+  /** Batched tag-id lookup for many blocks (one query) — avoids N+1 on list endpoints. */
+  async tagIdsForMany(blockIds: string[]): Promise<Map<string, string[]>> {
+    const map = new Map<string, string[]>();
+    if (blockIds.length === 0) return map;
+    const rows = await this.blockTags.find({
+      where: { blockId: In(blockIds) },
+      select: { blockId: true, tagId: true },
+    });
+    for (const r of rows) {
+      const list = map.get(r.blockId) ?? [];
+      list.push(r.tagId);
+      map.set(r.blockId, list);
+    }
+    return map;
   }
 
   async updateContent(ctx: RequestContext, id: string, content: unknown): Promise<Block> {

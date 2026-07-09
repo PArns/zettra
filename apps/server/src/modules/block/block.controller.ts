@@ -5,7 +5,7 @@ import { BlockService } from './block.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
-import { Block } from '../../entities/index';
+import { toBlockDto } from '../../common/block-dto';
 
 class CreateBlockBody {
   @IsUUID() spaceId!: string;
@@ -33,19 +33,20 @@ export class BlockController {
       parentId: body.parentId ?? null,
       content: body.content,
     });
-    return this.toDto(block, await this.blocks.tagIdsFor(block.id));
+    return toBlockDto(block, await this.blocks.tagIdsFor(block.id));
   }
 
   @Get(':id')
   async get(@Ctx() ctx: RequestContext, @Param('id') id: string): Promise<BlockDto> {
     const block = await this.blocks.get(ctx, id);
-    return this.toDto(block, await this.blocks.tagIdsFor(id));
+    return toBlockDto(block, await this.blocks.tagIdsFor(id));
   }
 
   @Get()
   async list(@Ctx() ctx: RequestContext, @Query('spaceId') spaceId: string): Promise<BlockDto[]> {
     const blocks = await this.blocks.listInSpace(ctx, spaceId);
-    return Promise.all(blocks.map(async (b) => this.toDto(b, await this.blocks.tagIdsFor(b.id))));
+    const tags = await this.blocks.tagIdsForMany(blocks.map((b) => b.id));
+    return blocks.map((b) => toBlockDto(b, tags.get(b.id) ?? []));
   }
 
   @Put(':id/content')
@@ -55,7 +56,7 @@ export class BlockController {
     @Body() body: UpdateContentBody,
   ): Promise<BlockDto> {
     const block = await this.blocks.updateContent(ctx, id, body.content);
-    return this.toDto(block, await this.blocks.tagIdsFor(id));
+    return toBlockDto(block, await this.blocks.tagIdsFor(id));
   }
 
   @Put(':id/visibility')
@@ -65,25 +66,6 @@ export class BlockController {
     @Body() body: SetVisibilityBody,
   ): Promise<BlockDto> {
     const block = await this.blocks.setVisibility(ctx, id, body.visibility);
-    return this.toDto(block, await this.blocks.tagIdsFor(id));
-  }
-
-  private toDto(b: Block, tagIds: string[]): BlockDto {
-    return {
-      id: b.id,
-      tenantId: b.tenantId,
-      spaceId: b.spaceId,
-      parentId: b.parentId,
-      position: b.position,
-      content: b.content,
-      source: b.source,
-      sourceRef: b.sourceRef,
-      visibility: b.visibility,
-      ownerUserId: b.ownerUserId,
-      createdBy: b.createdBy,
-      createdAt: b.createdAt.toISOString(),
-      updatedAt: b.updatedAt.toISOString(),
-      tagIds,
-    };
+    return toBlockDto(block, await this.blocks.tagIdsFor(id));
   }
 }

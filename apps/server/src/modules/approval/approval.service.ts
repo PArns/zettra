@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import {
   decideLink,
   LinkDecision,
@@ -66,6 +66,19 @@ export class ApprovalService {
     const thresholds = await this.resolveFor(tenantId, spaceId, userId);
     const decision = decideLink(candidate.confidence, thresholds);
     if (decision.action === 'drop') return { decision, relation: null };
+
+    // Idempotency (§12): never re-create an edge that already exists in ANY status — a
+    // previously *dismissed* suggestion must stay dismissed, and re-curation must not throw
+    // on the unique(sourceId,targetId,fieldId) index. This respects the user's decision.
+    const existing = await this.relations.findOne({
+      where: {
+        tenantId,
+        sourceId: candidate.sourceId,
+        targetId: candidate.targetId,
+        fieldId: candidate.fieldId ?? IsNull(),
+      },
+    });
+    if (existing) return { decision, relation: existing };
 
     const confirmed = decision.action === 'confirm';
     const relation = await this.relations.save(

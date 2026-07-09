@@ -7,6 +7,7 @@ import { Vector1700000000001 } from './migrations/1700000000001-Vector';
 import { Rls1700000000002 } from './migrations/1700000000002-Rls';
 import { Search1700000000003 } from './migrations/1700000000003-Search';
 import { BlockVisibility1700000000004 } from './migrations/1700000000004-BlockVisibility';
+import { Indexes1700000000005 } from './migrations/1700000000005-Indexes';
 
 const config = loadConfig();
 
@@ -25,6 +26,7 @@ export const dataSourceOptions: DataSourceOptions = {
     Rls1700000000002,
     Search1700000000003,
     BlockVisibility1700000000004,
+    Indexes1700000000005,
   ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],

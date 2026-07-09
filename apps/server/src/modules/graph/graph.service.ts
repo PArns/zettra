@@ -45,7 +45,10 @@ export class GraphService {
     const hits = await this.similarity.related(ctx, blockId, vector);
     if (hits.length === 0) return [];
 
-    const targets = await this.blocks.find({ where: { id: In(hits.map((h) => h.blockId)) } });
+    // Second-line tenant scoping on hydration (defense-in-depth, §7.6).
+    const targets = await this.blocks.find({
+      where: { tenantId: ctx.tenantId, id: In(hits.map((h) => h.blockId)) },
+    });
     const byId = new Map(targets.map((t) => [t.id, t]));
     return hits.map((h) => ({
       blockId: h.blockId,

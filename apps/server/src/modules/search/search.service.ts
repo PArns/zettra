@@ -36,7 +36,10 @@ export class SearchService {
     const fused = reciprocalRankFusion([dense, fts]).slice(0, limit);
     if (fused.length === 0) return [];
 
-    const blocks = await this.blocks.find({ where: { id: In(fused.map((f) => f.id)) } });
+    // Second-line tenant scoping on hydration (defense-in-depth, §7.6).
+    const blocks = await this.blocks.find({
+      where: { tenantId: ctx.tenantId, id: In(fused.map((f) => f.id)) },
+    });
     const byId = new Map(blocks.map((b) => [b.id, b]));
     return fused
       .filter((f) => byId.has(f.id))

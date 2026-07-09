@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AiPrivacyScope, AiStakes, AiTaskType, DocBlock, extractPlainText } from '@zettra/shared';
 import { Block, Space, Tag } from '../../entities/index';
 import { AiRouterService } from '../ai/ai-router.service';
+import { clampConfidence, extractJson } from '../ai/ai-json';
 import { AliasIndexService } from '../linking/alias-index.service';
 import { MentionLinkerService } from '../linking/mention-linker.service';
 import { TagService } from '../tag/tag.service';
@@ -124,22 +125,13 @@ const TAG_PROPOSAL_SCHEMA = {
 
 function parseTagProposal(raw: string): TagProposal {
   const json = JSON.parse(extractJson(raw)) as Record<string, unknown>;
-  if (typeof json.confidence !== 'number') throw new Error('confidence missing/invalid');
   const tag = typeof json.tag === 'string' ? json.tag : null;
   const fields = (
     json.fields && typeof json.fields === 'object' ? json.fields : {}
   ) as TagProposal['fields'];
-  return { tag, confidence: json.confidence, fields };
-}
-
-/** Tolerate models that wrap JSON in prose/code fences (§14.5: parse is the schema gate). */
-function extractJson(raw: string): string {
-  const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(raw);
-  if (fenced) return fenced[1]!;
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start !== -1 && end > start) return raw.slice(start, end + 1);
-  return raw;
+  // clampConfidence throws on non-finite and clamps to [0,1] so an out-of-range model value
+  // can't spuriously clear the auto-tag gate.
+  return { tag, confidence: clampConfidence(json.confidence), fields };
 }
 
 function toDoc(content: unknown): DocBlock[] {

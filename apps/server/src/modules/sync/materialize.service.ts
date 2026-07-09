@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
+import { DataSource, EntityManager, In } from 'typeorm';
 import { DocBlock, extractRefs, RelationKind } from '@zettra/shared';
 import { Block, BlockRelation, BlockTag } from '../../entities/index';
 import { QUEUE, QueueService } from '../jobs/queue.service';
 import { NotificationService } from '../notification/notification.service';
+
+interface TagJobs {
+  backfill: string[];
+  cleanup: string[];
+}
 
 /**
  * Materializes editor references/tags into rows (§8.7 steps 2-3). The Yjs document is the
@@ -25,6 +30,7 @@ export class MaterializeService {
     const { referenceIds, tagIds } = extractRefs(doc);
 
     let newMentions: string[] = [];
+    let tagJobs: TagJobs = { backfill: [], cleanup: [] };
     await this.dataSource.transaction(async (manager) => {
       const block = await manager
         .getRepository(Block)
@@ -32,8 +38,26 @@ export class MaterializeService {
       if (!block) return;
 
       newMentions = await this.syncMentions(manager, tenantId, blockId, referenceIds);
-      await this.syncTags(manager, tenantId, blockId, tagIds, block.createdBy);
+      tagJobs = await this.syncTags(manager, tenantId, blockId, tagIds, block.createdBy);
     });
+
+    // Enqueue jobs only AFTER the transaction commits — Redis enqueues are not transactional,
+    // so a rolled-back tx must not leave orphan backfill/cleanup jobs (they would write field
+    // values onto a block whose tag insert was rolled back).
+    for (const tagId of tagJobs.backfill) {
+      await this.queue.enqueue(
+        QUEUE.BackfillFields,
+        { tenantId, blockId, tagId },
+        `backfill:${blockId}:${tagId}`,
+      );
+    }
+    for (const tagId of tagJobs.cleanup) {
+      await this.queue.enqueue(
+        QUEUE.CleanupFields,
+        { tenantId, blockId, tagId },
+        `cleanup:${blockId}:${tagId}`,
+      );
+    }
 
     // Notify the owner of each newly-mentioned block (§15.6).
     await this.notifyMentions(tenantId, blockId, newMentions);
@@ -56,8 +80,24 @@ export class MaterializeService {
     });
     const existingTargets = new Set(existing.map((e) => e.targetId));
 
-    const toInsert = [...referenceIds].filter((id) => id !== blockId && !existingTargets.has(id));
-    const toDelete = existing.filter((e) => !referenceIds.has(e.targetId));
+    // Only link targets that actually exist within this tenant — never trust raw ids from
+    // user-controlled doc content (§7.6): a fabricated reference must not create an edge or
+    // notify a foreign owner.
+    const referenced = [...referenceIds].filter((id) => id !== blockId);
+    const validTargets =
+      referenced.length === 0
+        ? []
+        : (
+            await manager.getRepository(Block).find({
+              where: { tenantId, id: In(referenced) },
+              select: { id: true },
+            })
+          ).map((b) => b.id);
+    const validSet = new Set(validTargets);
+
+    const toInsert = validTargets.filter((id) => !existingTargets.has(id));
+    // Deletes still cover any mention edge no longer referenced (incl. now-invalid targets).
+    const toDelete = existing.filter((e) => !validSet.has(e.targetId));
 
     for (const targetId of toInsert) {
       await repo.save(
@@ -82,11 +122,11 @@ export class MaterializeService {
     targetIds: string[],
   ): Promise<void> {
     if (targetIds.length === 0) return;
-    const source = await this.dataSource.getRepository(Block).findOne({ where: { id: sourceId } });
+    const repo = this.dataSource.getRepository(Block);
+    // Tenant-scoped lookups (§7.6) — never resolve blocks across tenants.
+    const source = await repo.findOne({ where: { id: sourceId, tenantId } });
     for (const targetId of targetIds) {
-      const target = await this.dataSource
-        .getRepository(Block)
-        .findOne({ where: { id: targetId } });
+      const target = await repo.findOne({ where: { id: targetId, tenantId } });
       const owner = target?.ownerUserId;
       if (owner && owner !== source?.ownerUserId) {
         await this.notifications.emit(tenantId, owner, 'mention', sourceId);
@@ -94,13 +134,14 @@ export class MaterializeService {
     }
   }
 
+  /** Diffs tags in one transaction; returns the backfill/cleanup jobs to enqueue post-commit. */
   private async syncTags(
     manager: EntityManager,
     tenantId: string,
     blockId: string,
     tagIds: Set<string>,
     createdBy: string | null,
-  ): Promise<void> {
+  ): Promise<TagJobs> {
     const repo = manager.getRepository(BlockTag);
     const existing = await repo.find({ where: { blockId } });
     const existingTagIds = new Set(existing.map((e) => e.tagId));
@@ -110,20 +151,10 @@ export class MaterializeService {
 
     for (const tagId of toInsert) {
       await repo.save(repo.create({ tenantId, blockId, tagId, createdBy }));
-      // Backfill default field values for the newly applied tag (§8.1) — never inline.
-      await this.queue.enqueue(
-        QUEUE.BackfillFields,
-        { tenantId, blockId, tagId },
-        `backfill:${blockId}:${tagId}`,
-      );
     }
     for (const row of toDelete) {
       await repo.delete({ id: row.id });
-      await this.queue.enqueue(
-        QUEUE.CleanupFields,
-        { tenantId, blockId, tagId: row.tagId },
-        `cleanup:${blockId}:${row.tagId}`,
-      );
     }
+    return { backfill: toInsert, cleanup: toDelete.map((r) => r.tagId) };
   }
 }

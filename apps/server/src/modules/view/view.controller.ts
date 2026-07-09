@@ -4,8 +4,11 @@ import { ViewFilter, ViewLayout, ViewSort } from '@zettra/shared';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
+import { BlockDto } from '@zettra/shared';
 import { ViewData, ViewService } from './view.service';
 import { Block, View } from '../../entities/index';
+import { BlockService } from '../block/block.service';
+import { toBlockDto } from '../../common/block-dto';
 
 class CreateViewBody {
   @IsString() @MinLength(1) name!: string;
@@ -20,7 +23,10 @@ class CreateViewBody {
 @Controller('views')
 @UseGuards(AuthGuard)
 export class ViewController {
-  constructor(private readonly views: ViewService) {}
+  constructor(
+    private readonly views: ViewService,
+    private readonly blocks: BlockService,
+  ) {}
 
   @Get()
   list(@Ctx() ctx: RequestContext): Promise<View[]> {
@@ -49,8 +55,10 @@ export class ViewController {
 
   /** The Briefkasten — untagged blocks owned by the acting user (§8.2). */
   @Get('inbox')
-  inbox(@Ctx() ctx: RequestContext): Promise<Block[]> {
-    return this.views.inbox(ctx);
+  async inbox(@Ctx() ctx: RequestContext): Promise<BlockDto[]> {
+    const blocks = await this.views.inbox(ctx);
+    const tags = await this.blocks.tagIdsForMany(blocks.map((b) => b.id));
+    return blocks.map((b) => toBlockDto(b, tags.get(b.id) ?? []));
   }
 
   @Get(':id/rows')

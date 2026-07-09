@@ -5,9 +5,15 @@ import { ViewService } from './view.service';
 import { ViewController } from './view.controller';
 import { TagModule } from '../tag/tag.module';
 import { AuthModule } from '../auth/auth.module';
+import { BlockModule } from '../block/block.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([View, Block, FieldValue]), TagModule, AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([View, Block, FieldValue]),
+    TagModule,
+    AuthModule,
+    BlockModule,
+  ],
   providers: [ViewService],
   controllers: [ViewController],
   exports: [ViewService],

@@ -2,12 +2,13 @@ import { BadRequestException, Body, Controller, Post, UseGuards } from '@nestjs/
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
-import { BlockSource } from '@zettra/shared';
+import { BlockDto, BlockSource } from '@zettra/shared';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
 import { Block } from '../../entities/index';
 import { BlockService } from '../block/block.service';
+import { toBlockDto } from '../../common/block-dto';
 
 class CaptureBody {
   @IsString() @MinLength(1) text!: string;
@@ -33,23 +34,24 @@ export class CaptureController {
   ) {}
 
   @Post()
-  async capture(@Ctx() ctx: RequestContext, @Body() body: CaptureBody): Promise<Block> {
+  async capture(@Ctx() ctx: RequestContext, @Body() body: CaptureBody): Promise<BlockDto> {
     const spaceId = ctx.visibleSpaceIds[0];
     if (!spaceId) throw new BadRequestException('No space available');
 
     const sourceRef = body.sourceRef ?? body.url ?? null;
     if (sourceRef) {
       const existing = await this.blocks.findOne({ where: { tenantId: ctx.tenantId, sourceRef } });
-      if (existing) return existing; // Idempotent (§8.3).
+      if (existing) return toBlockDto(existing, await this.blockService.tagIdsFor(existing.id)); // Idempotent (§8.3).
     }
 
     const content = captureDocument(body.title, body.text, body.url);
-    return this.blockService.create(ctx, {
+    const block = await this.blockService.create(ctx, {
       spaceId,
       source: body.source ?? BlockSource.WebClip,
       sourceRef,
       content,
     });
+    return toBlockDto(block, await this.blockService.tagIdsFor(block.id));
   }
 }
 

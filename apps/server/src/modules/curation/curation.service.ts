@@ -8,6 +8,7 @@ import { AiRouterService } from '../ai/ai-router.service';
 import { EmbeddingService } from '../embedding/embedding.service';
 import { SimilarityService } from '../embedding/similarity.service';
 import { ApprovalService } from '../approval/approval.service';
+import { clampConfidence, extractJson } from '../ai/ai-json';
 
 interface RelationVerdict {
   isRelation: boolean;
@@ -112,19 +113,10 @@ const VERDICT_SCHEMA = {
 
 function parseVerdict(raw: string): RelationVerdict {
   const json = JSON.parse(extractJson(raw)) as Record<string, unknown>;
-  if (typeof json.isRelation !== 'boolean' || typeof json.confidence !== 'number') {
-    throw new Error('verdict schema mismatch');
-  }
-  return { isRelation: json.isRelation, confidence: json.confidence };
-}
-
-function extractJson(raw: string): string {
-  const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(raw);
-  if (fenced) return fenced[1]!;
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start !== -1 && end > start) return raw.slice(start, end + 1);
-  return raw;
+  if (typeof json.isRelation !== 'boolean') throw new Error('verdict schema mismatch');
+  // clampConfidence throws on non-finite and clamps to [0,1] so an out-of-range value can't
+  // force a confirm via the thresholds.
+  return { isRelation: json.isRelation, confidence: clampConfidence(json.confidence) };
 }
 
 function toDoc(content: unknown): DocBlock[] {
