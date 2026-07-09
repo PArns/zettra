@@ -155,7 +155,8 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
   privacy-gated + permission-scoped) with source chips; the topbar search offers "Ask AI" to hand
   the query straight to the chat.
 - **OCR pass** — a flag-gated (`OCR_ENABLED`) embed-worker step recognizes text in uploaded raster
-  images (lazy, optional `tesseract.js`) and folds it into `searchText` so scans become findable.
+  images and folds it into `searchText` so scans become findable. Two backends (`OCR_BACKEND`):
+  lazy `tesseract.js` (default) or an Ollama **vision model** (`OCR_VISION_MODEL`).
 
 ### Design system & UI
 
@@ -168,10 +169,11 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
 - **Reusable component kit** (`src/ui/`) — `Button`, `Card`, `Badge`, `Input`/`Field`,
   `Spinner`, `EmptyState`, `Avatar`, `Segmented`, `ThemeSwitcher`, `IconButton` — all
   token-driven and theme-aware.
-- **Custom editor blocks** — callout/admonition, blockquote, divider, and web-bookmark are
-  real BlockNote block types (inserted from the `/` slash menu), registered in **both** the
-  client React schema and the collab server DOM schema (`@zettra/shared` holds the shared prop
-  schemas) so they survive the Yjs round-trip. BlockNote 0.25 ships none of these.
+- **Custom editor blocks** — callout/admonition, blockquote, divider, web-bookmark, **LaTeX
+  math (KaTeX)**, **Mermaid diagrams** (lazy-loaded), and a **collapsible toggle** are real
+  BlockNote block types (inserted from the `/` slash menu), registered in **both** the client
+  React schema and the collab server DOM schema (`@zettra/shared` holds the shared prop schemas)
+  so they survive the Yjs round-trip. BlockNote 0.25 ships none of these.
 - **Content blocks** (`src/blocks/`) — richer widgets rendered as reusable components: a
   weather widget, a **kanban board** (drag-and-drop), a **table with live formulas** (a
   hand-written, unit-tested spreadsheet engine — no `eval`), a **cover-image header**, and an
@@ -191,10 +193,9 @@ Schema-/DB-per-tenant is only for hard physical-isolation compliance needs.
 
 Inline field nodes **inside the prose editor** (editing fields in the rail + views already
 works; embedding an editable field token mid-paragraph is the remaining slice of §11's
-bidirectional sync); retyping a field's type migrating existing `field_value` rows; sparse
-BGE-M3 vectors in hybrid search (the storage seam is reserved); toggle/collapsible blocks,
-LaTeX math (KaTeX) and Mermaid diagrams as editor blocks; promoting the kanban/formula-table
-widgets from reusable components to first-class BlockNote block types (callout, quote, divider
-and bookmark already are).
+bidirectional sync); sparse BGE-M3 vectors in hybrid search (the RRF fusion is already N-ary;
+the blocker is a sparse-capable serving stack — Ollama's `/api/embeddings` returns dense only);
+promoting the kanban/formula-table widgets from reusable components to first-class BlockNote
+block types (callout, quote, divider, bookmark, math, mermaid and toggle already are).
 
 See `CLAUDE.md` for the binding invariants. `// SPEC-GAP:` comments mark scheduled work.
