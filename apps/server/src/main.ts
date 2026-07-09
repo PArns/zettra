@@ -7,6 +7,7 @@ import { Logger } from 'nestjs-pino';
 import { AppDataSource } from './database/data-source';
 import { AppModule } from './app.module';
 import { loadConfig } from './config/configuration';
+import { mountBetterAuth } from './modules/auth/better-auth.mount';
 
 /**
  * Server entrypoint (§13.3): run idempotent migrations BEFORE booting the app (this includes
@@ -29,6 +30,13 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
 
   const config = loadConfig();
+
+  // Better Auth (email+password, Google/Apple, admin + organization) serves /api/auth/* when
+  // opted in. The default `legacy` path keeps the built-in JWT flow untouched.
+  if (config.auth.provider === 'better-auth') {
+    await mountBetterAuth(app.getHttpAdapter().getInstance());
+  }
+
   await app.listen(config.port, '0.0.0.0');
 }
 

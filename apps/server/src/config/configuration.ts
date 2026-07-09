@@ -15,6 +15,56 @@ export interface AppConfig {
   runWorkers: boolean;
   /** IMAP capture source (§8.3). Poller stays idle unless `host` is set. */
   imap: ImapConfig | null;
+  /** Authentication provider wiring (§2). */
+  auth: AuthConfig;
+}
+
+export interface OAuthCreds {
+  clientId: string;
+  clientSecret: string;
+}
+
+export interface AuthConfig {
+  /**
+   * Which auth stack serves `/api/auth/*`. `legacy` is the built-in email+password JWT flow;
+   * `better-auth` mounts Better Auth (email+password, Google/Apple social login, admin +
+   * organization plugins). Kept behind a flag so the default boot path stays unchanged until an
+   * operator opts in with real OAuth credentials.
+   */
+  provider: 'legacy' | 'better-auth';
+  /** Signing secret for Better Auth sessions (falls back to APP_SECRET). */
+  secret: string;
+  /** Public base URL Better Auth serves from, e.g. https://app.example.com/api/auth. */
+  baseURL: string;
+  /** Origins allowed to call the auth endpoints (CSRF/redirect allow-list). */
+  trustedOrigins: string[];
+  /** Google OAuth client — null unless both id + secret are set. */
+  google: OAuthCreds | null;
+  /** Apple OAuth client — null unless both id + secret are set. */
+  apple: OAuthCreds | null;
+}
+
+function loadOAuth(idVar: string, secretVar: string): OAuthCreds | null {
+  const clientId = process.env[idVar];
+  const clientSecret = process.env[secretVar];
+  return clientId && clientSecret ? { clientId, clientSecret } : null;
+}
+
+function loadAuthConfig(): AuthConfig {
+  const appUrl = process.env.APP_URL ?? 'http://localhost:8080';
+  const provider = process.env.AUTH_PROVIDER === 'better-auth' ? 'better-auth' : 'legacy';
+  return {
+    provider,
+    secret:
+      process.env.BETTER_AUTH_SECRET ?? process.env.APP_SECRET ?? 'dev-insecure-secret-change-me',
+    baseURL: process.env.BETTER_AUTH_URL ?? `${appUrl}/api/auth`,
+    trustedOrigins: (process.env.AUTH_TRUSTED_ORIGINS ?? appUrl)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+    google: loadOAuth('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'),
+    apple: loadOAuth('APPLE_CLIENT_ID', 'APPLE_CLIENT_SECRET'),
+  };
 }
 
 export interface ImapConfig {
@@ -72,6 +122,7 @@ export function loadConfig(): AppConfig {
     uploadDir: process.env.UPLOAD_DIR ?? '/data/uploads',
     runWorkers: (process.env.RUN_WORKERS ?? 'true') !== 'false',
     imap: loadImapConfig(),
+    auth: loadAuthConfig(),
   };
 }
 

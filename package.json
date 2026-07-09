@@ -6,7 +6,7 @@
   "description": "Zettra — self-hosted collaborative second brain (Briefkasten + supertags + smart connections).",
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "packageManager": "pnpm@10.33.0",
   "scripts": {

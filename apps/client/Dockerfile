@@ -1,6 +1,6 @@
 # Multi-stage build for the React client, served by nginx which also reverse-proxies
 # /api and /collab (§13.1, §13.2).
-FROM node:22-slim AS base
+FROM node:24-slim AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable
