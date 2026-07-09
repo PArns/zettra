@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import {
   AiPrivacyScope,
   type AgendaItem,
@@ -9,10 +9,11 @@ import {
   DocBlock,
   extractDueDates,
   extractPlainText,
+  FieldType,
   nearestFreeDay,
   reconcile,
 } from '@zettra/shared';
-import { Block, Reminder, Space, Tag } from '../../entities/index';
+import { Block, FieldValue, Reminder, Space, Tag, TagField } from '../../entities/index';
 import { AiRouterService } from '../ai/ai-router.service';
 import { clampConfidence, extractJson } from '../ai/ai-json';
 import { AliasIndexService } from '../linking/alias-index.service';
@@ -42,6 +43,8 @@ export class CaptureService {
     @InjectRepository(Tag) private readonly tags: Repository<Tag>,
     @InjectRepository(Space) private readonly spaces: Repository<Space>,
     @InjectRepository(Reminder) private readonly reminders: Repository<Reminder>,
+    @InjectRepository(FieldValue) private readonly fieldValueRows: Repository<FieldValue>,
+    @InjectRepository(TagField) private readonly tagFields: Repository<TagField>,
     private readonly ai: AiRouterService,
     private readonly aliasIndex: AliasIndexService,
     private readonly mentionLinker: MentionLinkerService,
@@ -152,21 +155,35 @@ export class CaptureService {
     const candidates = dates.slice(0, 5);
     if (candidates.length === 0) return;
 
-    // Existing pending reminders for this owner become the "already booked" agenda to reconcile
-    // against. SPEC-GAP: date-field values would also count as busy, but that needs the owner's
-    // visibleSpaceIds (a RequestContext the capture job doesn't carry) — deferred.
-    const existing = block.ownerUserId
-      ? await this.reminders.find({
-          where: { tenantId: block.tenantId, userId: block.ownerUserId, status: 'pending' },
-          take: 500,
-        })
-      : [];
-    const agenda: AgendaItem[] = existing.map((r) => ({
-      blockId: r.blockId,
-      title: r.note ?? '',
-      date: r.remindAt.toISOString().slice(0, 10),
-      kind: 'reminder',
-    }));
+    // The owner's "already booked" agenda to reconcile against: pending reminders plus date-typed
+    // field values on the owner's own blocks. Scoping the field values to `ownerUserId` keeps this
+    // permission-safe without a RequestContext — an owner may always see their own blocks — so a
+    // date the owner already committed to on an entity counts as busy, not just reminders.
+    const [existing, dateFieldAgenda] = await Promise.all([
+      block.ownerUserId
+        ? this.reminders.find({
+            where: { tenantId: block.tenantId, userId: block.ownerUserId, status: 'pending' },
+            take: 500,
+          })
+        : Promise.resolve([]),
+      block.ownerUserId
+        ? this.ownerDateFieldAgenda(
+            block.tenantId,
+            block.ownerUserId,
+            block.id,
+            candidates.map((c) => c.iso),
+          )
+        : Promise.resolve([] as AgendaItem[]),
+    ]);
+    const agenda: AgendaItem[] = [
+      ...existing.map((r) => ({
+        blockId: r.blockId,
+        title: r.note ?? '',
+        date: r.remindAt.toISOString().slice(0, 10),
+        kind: 'reminder' as const,
+      })),
+      ...dateFieldAgenda,
+    ];
     const clashing = new Set(
       reconcile(
         agenda,
@@ -192,6 +209,51 @@ export class CaptureService {
         }),
       );
     }
+  }
+
+  /**
+   * Date-typed field values on the owner's OWN blocks, as busy agenda days for reconciliation.
+   * Scoped to `ownerUserId` (a self-owned block is always visible to its owner, so no
+   * RequestContext is needed) over a window spanning the candidate dates plus a forward buffer
+   * so {@link nearestFreeDay} has room to look ahead. The source block is excluded so a capture
+   * never clashes with its own date field.
+   */
+  private async ownerDateFieldAgenda(
+    tenantId: string,
+    ownerUserId: string,
+    sourceBlockId: string,
+    candidateIsos: string[],
+  ): Promise<AgendaItem[]> {
+    if (candidateIsos.length === 0) return [];
+    const dateFields = await this.tagFields.find({ where: { type: FieldType.Date } });
+    if (dateFields.length === 0) return [];
+    const sorted = [...candidateIsos].sort();
+    const from = new Date(`${sorted[0]}T00:00:00Z`);
+    const to = new Date(`${sorted[sorted.length - 1]}T23:59:59Z`);
+    to.setUTCDate(to.getUTCDate() + 30); // headroom for nearestFreeDay to suggest an open day
+    const rows = await this.fieldValueRows.find({
+      where: {
+        tenantId,
+        fieldId: In(dateFields.map((f) => f.id)),
+        valueDate: Between(from, to),
+      },
+      take: 1000,
+    });
+    if (rows.length === 0) return [];
+    // Keep only rows on blocks the owner owns (permission-safe self-scope), minus the source.
+    const owned = await this.blocks.find({
+      where: { id: In([...new Set(rows.map((r) => r.blockId))]), tenantId, ownerUserId },
+      select: { id: true },
+    });
+    const ownedIds = new Set(owned.map((b) => b.id));
+    return rows
+      .filter((r) => r.valueDate !== null && r.blockId !== sourceBlockId && ownedIds.has(r.blockId))
+      .map((r) => ({
+        blockId: r.blockId,
+        title: '',
+        date: r.valueDate!.toISOString().slice(0, 10),
+        kind: 'field' as const,
+      }));
   }
 }
 
