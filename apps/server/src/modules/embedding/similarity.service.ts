@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { RelatedBlockDto } from '@zettra/shared';
 import { RequestContext } from '../../common/request-context';
+import { overfetchLimit } from './similarity-overfetch';
 
 /**
  * Soft connections (§8.4 layer 2). Live cosine kNN over `block_embedding` — NEVER stored
@@ -28,31 +29,52 @@ export class SimilarityService {
     if (ctx.visibleSpaceIds.length === 0) return [];
     const vectorLiteral = `[${queryEmbedding.join(',')}]`;
 
-    // Exact cosine over the tenant's visible embeddings (the join to `block` filters by
-    // tenant/space/visibility first, so this is O(tenant's blocks), not global). Correct
-    // recall within the tenant is preferred over HNSW acceleration here.
-    // SPEC-GAP: for very large tenants, switch to an HNSW-accelerated overfetch candidate
-    // set (or pgvector iterative-scan) wrapped by this permission filter.
+    // HNSW-accelerated overfetch (§8.4): the `candidate` CTE asks the vector index for the nearest
+    // `$8` embeddings *within the acting user's permission scope* (tenant + visible spaces +
+    // block-level visibility, all inside the CTE so nothing outside it can surface — invariant 11),
+    // ordered by ANN distance so the HNSW index can serve the ORDER BY … LIMIT. The outer query
+    // then collapses multi-chunk blocks (MIN per block), drops already-linked blocks, and applies
+    // the distance cut. Recall is exact whenever the tenant's visible embeddings fit in the
+    // candidate set (`overfetchLimit(limit)`), which is the common case; only very large tenants
+    // trade a little recall for the index speed-up. NOTE: for the index to actually serve the
+    // overfetch under filtering on huge tenants, tune `hnsw.ef_search` / enable iterative scan
+    // (pgvector ≥ 0.8) at the DB — an ops step; correctness/permissions do not depend on it.
+    const candidates = overfetchLimit(limit);
     const rows: Array<{ blockId: string; distance: number }> = await this.dataSource.query(
       `
-      SELECT be."blockId" AS "blockId", MIN(be."embedding" <=> $1::vector) AS distance
-      FROM block_embedding be
-      JOIN block b ON b.id = be."blockId"
-      WHERE b."tenantId" = $2
-        AND b."spaceId" = ANY($6)               -- §15.2 permission scoping
-        AND (b."visibility" = 'space' OR b."ownerUserId" = $7)  -- §8.8/§11 block-level
-        AND be."blockId" <> $3
-        AND be."blockId" NOT IN (
-          SELECT "targetId" FROM block_relation WHERE "sourceId" = $3 AND status <> 'dismissed'
-          UNION
-          SELECT "sourceId" FROM block_relation WHERE "targetId" = $3 AND status <> 'dismissed'
-        )
-      GROUP BY be."blockId"
-      HAVING MIN(be."embedding" <=> $1::vector) < $4
+      WITH candidate AS (
+        SELECT be."blockId" AS "blockId", (be."embedding" <=> $1::vector) AS distance
+        FROM block_embedding be
+        JOIN block b ON b.id = be."blockId"
+        WHERE b."tenantId" = $2
+          AND b."spaceId" = ANY($6)               -- §15.2 permission scoping
+          AND (b."visibility" = 'space' OR b."ownerUserId" = $7)  -- §8.8/§11 block-level
+          AND be."blockId" <> $3
+        ORDER BY be."embedding" <=> $1::vector      -- HNSW-servable
+        LIMIT $8
+      )
+      SELECT "blockId", MIN(distance) AS distance
+      FROM candidate
+      WHERE "blockId" NOT IN (
+        SELECT "targetId" FROM block_relation WHERE "sourceId" = $3 AND status <> 'dismissed'
+        UNION
+        SELECT "sourceId" FROM block_relation WHERE "targetId" = $3 AND status <> 'dismissed'
+      )
+      GROUP BY "blockId"
+      HAVING MIN(distance) < $4
       ORDER BY distance ASC
       LIMIT $5
       `,
-      [vectorLiteral, ctx.tenantId, blockId, maxDistance, limit, ctx.visibleSpaceIds, ctx.userId],
+      [
+        vectorLiteral,
+        ctx.tenantId,
+        blockId,
+        maxDistance,
+        limit,
+        ctx.visibleSpaceIds,
+        ctx.userId,
+        candidates,
+      ],
     );
 
     return rows.map((r) => ({ blockId: r.blockId, distance: Number(r.distance) }));
@@ -75,19 +97,28 @@ export class SimilarityService {
       : ctx.visibleSpaceIds;
     if (spaces.length === 0) return [];
     const vectorLiteral = `[${queryEmbedding.join(',')}]`;
+    // Same permission-safe HNSW overfetch as {@link related}: the index serves the ANN ORDER BY
+    // inside the scoped `candidate` CTE, then blocks are collapsed (MIN per block) and cut to k.
+    const candidates = overfetchLimit(limit);
     const rows: Array<{ blockId: string; distance: number }> = await this.dataSource.query(
       `
-      SELECT be."blockId" AS "blockId", MIN(be."embedding" <=> $1::vector) AS distance
-      FROM block_embedding be
-      JOIN block b ON b.id = be."blockId"
-      WHERE b."tenantId" = $2
-        AND b."spaceId" = ANY($3)
-        AND (b."visibility" = 'space' OR b."ownerUserId" = $4)
-      GROUP BY be."blockId"
+      WITH candidate AS (
+        SELECT be."blockId" AS "blockId", (be."embedding" <=> $1::vector) AS distance
+        FROM block_embedding be
+        JOIN block b ON b.id = be."blockId"
+        WHERE b."tenantId" = $2
+          AND b."spaceId" = ANY($3)
+          AND (b."visibility" = 'space' OR b."ownerUserId" = $4)
+        ORDER BY be."embedding" <=> $1::vector
+        LIMIT $6
+      )
+      SELECT "blockId", MIN(distance) AS distance
+      FROM candidate
+      GROUP BY "blockId"
       ORDER BY distance ASC
       LIMIT $5
       `,
-      [vectorLiteral, ctx.tenantId, spaces, ctx.userId, limit],
+      [vectorLiteral, ctx.tenantId, spaces, ctx.userId, limit, candidates],
     );
     return rows.map((r) => ({ blockId: r.blockId, distance: Number(r.distance) }));
   }
