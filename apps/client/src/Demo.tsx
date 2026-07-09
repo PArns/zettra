@@ -13,6 +13,13 @@ import { DropZone } from './components/DropZone';
 import { TagTree } from './components/TagTree';
 import type { Tag } from './lib/api';
 
+const ORDERS: string[][] = [
+  ['Keyboards', '4', '89', '=B1*C1'],
+  ['Monitors', '2', '240', '=B2*C2'],
+  ['Desks', '3', '150', '=B3*C3'],
+  ['Total', '=SUM(B1:B3)', '', '=SUM(D1:D3)'],
+];
+
 const DEMO_TAGS: Tag[] = [
   { id: 'p', name: 'Projects', icon: '📁', color: null, parentId: null, defaultViewId: null },
   { id: 'p1', name: 'Website', icon: '🌐', color: null, parentId: 'p', defaultViewId: null },
@@ -124,18 +131,35 @@ export function Demo() {
           <p className="mt-2 text-xs text-faint">Drag cards between columns.</p>
         </Section>
 
-        <Section kicker="Databases" title="Table with formulas">
+        <Section kicker="Databases" title="Tables with formulas & cross-references">
           <FormulaTable
             headers={['Item', 'Qty', 'Unit €', 'Total €']}
+            sheetName="Orders"
+            initial={ORDERS}
+            rules={[
+              { op: 'gte', value: 500, column: 3, tone: 'green' },
+              { op: 'lt', value: 300, column: 3, tone: 'red' },
+            ]}
+          />
+          <p className="mb-3 mt-2 text-xs text-faint">
+            Conditional formatting on the Total column: green ≥ 500 €, red &lt; 300 €.
+          </p>
+          <FormulaTable
+            headers={['Metric', 'Value']}
+            sheetName="Summary"
+            context={{ Orders: ORDERS }}
+            rollup={(name, field, agg) =>
+              name === 'Task' && field === 'estimate' && agg === 'sum' ? 128 : null
+            }
             initial={[
-              ['Keyboards', '4', '89', '=B1*C1'],
-              ['Monitors', '2', '240', '=B2*C2'],
-              ['Desks', '3', '150', '=B3*C3'],
-              ['Total', '=SUM(B1:B3)', '', '=SUM(D1:D3)'],
+              ['Order total €', '=SUM(Orders!D1:D3)'],
+              ['Avg order €', '=Orders!D4 / 3'],
+              ['Open task estimate (rollup)', '=ROLLUP("Task", "estimate", "sum")'],
             ]}
           />
           <p className="mt-2 text-xs text-faint">
-            Click any cell to edit. Try <span className="font-mono">=AVG(D1:D3)</span>.
+            The Summary table cross-references <span className="font-mono">Orders!D1:D3</span> and
+            rolls up a field across linked entities via <span className="font-mono">ROLLUP()</span>.
           </p>
         </Section>
 

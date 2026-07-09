@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { columnToIndex, evaluateGrid, indexToColumn, type Grid } from './formula';
+import {
+  columnToIndex,
+  evaluateGrid,
+  evaluateWorkbook,
+  indexToColumn,
+  type Grid,
+  type Sheets,
+} from './formula';
 
 describe('column <-> index', () => {
   it('maps letters to zero-based indices and back', () => {
@@ -64,5 +71,49 @@ describe('evaluateGrid', () => {
     const g: Grid = [['=BOGUS(1,2)']];
     const r = evaluateGrid(g);
     expect(r[0][0].display).toBe('#ERR');
+  });
+});
+
+describe('cross-sheet references', () => {
+  it('reads a cell from another sheet with Sheet!A1', () => {
+    const sheets: Sheets = {
+      Sales: [['100'], ['200'], ['=SUM(A1:A2)']],
+      Summary: [['=Sales!A3', '=Sales!A3 * 1.2']],
+    };
+    const r = evaluateWorkbook(sheets);
+    expect(r.Sales[2][0].value).toBe(300);
+    expect(r.Summary[0][0].value).toBe(300);
+    expect(r.Summary[0][1].value).toBeCloseTo(360);
+  });
+
+  it('supports cross-sheet ranges inside functions', () => {
+    const sheets: Sheets = {
+      Data: [['1'], ['2'], ['3']],
+      Roll: [['=SUM(Data!A1:A3)']],
+    };
+    expect(evaluateWorkbook(sheets).Roll[0][0].value).toBe(6);
+  });
+
+  it('detects cross-sheet circular references', () => {
+    const sheets: Sheets = { A: [['=B!A1']], B: [['=A!A1']] };
+    const r = evaluateWorkbook(sheets);
+    expect(r.A[0][0].display).toBe('#ERR');
+    expect(r.A[0][0].error).toMatch(/circular/i);
+  });
+});
+
+describe('ROLLUP', () => {
+  it('aggregates a linked field via the injected resolver', () => {
+    const sheets: Sheets = { S: [['=ROLLUP("Task", "amount", "sum")']] };
+    const r = evaluateWorkbook(sheets, {
+      rollup: (name, field, agg) =>
+        name === 'Task' && field === 'amount' && agg === 'sum' ? 42 : null,
+    });
+    expect(r.S[0][0].value).toBe(42);
+  });
+
+  it('errors when no resolver is supplied', () => {
+    const sheets: Sheets = { S: [['=ROLLUP("Task", "amount")']] };
+    expect(evaluateWorkbook(sheets).S[0][0].display).toBe('#ERR');
   });
 });

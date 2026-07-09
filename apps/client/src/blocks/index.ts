@@ -6,4 +6,21 @@ export { KanbanBoard, type KanbanColumn, type KanbanCard } from './KanbanBoard';
 export { FormulaTable } from './FormulaTable';
 export { CoverHeader } from './CoverHeader';
 export { Checklist, type ChecklistItem } from './Checklist';
-export { evaluateGrid, columnToIndex, indexToColumn, type Grid, type CellResult } from './formula';
+export {
+  evaluateGrid,
+  evaluateWorkbook,
+  columnToIndex,
+  indexToColumn,
+  type Grid,
+  type Sheets,
+  type CellResult,
+  type RollupAgg,
+  type EvalOptions,
+} from './formula';
+export {
+  cellTone,
+  matchesRule,
+  type CondRule,
+  type CondOp,
+  type CondTone,
+} from './conditional-format';
