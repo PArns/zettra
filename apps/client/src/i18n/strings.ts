@@ -227,6 +227,12 @@ const en = {
   'today.emptyTitle': 'Nothing for today',
   'today.emptyHint': 'Reminders and fresh captures gather here.',
 
+  'chat.title': 'Ask AI',
+  'chat.placeholder': 'Ask about your notes…',
+  'chat.send': 'Send',
+  'chat.empty': 'Ask a question — answers are grounded in your notes, with sources.',
+  'chat.thinking': 'Thinking…',
+
   'notif.title': 'Notifications',
   'notif.unread': 'unread',
   'notif.caughtUp': "You're all caught up.",
@@ -457,6 +463,12 @@ const de: Catalog = {
   'today.emptyTitle': 'Nichts für heute',
   'today.emptyHint': 'Erinnerungen und frische Erfassungen sammeln sich hier.',
 
+  'chat.title': 'KI fragen',
+  'chat.placeholder': 'Frag deine Notizen…',
+  'chat.send': 'Senden',
+  'chat.empty': 'Stell eine Frage — Antworten basieren auf deinen Notizen, mit Quellen.',
+  'chat.thinking': 'Denke nach…',
+
   'notif.title': 'Benachrichtigungen',
   'notif.unread': 'ungelesen',
   'notif.caughtUp': 'Du bist auf dem neuesten Stand.',
@@ -682,6 +694,12 @@ const es: Catalog = {
   'today.captures': 'Capturas recientes',
   'today.emptyTitle': 'Nada para hoy',
   'today.emptyHint': 'Los recordatorios y las capturas recientes aparecerán aquí.',
+
+  'chat.title': 'Preguntar a la IA',
+  'chat.placeholder': 'Pregunta sobre tus notas…',
+  'chat.send': 'Enviar',
+  'chat.empty': 'Haz una pregunta — las respuestas se basan en tus notas, con fuentes.',
+  'chat.thinking': 'Pensando…',
 
   'notif.title': 'Notificaciones',
   'notif.unread': 'sin leer',
@@ -909,6 +927,12 @@ const fr: Catalog = {
   'today.captures': 'Captures récentes',
   'today.emptyTitle': 'Rien pour aujourd’hui',
   'today.emptyHint': 'Les rappels et les captures récentes apparaîtront ici.',
+
+  'chat.title': 'Demander à l’IA',
+  'chat.placeholder': 'Interrogez vos notes…',
+  'chat.send': 'Envoyer',
+  'chat.empty': 'Posez une question — les réponses s’appuient sur vos notes, avec sources.',
+  'chat.thinking': 'Réflexion…',
 
   'notif.title': 'Notifications',
   'notif.unread': 'non lues',

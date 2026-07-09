@@ -29,6 +29,7 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { SearchModule } from './modules/search/search.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ReminderModule } from './modules/reminder/reminder.module';
+import { AiChatModule } from './modules/ai-chat/ai-chat.module';
 
 /**
  * Root module wiring the domain-focused feature modules (§3). Global modules (AI, Jobs,
@@ -55,6 +56,7 @@ import { ReminderModule } from './modules/reminder/reminder.module';
     SpaceModule,
     AdminModule,
     ReminderModule,
+    AiChatModule,
     LimitsModule,
     TagModule,
     FieldModule,

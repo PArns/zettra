@@ -188,6 +188,13 @@ export const api = {
   related: (id: string) => request<RelatedResult[]>(`/blocks/${id}/related`),
   backlinks: (id: string) => request<BacklinkResult[]>(`/blocks/${id}/backlinks`),
 
+  // AI chat over the index (§1).
+  aiChat: (question: string, spaceId?: string) =>
+    request<{ answer: string; sources: { blockId: string; title: string }[] }>('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ question, spaceId }),
+    }),
+
   // Reminders / Wiedervorlage (§3–§4).
   blockReminders: (blockId: string) => request<ReminderView[]>(`/reminders/block/${blockId}`),
   remindersUpcoming: () => request<ReminderView[]>('/reminders/upcoming'),

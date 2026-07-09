@@ -12,6 +12,7 @@ import { SupertagDialog } from './components/SupertagDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
 import { TodayPane } from './components/TodayPane';
+import { AiChatPanel } from './components/AiChatPanel';
 import { WelcomePane } from './components/WelcomePane';
 import { DropZone } from './components/DropZone';
 import { ForReviewPane } from './components/ForReviewPane';
@@ -36,6 +37,7 @@ export function App() {
   const [role, setRole] = useState('member');
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   // When set, we're impersonating another user; holds the admin's own token to restore.
   const [impersonatorToken, setImpersonatorToken] = useState<string | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -218,6 +220,9 @@ export function App() {
           <button className="ghost" onClick={capture} disabled={capturing}>
             {capturing ? t('top.capturing') : `✎ ${t('top.capture')}`}
           </button>
+          <IconButton label={t('chat.title')} onClick={() => setShowChat((v) => !v)}>
+            ✦
+          </IconButton>
           <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
           {role === 'admin' && !impersonatorToken && (
             <IconButton label={t('admin.open')} onClick={() => setShowAdmin(true)}>
@@ -284,6 +289,16 @@ export function App() {
           </div>
         )}
       </div>
+
+      {showChat && (
+        <AiChatPanel
+          onClose={() => setShowChat(false)}
+          onOpenBlock={(id) => {
+            setSelected(id);
+            setShowChat(false);
+          }}
+        />
+      )}
 
       {impersonatorToken && (
         <div className="impersonation-banner">

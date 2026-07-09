@@ -57,4 +57,38 @@ export class SimilarityService {
 
     return rows.map((r) => ({ blockId: r.blockId, distance: Number(r.distance) }));
   }
+
+  /**
+   * Top-k nearest blocks to an arbitrary query embedding (for AI chat / semantic answer, §1).
+   * Same permission scoping as {@link related} (§15.2): visible spaces + block-level visibility.
+   * Optionally restricted to a single space.
+   */
+  async search(
+    ctx: RequestContext,
+    queryEmbedding: number[],
+    limit = 8,
+    spaceId?: string,
+  ): Promise<RelatedBlockDto[]> {
+    if (ctx.visibleSpaceIds.length === 0) return [];
+    const spaces = spaceId
+      ? [spaceId].filter((s) => ctx.visibleSpaceIds.includes(s))
+      : ctx.visibleSpaceIds;
+    if (spaces.length === 0) return [];
+    const vectorLiteral = `[${queryEmbedding.join(',')}]`;
+    const rows: Array<{ blockId: string; distance: number }> = await this.dataSource.query(
+      `
+      SELECT be."blockId" AS "blockId", MIN(be."embedding" <=> $1::vector) AS distance
+      FROM block_embedding be
+      JOIN block b ON b.id = be."blockId"
+      WHERE b."tenantId" = $2
+        AND b."spaceId" = ANY($3)
+        AND (b."visibility" = 'space' OR b."ownerUserId" = $4)
+      GROUP BY be."blockId"
+      ORDER BY distance ASC
+      LIMIT $5
+      `,
+      [vectorLiteral, ctx.tenantId, spaces, ctx.userId, limit],
+    );
+    return rows.map((r) => ({ blockId: r.blockId, distance: Number(r.distance) }));
+  }
 }
