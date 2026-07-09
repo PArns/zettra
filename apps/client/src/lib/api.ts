@@ -32,6 +32,7 @@ export interface Tag {
   icon: string | null;
   color: string | null;
   parentId: string | null;
+  extendsId: string | null;
   defaultViewId: string | null;
 }
 export interface Space {
@@ -53,9 +54,12 @@ export interface View {
 }
 export interface EffectiveField {
   id: string;
+  /** The supertag that actually defines this field — differs from the viewed tag if inherited. */
+  tagId: string;
   name: string;
   type: string;
   config: Record<string, unknown>;
+  position: number;
 }
 export interface ViewData {
   view: View;
@@ -197,18 +201,36 @@ export const api = {
     }),
 
   // Supertag definition CRUD (§8.1).
-  createTag: (i: { name: string; icon?: string; color?: string; parentId?: string | null }) =>
-    request<Tag>('/tags', { method: 'POST', body: JSON.stringify(i) }),
+  createTag: (i: {
+    name: string;
+    icon?: string;
+    color?: string;
+    parentId?: string | null;
+    extendsId?: string | null;
+    fields?: { name: string; type: string; config?: Record<string, unknown>; position?: number }[];
+  }) => request<Tag>('/tags', { method: 'POST', body: JSON.stringify(i) }),
   updateTag: (
     tagId: string,
-    patch: { name?: string; icon?: string | null; color?: string | null },
+    patch: {
+      name?: string;
+      icon?: string | null;
+      color?: string | null;
+      extendsId?: string | null;
+    },
   ) => request<Tag>(`/tags/${tagId}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   addField: (
     tagId: string,
-    field: { name: string; type: string; config?: Record<string, unknown> },
+    field: { name: string; type: string; config?: Record<string, unknown>; position?: number },
   ) => request(`/tags/${tagId}/fields`, { method: 'POST', body: JSON.stringify(field) }),
-  updateField: (fieldId: string, patch: { name?: string; type?: string }) =>
-    request(`/tags/fields/${fieldId}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+  updateField: (
+    fieldId: string,
+    patch: {
+      name?: string;
+      type?: string;
+      config?: Record<string, unknown>;
+      position?: number;
+    },
+  ) => request(`/tags/fields/${fieldId}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   removeField: (fieldId: string) => request(`/tags/fields/${fieldId}`, { method: 'DELETE' }),
 
   notifications: () => request<Notification[]>('/notifications'),

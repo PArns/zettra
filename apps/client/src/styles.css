@@ -703,6 +703,90 @@ body {
   .field-add input {
     flex: 1;
   }
+  .field-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .icon-sm {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .icon-sm:hover:not(:disabled) {
+    background: var(--surface-3, var(--surface));
+    color: var(--text);
+  }
+  .icon-sm:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .field-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+  }
+  .field-add-editor {
+    margin-top: 6px;
+    background: transparent;
+    border-style: dashed;
+  }
+  .field-editor textarea {
+    width: 100%;
+    resize: vertical;
+    font: inherit;
+  }
+  .field-row.is-inherited {
+    opacity: 0.85;
+    background: transparent;
+    border-style: dashed;
+  }
+  .field-badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .multi-select {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .multi-select .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-2);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .multi-select .chip.on {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .multi-select .chip input {
+    width: auto;
+    margin: 0;
+  }
 
   /* ---------- Drop zone (§8.3) ---------- */
   .dropzone {

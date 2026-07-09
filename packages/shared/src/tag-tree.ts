@@ -16,14 +16,24 @@ export interface TagNodeInput {
   color?: string | null;
 }
 
+/** Minimal shape the cycle check needs — an id and a self-referential parent pointer. */
+export interface CycleNode {
+  id: string;
+  parentId: string | null;
+}
+
 export interface TagTreeNode<T extends TagNodeInput = TagNodeInput> {
   tag: T;
   children: TagTreeNode<T>[];
   depth: number;
 }
 
-/** Would setting `parentId` as `tagId`'s parent create a cycle (or self-parent)? */
-export function wouldCycle<T extends TagNodeInput>(
+/**
+ * Would setting `parentId` as `tagId`'s parent create a cycle (or self-parent)? Works on any
+ * self-referential pointer (the folder `parentId` tree or the `extendsId` inheritance chain),
+ * so it guards both without duplication.
+ */
+export function wouldCycle<T extends CycleNode>(
   tags: T[],
   tagId: string,
   parentId: string | null,

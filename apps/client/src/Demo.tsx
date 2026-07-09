@@ -21,12 +21,60 @@ const ORDERS: string[][] = [
 ];
 
 const DEMO_TAGS: Tag[] = [
-  { id: 'p', name: 'Projects', icon: '📁', color: null, parentId: null, defaultViewId: null },
-  { id: 'p1', name: 'Website', icon: '🌐', color: null, parentId: 'p', defaultViewId: null },
-  { id: 'p2', name: 'Mobile app', icon: '📱', color: null, parentId: 'p', defaultViewId: null },
-  { id: 'a', name: 'Areas', icon: '🗂️', color: null, parentId: null, defaultViewId: null },
-  { id: 'a1', name: 'Health', icon: '🏃', color: null, parentId: 'a', defaultViewId: null },
-  { id: 'people', name: 'People', icon: '👤', color: null, parentId: null, defaultViewId: null },
+  {
+    id: 'p',
+    name: 'Projects',
+    icon: '📁',
+    color: null,
+    parentId: null,
+    extendsId: null,
+    defaultViewId: null,
+  },
+  {
+    id: 'p1',
+    name: 'Website',
+    icon: '🌐',
+    color: null,
+    parentId: 'p',
+    extendsId: null,
+    defaultViewId: null,
+  },
+  {
+    id: 'p2',
+    name: 'Mobile app',
+    icon: '📱',
+    color: null,
+    parentId: 'p',
+    extendsId: null,
+    defaultViewId: null,
+  },
+  {
+    id: 'a',
+    name: 'Areas',
+    icon: '🗂️',
+    color: null,
+    parentId: null,
+    extendsId: null,
+    defaultViewId: null,
+  },
+  {
+    id: 'a1',
+    name: 'Health',
+    icon: '🏃',
+    color: null,
+    parentId: 'a',
+    extendsId: null,
+    defaultViewId: null,
+  },
+  {
+    id: 'people',
+    name: 'People',
+    icon: '👤',
+    color: null,
+    parentId: null,
+    extendsId: null,
+    defaultViewId: null,
+  },
 ];
 
 function Section({

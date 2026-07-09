@@ -97,6 +97,10 @@ export class FieldValueService {
 }
 
 function defaultFor(type: FieldType, config: Record<string, unknown>): unknown {
+  // An explicit per-field default (set in the supertag editor) always wins.
+  if (config.default !== undefined && config.default !== null && config.default !== '') {
+    return config.default;
+  }
   switch (type) {
     case FieldType.Checkbox:
       return false;

@@ -39,3 +39,4 @@ apps/client/.vite/
 # Local Claude Code / impeccable harness tooling (installed per-developer, not product code).
 # Delete this line and commit .claude/skills to share the design detector with the team + CI.
 .claude/
+.impeccable/

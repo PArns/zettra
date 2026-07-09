@@ -24,6 +24,14 @@ class TagFieldBody {
   @IsOptional() position?: number;
 }
 
+/** Partial patch for schema evolution — every property is optional and independently validated. */
+class UpdateTagFieldBody {
+  @IsOptional() @IsString() @MinLength(1) name?: string;
+  @IsOptional() @IsEnum(FieldType) type?: FieldType;
+  @IsOptional() config?: Record<string, unknown>;
+  @IsOptional() position?: number;
+}
+
 class SetParentBody {
   @IsOptional() @IsString() parentId?: string | null;
 }
@@ -32,6 +40,7 @@ class UpdateTagBody {
   @IsOptional() @IsString() @MinLength(1) name?: string;
   @IsOptional() @IsString() icon?: string | null;
   @IsOptional() @IsString() color?: string | null;
+  @IsOptional() @IsString() extendsId?: string | null;
 }
 
 @Controller('tags')
@@ -78,7 +87,7 @@ export class TagController {
   updateField(
     @Ctx() ctx: RequestContext,
     @Param('fieldId') fieldId: string,
-    @Body() body: Partial<TagFieldBody>,
+    @Body() body: UpdateTagFieldBody,
   ): Promise<TagField> {
     return this.tags.updateField(ctx.tenantId, fieldId, body);
   }

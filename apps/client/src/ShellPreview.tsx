@@ -11,14 +11,31 @@ import type { Space, Tag, View } from './lib/api';
  */
 
 const TAGS: Tag[] = [
-  { id: 'day', name: 'Day', icon: '📅', color: null, parentId: null, defaultViewId: 'v-day' },
-  { id: 'proj', name: 'Projects', icon: '📁', color: null, parentId: null, defaultViewId: null },
+  {
+    id: 'day',
+    name: 'Day',
+    icon: '📅',
+    color: null,
+    parentId: null,
+    extendsId: null,
+    defaultViewId: 'v-day',
+  },
+  {
+    id: 'proj',
+    name: 'Projects',
+    icon: '📁',
+    color: null,
+    parentId: null,
+    extendsId: null,
+    defaultViewId: null,
+  },
   {
     id: 'proj-web',
     name: 'Website',
     icon: '🌐',
     color: null,
     parentId: 'proj',
+    extendsId: null,
     defaultViewId: 'v-web',
   },
   {
@@ -27,10 +44,27 @@ const TAGS: Tag[] = [
     icon: '📱',
     color: null,
     parentId: 'proj',
+    extendsId: null,
     defaultViewId: null,
   },
-  { id: 'task', name: 'Tasks', icon: '✅', color: null, parentId: null, defaultViewId: 'v-task' },
-  { id: 'people', name: 'People', icon: '👤', color: null, parentId: null, defaultViewId: 'v-ppl' },
+  {
+    id: 'task',
+    name: 'Tasks',
+    icon: '✅',
+    color: null,
+    parentId: null,
+    extendsId: null,
+    defaultViewId: 'v-task',
+  },
+  {
+    id: 'people',
+    name: 'People',
+    icon: '👤',
+    color: null,
+    parentId: null,
+    extendsId: null,
+    defaultViewId: 'v-ppl',
+  },
 ];
 const VIEWS: View[] = [
   { id: 'v-day', name: 'Daily notes', tagId: 'day', layout: 'list', groupBy: null },

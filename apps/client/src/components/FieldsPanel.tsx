@@ -144,6 +144,37 @@ function FieldInput({
           ))}
         </select>
       );
+    case 'multi_select': {
+      const selected = Array.isArray(value) ? (value as string[]) : [];
+      return (
+        <div id={id} className="multi-select" role="group">
+          {options.map((o) => {
+            const on = selected.includes(o);
+            return (
+              <label key={o} className={`chip ${on ? 'on' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() => onChange(on ? selected.filter((s) => s !== o) : [...selected, o])}
+                />
+                {o}
+              </label>
+            );
+          })}
+          {options.length === 0 && <span className="field-empty">—</span>}
+        </div>
+      );
+    }
+    case 'url':
+      return (
+        <input
+          id={id}
+          type="url"
+          defaultValue={value != null ? String(value) : ''}
+          placeholder="https://…"
+          onBlur={(e) => onChange(e.target.value)}
+        />
+      );
     default:
       return (
         <input

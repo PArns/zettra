@@ -59,17 +59,45 @@ export class TagService {
     return tag;
   }
 
-  /** Update a supertag's display fields (name, icon, color). */
+  /**
+   * Update a supertag's display fields (name, icon, color) and its `extendsId` inheritance
+   * pointer. Changing `extendsId` is cycle-guarded on the extends chain so field resolution can
+   * never loop (§8.1).
+   */
   async update(
     tenantId: string,
     tagId: string,
-    patch: { name?: string; icon?: string | null; color?: string | null },
+    patch: {
+      name?: string;
+      icon?: string | null;
+      color?: string | null;
+      extendsId?: string | null;
+    },
   ): Promise<Tag> {
     const tag = await this.tags.findOne({ where: { id: tagId, tenantId } });
     if (!tag) throw new NotFoundException('Tag not found');
     if (patch.name !== undefined) tag.name = patch.name;
     if (patch.icon !== undefined) tag.icon = patch.icon;
     if (patch.color !== undefined) tag.color = patch.color;
+    if (patch.extendsId !== undefined) {
+      const extendsId = patch.extendsId || null;
+      if (extendsId) {
+        const parent = await this.tags.findOne({ where: { id: extendsId, tenantId } });
+        if (!parent) throw new NotFoundException('Extended supertag not found');
+        // Reuse the tree cycle check over the extends chain (extendsId plays the parent role).
+        const all = await this.tags.find({
+          where: { tenantId },
+          select: { id: true, extendsId: true },
+        });
+        const chain = all.map((t) => ({ id: t.id, parentId: t.extendsId }));
+        if (wouldCycle(chain, tagId, extendsId)) {
+          throw new BadRequestException(
+            'Extending that supertag would create an inheritance cycle',
+          );
+        }
+      }
+      tag.extendsId = extendsId;
+    }
     return this.tags.save(tag);
   }
 
