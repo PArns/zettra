@@ -4,11 +4,11 @@
  * (DOM render for `ServerBlockNoteEditor`) register structurally identical block specs. If the
  * two schemas diverge, the Yjs round-trip drops unknown blocks — so both build from these.
  *
- * These extend BlockNote's defaults with callout/admonition, blockquote, divider, and web
- * bookmark blocks.
+ * These extend BlockNote's defaults with callout/admonition, blockquote, divider, web bookmark,
+ * LaTeX math (KaTeX), and Mermaid diagram blocks.
  *
- * SPEC-GAP: toggle/collapsible blocks, LaTeX math (needs KaTeX), and Mermaid diagrams are the
- * remaining rich-block types — deferred to avoid pulling heavy render deps here.
+ * SPEC-GAP: toggle/collapsible blocks and promoting the kanban/formula-table widgets to
+ * first-class block types remain — both need interactive (browser-driven) iteration.
  */
 
 export const CALLOUT_KINDS = ['info', 'tip', 'warning', 'danger', 'note'] as const;
@@ -46,6 +46,18 @@ export const BLOCK_TYPES = {
   quote: 'quote',
   divider: 'divider',
   bookmark: 'bookmark',
+  math: 'math',
+  mermaid: 'mermaid',
+} as const;
+
+/** LaTeX math block (KaTeX renders it client-side; the server keeps the source as text). */
+export const mathPropSchema = {
+  latex: { default: '' as string },
+} as const;
+
+/** Mermaid diagram block (mermaid renders it client-side; the server keeps the source as text). */
+export const mermaidPropSchema = {
+  code: { default: '' as string },
 } as const;
 
 export const calloutPropSchema = {

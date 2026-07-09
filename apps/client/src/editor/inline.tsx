@@ -1,6 +1,13 @@
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from '@blocknote/core';
 import { createReactInlineContentSpec } from '@blocknote/react';
-import { BookmarkBlock, CalloutBlock, DividerBlock, QuoteBlock } from './blocks';
+import {
+  BookmarkBlock,
+  CalloutBlock,
+  DividerBlock,
+  MathBlock,
+  MermaidBlock,
+  QuoteBlock,
+} from './blocks';
 
 /**
  * The reference inline primitive (§8.6, invariant 4): `#tags` and `[[references]]` are the
@@ -40,8 +47,8 @@ export const TagInline = createReactInlineContentSpec(
 
 /**
  * BlockNote schema extended with the reference + tag inline primitives and the custom blocks
- * (callout, quote, divider, bookmark). Must mirror the collab server's `serverSchema` so the
- * Yjs round-trip preserves every node.
+ * (callout, quote, divider, bookmark, math, mermaid). Must mirror the collab server's
+ * `serverSchema` so the Yjs round-trip preserves every node.
  */
 export const schema = BlockNoteSchema.create({
   blockSpecs: {
@@ -50,6 +57,8 @@ export const schema = BlockNoteSchema.create({
     quote: QuoteBlock,
     divider: DividerBlock,
     bookmark: BookmarkBlock,
+    math: MathBlock,
+    mermaid: MermaidBlock,
   },
   inlineContentSpecs: {
     ...defaultInlineContentSpecs,

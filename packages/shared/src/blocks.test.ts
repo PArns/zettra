@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { bookmarkHost, calloutKind, calloutMeta, CALLOUT_KINDS } from './blocks';
+import { BLOCK_TYPES, bookmarkHost, calloutKind, calloutMeta, CALLOUT_KINDS } from './blocks';
+
+describe('BLOCK_TYPES', () => {
+  it('names every custom block, key === value (no client/server drift)', () => {
+    for (const [key, value] of Object.entries(BLOCK_TYPES)) expect(value).toBe(key);
+    expect(BLOCK_TYPES.math).toBe('math');
+    expect(BLOCK_TYPES.mermaid).toBe('mermaid');
+  });
+});
 
 describe('calloutKind', () => {
   it('accepts every declared kind', () => {

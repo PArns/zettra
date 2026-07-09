@@ -155,6 +155,26 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
           });
         },
       },
+      {
+        title: 'Math',
+        subtext: 'LaTeX formula (KaTeX)',
+        aliases: ['math', 'latex', 'formula', 'equation', 'katex'],
+        group: 'Blocks',
+        onItemClick: () => {
+          const latex = window.prompt('LaTeX')?.trim();
+          insertOrUpdateBlock(editor, { type: 'math', props: { latex: latex ?? '' } });
+        },
+      },
+      {
+        title: 'Diagram',
+        subtext: 'Mermaid diagram',
+        aliases: ['mermaid', 'diagram', 'flowchart', 'graph', 'sequence'],
+        group: 'Blocks',
+        onItemClick: () => {
+          const code = window.prompt('Mermaid diagram source')?.trim();
+          insertOrUpdateBlock(editor, { type: 'mermaid', props: { code: code ?? '' } });
+        },
+      },
     ];
     return filterSuggestionItems([...getDefaultReactSlashMenuItems(editor), ...custom], query);
   };

@@ -11,6 +11,8 @@ import {
   bookmarkPropSchema,
   calloutMeta,
   calloutPropSchema,
+  mathPropSchema,
+  mermaidPropSchema,
 } from '@zettra/shared';
 
 /**
@@ -113,7 +115,33 @@ const bookmark = createBlockSpec(
   },
 );
 
+// Math + Mermaid keep their source as the block's text so the HTML→text projection
+// (search/embedding) indexes the formula/diagram source; the visual render is client-only.
+const math = createBlockSpec(
+  { type: BLOCK_TYPES.math, propSchema: mathPropSchema, content: 'none' } as const,
+  {
+    render: (block) => {
+      const dom = document.createElement('div');
+      dom.className = 'zx-math';
+      dom.textContent = String(block.props.latex ?? '');
+      return { dom };
+    },
+  },
+);
+
+const mermaid = createBlockSpec(
+  { type: BLOCK_TYPES.mermaid, propSchema: mermaidPropSchema, content: 'none' } as const,
+  {
+    render: (block) => {
+      const dom = document.createElement('div');
+      dom.className = 'zx-mermaid';
+      dom.textContent = String(block.props.code ?? '');
+      return { dom };
+    },
+  },
+);
+
 export const serverSchema = BlockNoteSchema.create({
-  blockSpecs: { ...defaultBlockSpecs, callout, quote, divider, bookmark },
+  blockSpecs: { ...defaultBlockSpecs, callout, quote, divider, bookmark, math, mermaid },
   inlineContentSpecs: { ...defaultInlineContentSpecs, reference, tag },
 });

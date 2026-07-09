@@ -1,11 +1,17 @@
+import { useEffect, useState } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import {
   BLOCK_TYPES,
   bookmarkHost,
   bookmarkPropSchema,
   calloutMeta,
   calloutPropSchema,
+  mathPropSchema,
+  mermaidPropSchema,
 } from '@zettra/shared';
+import { resolvedTheme } from '../lib/theme';
 
 /**
  * Client (React) BlockNote block specs for the custom blocks (§4). The prop schemas come from
@@ -57,6 +63,97 @@ export const DividerBlock = createReactBlockSpec(
         <hr />
       </div>
     ),
+  },
+);
+
+/** LaTeX math, rendered synchronously with KaTeX. Click to edit the source. */
+export const MathBlock = createReactBlockSpec(
+  { type: BLOCK_TYPES.math, propSchema: mathPropSchema, content: 'none' } as const,
+  {
+    render: ({ block, editor }) => {
+      const latex = block.props.latex;
+      const edit = () => {
+        const next = window.prompt('LaTeX', latex);
+        if (next != null) {
+          editor.updateBlock(block, { type: BLOCK_TYPES.math, props: { latex: next } });
+        }
+      };
+      let html = '';
+      if (latex) {
+        // KaTeX never throws with throwOnError:false — it renders the error inline instead.
+        html = katex.renderToString(latex, { throwOnError: false, displayMode: true });
+      }
+      return (
+        <div className="zx-math" contentEditable={false} onClick={edit} title="Edit LaTeX">
+          {latex ? (
+            <span dangerouslySetInnerHTML={{ __html: html }} />
+          ) : (
+            <span className="zx-block-empty">Click to add a formula…</span>
+          )}
+        </div>
+      );
+    },
+  },
+);
+
+/** Mermaid diagram. mermaid is heavy + async, so it is lazily imported and rendered off-render. */
+export const MermaidBlock = createReactBlockSpec(
+  { type: BLOCK_TYPES.mermaid, propSchema: mermaidPropSchema, content: 'none' } as const,
+  {
+    render: ({ block, editor }) => {
+      const code = block.props.code;
+      const [svg, setSvg] = useState('');
+      const [error, setError] = useState('');
+      useEffect(() => {
+        let cancelled = false;
+        if (!code.trim()) {
+          setSvg('');
+          setError('');
+          return;
+        }
+        void (async () => {
+          try {
+            const mermaid = (await import('mermaid')).default;
+            mermaid.initialize({
+              startOnLoad: false,
+              securityLevel: 'strict',
+              theme: resolvedTheme() === 'dark' ? 'dark' : 'default',
+            });
+            const id = `zx-mmd-${Math.random().toString(36).slice(2)}`;
+            const { svg: out } = await mermaid.render(id, code);
+            if (!cancelled) {
+              setSvg(out);
+              setError('');
+            }
+          } catch (e) {
+            if (!cancelled) {
+              setSvg('');
+              setError(e instanceof Error ? e.message : String(e));
+            }
+          }
+        })();
+        return () => {
+          cancelled = true;
+        };
+      }, [code]);
+      const edit = () => {
+        const next = window.prompt('Mermaid diagram source', code);
+        if (next != null) {
+          editor.updateBlock(block, { type: BLOCK_TYPES.mermaid, props: { code: next } });
+        }
+      };
+      return (
+        <div className="zx-mermaid" contentEditable={false} onClick={edit} title="Edit diagram">
+          {!code.trim() ? (
+            <span className="zx-block-empty">Click to add a Mermaid diagram…</span>
+          ) : error ? (
+            <pre className="zx-mermaid-error">{error}</pre>
+          ) : (
+            <div dangerouslySetInnerHTML={{ __html: svg }} />
+          )}
+        </div>
+      );
+    },
   },
 );
 
