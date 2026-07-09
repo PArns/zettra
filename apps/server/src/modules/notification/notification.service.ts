@@ -56,7 +56,9 @@ export class NotificationService {
       order: { createdAt: 'DESC' },
       take: 50,
     });
-    const actorIds = [...new Set(rows.map((r) => r.actorUserId).filter((id): id is string => !!id))];
+    const actorIds = [
+      ...new Set(rows.map((r) => r.actorUserId).filter((id): id is string => !!id)),
+    ];
     const actors = actorIds.length
       ? await this.users.find({ where: { tenantId, id: In(actorIds) } })
       : [];

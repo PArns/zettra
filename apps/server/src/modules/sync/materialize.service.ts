@@ -130,7 +130,13 @@ export class MaterializeService {
       const owner = target?.ownerUserId;
       if (owner && owner !== source?.ownerUserId) {
         // Actor = the author of the mentioning block (its owner / most recent editor).
-        await this.notifications.emit(tenantId, owner, 'mention', sourceId, source?.updatedBy ?? source?.ownerUserId ?? null);
+        await this.notifications.emit(
+          tenantId,
+          owner,
+          'mention',
+          sourceId,
+          source?.updatedBy ?? source?.ownerUserId ?? null,
+        );
       }
     }
   }
