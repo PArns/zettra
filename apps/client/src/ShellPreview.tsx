@@ -44,7 +44,7 @@ const SPACES: Space[] = [
 
 function RailCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-3.5 shadow-sm">
+    <div className="glass-strong rounded-xl border border-border p-3.5 shadow-sm">
       <div className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-faint">
         {title}
       </div>
@@ -66,9 +66,11 @@ function Task({ text, tag }: { text: string; tag?: string }) {
 
 export function ShellPreview() {
   const [nav, setNav] = useState<Nav>({ kind: 'view', id: 'v-day', name: 'Daily notes' });
+  const [navOpen, setNavOpen] = useState(false);
 
   return (
-    <div className="app">
+    <div className={`app${navOpen ? ' nav-open' : ''}`}>
+      <div className="mobile-backdrop" onClick={() => setNavOpen(false)} />
       <Sidebar
         tags={TAGS}
         views={VIEWS}
@@ -86,6 +88,13 @@ export function ShellPreview() {
 
       <div className="main">
         <div className="topbar">
+          <button
+            className="icon mobile-toggle"
+            aria-label="Open menu"
+            onClick={() => setNavOpen(true)}
+          >
+            ☰
+          </button>
           <nav className="flex min-w-0 items-center gap-1.5 text-sm text-muted">
             <span className="grid h-5 w-5 place-items-center rounded bg-surface-2 text-[11px]">
               📓

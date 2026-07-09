@@ -19,7 +19,7 @@ export function Card({
   return (
     <div
       className={cx(
-        'rounded-xl border bg-surface shadow-sm transition-[border-color,box-shadow,transform] duration-150',
+        'glass-strong rounded-xl border shadow-sm transition-[border-color,box-shadow,transform] duration-150',
         padded && 'p-4',
         interactive &&
           'cursor-pointer hover:-translate-y-px hover:border-border-strong hover:shadow',

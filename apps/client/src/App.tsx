@@ -35,6 +35,7 @@ export function App() {
   const [selected, setSelected] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [railRefresh, setRailRefresh] = useState(0);
+  const [navOpen, setNavOpen] = useState(false);
   const toast = useToast();
 
   const refresh = useCallback(async () => {
@@ -128,7 +129,8 @@ export function App() {
             : nav.name;
 
   return (
-    <div className="app">
+    <div className={`app${navOpen ? ' nav-open' : ''}`}>
+      <div className="mobile-backdrop" onClick={() => setNavOpen(false)} />
       <Sidebar
         tags={tags}
         views={views}
@@ -140,6 +142,7 @@ export function App() {
         onNav={(n) => {
           setNav(n);
           setSelected(null);
+          setNavOpen(false);
         }}
         onReparentTag={reparentTag}
         onCapture={capture}
@@ -149,6 +152,14 @@ export function App() {
 
       <div className="main">
         <div className="topbar">
+          <button
+            className="icon mobile-toggle"
+            title="Menu"
+            aria-label="Open menu"
+            onClick={() => setNavOpen(true)}
+          >
+            ☰
+          </button>
           {selected && (
             <button
               className="icon"
