@@ -104,8 +104,28 @@ export const api = {
 
   related: (id: string) => request<RelatedResult[]>(`/blocks/${id}/related`),
   backlinks: (id: string) => request<BacklinkResult[]>(`/blocks/${id}/backlinks`),
-  fields: (id: string) =>
-    request<{ fieldId: string; valueText: string | null }[]>(`/blocks/${id}/fields`),
+  fieldValues: (id: string) =>
+    request<
+      {
+        fieldId: string;
+        valueText: string | null;
+        valueNumber: string | null;
+        valueDate: string | null;
+        valueBool: boolean | null;
+        valueJson: unknown;
+      }[]
+    >(`/blocks/${id}/fields`),
+  setField: (blockId: string, fieldId: string, value: unknown) =>
+    request(`/blocks/${blockId}/fields`, {
+      method: 'PUT',
+      body: JSON.stringify({ fieldId, value }),
+    }),
+  tagFields: (tagId: string) => request<EffectiveField[]>(`/tags/${tagId}/fields`),
+  setVisibility: (blockId: string, visibility: 'space' | 'private') =>
+    request<BlockDto>(`/blocks/${blockId}/visibility`, {
+      method: 'PUT',
+      body: JSON.stringify({ visibility }),
+    }),
 
   review: () => request<ReviewEdge[]>('/review'),
   confirmReview: (id: string) => request(`/review/${id}/confirm`, { method: 'POST' }),

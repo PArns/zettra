@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, type BacklinkResult, type RelatedResult } from '../lib/api';
 import { blockTitle } from '../lib/blocks';
+import { FieldsPanel } from './FieldsPanel';
 
 /**
  * Contextual right rail for the open block: live "Related" (soft connections, §8.4) and
@@ -29,6 +30,7 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
 
   return (
     <div className="rail">
+      <FieldsPanel blockId={blockId} />
       <h3>Related</h3>
       {related === null && <div className="spinner" />}
       {related?.length === 0 && (

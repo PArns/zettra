@@ -100,12 +100,29 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
   `resolveThresholds`/`decideLink` (approval), `extractRefs`, mention linker, trigger
   detection.
 
-### Still scheduled (spec §11, marked `// SPEC-GAP:`)
+- **Capture sources** — a generic `/capture` endpoint plus an env-gated **IMAP poller**
+  (idempotent per message-id) and image/file upload capture.
+- **Hybrid search** — dense pgvector kNN + Postgres full-text (tsvector/GIN) fused via
+  Reciprocal Rank Fusion; topbar search box.
+- **Block-level permissions** — a `visibility` override (space/private) enforced at the
+  query layer across every read path.
+- **Signed uploads** — HMAC-signed, tamper-proof served file URLs.
+- **Structured field editing** — an editable field panel that writes `field_value` and
+  reflects in table/board/calendar views.
 
-A live IMAP poller (the ingest endpoint exists; only the scheduled fetch loop is pending);
-bidirectional field↔editor sync (editing a field in a board reflecting inline); supertag
-schema evolution (retyping a field on already-tagged blocks); hybrid (sparse+dense) search;
-signed/access-scoped upload URLs; block-level permission overrides; Citus distribution (an
-ops step, §9).
+### Scaling to Citus (ops step, §9)
+
+The v1 model is single-Postgres with row-level tenancy + RLS. It migrates to Citus **without
+a data-model change** because every table already carries `tenantId`: distribute each table
+on `tenant_id` (`SELECT create_distributed_table('block', 'tenantId')`, …) so a tenant's
+joins and similarity stay co-located on one node. Never distribute by `spaceId` (invariant 6).
+Schema-/DB-per-tenant is only for hard physical-isolation compliance needs.
+
+### Still scheduled (marked `// SPEC-GAP:`)
+
+Inline field nodes **inside the prose editor** (editing fields in the rail + views already
+works; embedding an editable field token mid-paragraph is the remaining slice of §11's
+bidirectional sync); retyping a field's type migrating existing `field_value` rows; sparse
+BGE-M3 vectors in hybrid search (the storage seam is reserved).
 
 See `CLAUDE.md` for the binding invariants. `// SPEC-GAP:` comments mark scheduled work.
