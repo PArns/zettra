@@ -122,9 +122,10 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
   with the shared custom schema, so materialize/embed/curation run on correct content.
 - **Workers** — in-process BullMQ workers (embed, backfill/cleanup fields, capture,
   curation), gated by `RUN_WORKERS`.
-- **Invariant logic (35 unit tests)** — view compiler, `resolveProvider` (AI routing),
+- **Invariant & pure logic (unit-tested)** — view compiler, `resolveProvider` (AI routing),
   `resolveThresholds`/`decideLink` (approval), `extractRefs`, mention linker, trigger
-  detection.
+  detection, plus the calendar month grid, agenda grouping/`reconcile`, date extraction, and the
+  OCR extraction/cleanup helpers.
 
 - **Capture sources** — a generic `/capture` endpoint plus an env-gated **IMAP poller**
   (idempotent per message-id) and image/file upload capture.
@@ -142,6 +143,19 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
 - **Tag folder hierarchy** — `tag.parentId` gives an organizational folder tree (distinct from
   `extendsId` inheritance), rendered as a collapsible, drag-to-reparent sidebar tree with
   server-side cycle rejection.
+- **Calendar & reminders** — a permission-scoped agenda endpoint unions pending reminders and
+  date-typed field values into a month **Calendar** surface with per-day markers and conflict
+  highlighting; reminders / Wiedervorlage (table + due-scan job + notification) with a DatePicker.
+- **Today briefing** — a single-column agenda gathered from all sources: overdue/today/upcoming
+  reminders, entities whose date field lands today (via the calendar agenda), and fresh captures.
+- **Mail deadline detection** — deterministic natural-language date extraction (EN/DE: "in 2
+  weeks", "am 24.07.", tomorrow/morgen…) turns captured text into reminders, reconciled against
+  existing reminders so clashing days are flagged (⚠).
+- **AI chat & Ask-AI search** — grounded chat over the index (RAG: query-vector kNN retrieval,
+  privacy-gated + permission-scoped) with source chips; the topbar search offers "Ask AI" to hand
+  the query straight to the chat.
+- **OCR pass** — a flag-gated (`OCR_ENABLED`) embed-worker step recognizes text in uploaded raster
+  images (lazy, optional `tesseract.js`) and folds it into `searchText` so scans become findable.
 
 ### Design system & UI
 
