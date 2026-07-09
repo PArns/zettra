@@ -35,9 +35,12 @@ export function Sidebar(props: {
         <span className="logo">Z</span> Zettra
       </div>
 
-      <div style={{ padding: '0 12px 8px' }}>
-        <button className="primary" style={{ width: '100%' }} onClick={props.onCapture}>
-          ✎ &nbsp;Quick capture
+      <div className="side-actions">
+        <button className="primary side-new" onClick={props.onCapture}>
+          <span>✎</span> Create new
+        </button>
+        <button className="side-search" aria-label="Search" title="Search">
+          🔍
         </button>
       </div>
 

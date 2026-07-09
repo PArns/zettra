@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { Demo } from './Demo';
+import { ShellPreview } from './ShellPreview';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initTheme, setMode } from './lib/theme';
@@ -21,14 +22,19 @@ if (themeParam === 'light' || themeParam === 'dark' || themeParam === 'system') 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root');
 
-// `?demo=1` renders the standalone component gallery (no backend required).
+// Backend-free previews: `?demo=1` = component gallery, `?shell=1` = Tana-style app shell.
 const isDemo = params.get('demo') === '1';
+const isShell = params.get('shell') === '1';
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <ErrorBoundary>
       {isDemo ? (
         <Demo />
+      ) : isShell ? (
+        <ToastProvider>
+          <ShellPreview />
+        </ToastProvider>
       ) : (
         <ToastProvider>
           <App />

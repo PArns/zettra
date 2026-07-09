@@ -120,7 +120,7 @@ body {
 
   /* ---------- Sidebar ---------- */
   .sidebar {
-    background: var(--surface);
+    background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
@@ -139,12 +139,50 @@ body {
     width: 26px;
     height: 26px;
     border-radius: 8px;
-    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: grid;
     place-items: center;
     color: #fff;
     font-weight: 800;
-    box-shadow: var(--shadow-sm);
+    box-shadow:
+      var(--shadow-sm),
+      0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+      0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+
+  /* Create-new + search row */
+  .side-actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 12px 8px;
+  }
+  .side-new {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    border: none;
+    box-shadow:
+      var(--shadow-sm),
+      0 6px 18px color-mix(in srgb, var(--accent) 26%, transparent);
+  }
+  .side-new:hover {
+    filter: brightness(1.07);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+  .side-search {
+    width: 38px;
+    flex-shrink: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .side-search:hover {
+    background: var(--surface-hover);
+    color: var(--text);
   }
   .sidebar-scroll {
     overflow-y: auto;
@@ -183,8 +221,21 @@ body {
     color: var(--text);
   }
   .nav-item.active {
+    position: relative;
     background: var(--accent-soft);
     color: var(--text);
+    font-weight: 600;
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 7px;
+    bottom: 7px;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
   }
   .nav-item .emoji {
     width: 18px;

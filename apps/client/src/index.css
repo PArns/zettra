@@ -43,26 +43,27 @@
 }
 
 /* ---- Semantic design tokens (dark) ---- */
+/* A deep, near-black Tana-style palette with a violet accent. */
 [data-theme='dark'] {
-  --bg: #0b0b11;
-  --surface: #14141c;
-  --surface-2: #1b1b25;
-  --surface-3: #23232f;
-  --hover: #23232f;
-  --border: #262633;
-  --border-strong: #34343f;
-  --text: #ecedf3;
-  --muted: #a7a8bd;
-  --faint: #77788e;
-  --accent: #7c6dff;
-  --accent-2: #b06bff;
+  --bg: #0a0a0e;
+  --surface: #121218;
+  --surface-2: #191922;
+  --surface-3: #22222d;
+  --hover: #1e1e28;
+  --border: #23232e;
+  --border-strong: #33333f;
+  --text: #edeef4;
+  --muted: #a2a3b8;
+  --faint: #6f7086;
+  --accent: #8b7bff;
+  --accent-2: #c07bff;
   --accent-contrast: #ffffff;
   --ring: color-mix(in srgb, var(--accent) 55%, transparent);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 22px 60px rgba(0, 0, 0, 0.65);
-  --accent-soft: color-mix(in srgb, var(--accent) 26%, transparent);
-  --accent-hover: #6a58ff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.55);
+  --shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.7);
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
+  --accent-hover: #7a68ff;
   color-scheme: dark;
 }
 
