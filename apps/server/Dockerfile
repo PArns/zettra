@@ -13,7 +13,8 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @zettra/shared build \
  && pnpm --filter @zettra/server build
 # Produce a self-contained prod bundle (dist + prod deps, workspace deps inlined).
-RUN pnpm --filter @zettra/server deploy --prod /app/out
+# --legacy: pnpm v10 refuses to deploy non-injected workspaces without it.
+RUN pnpm --filter @zettra/server deploy --prod --legacy /app/out
 
 # --- runtime: slim image running the built output ---
 FROM base AS runtime

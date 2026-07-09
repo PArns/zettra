@@ -10,7 +10,8 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @zettra/shared build \
  && pnpm --filter @zettra/collab build
-RUN pnpm --filter @zettra/collab deploy --prod /app/out
+# --legacy: pnpm v10 refuses to deploy non-injected workspaces without it.
+RUN pnpm --filter @zettra/collab deploy --prod --legacy /app/out
 
 FROM base AS runtime
 ENV NODE_ENV=production
