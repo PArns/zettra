@@ -25,6 +25,10 @@ export class Notification {
   @Column({ type: 'uuid', nullable: true })
   sourceBlockId!: string | null;
 
+  /** Who triggered this notification (mentioner / assigner); null for system events. */
+  @Column({ type: 'uuid', nullable: true })
+  actorUserId!: string | null;
+
   @Column({ type: 'boolean', default: false })
   read!: boolean;
 

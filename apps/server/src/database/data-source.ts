@@ -8,6 +8,7 @@ import { Rls1700000000002 } from './migrations/1700000000002-Rls';
 import { Search1700000000003 } from './migrations/1700000000003-Search';
 import { BlockVisibility1700000000004 } from './migrations/1700000000004-BlockVisibility';
 import { Indexes1700000000005 } from './migrations/1700000000005-Indexes';
+import { NotificationActor1700000000006 } from './migrations/1700000000006-NotificationActor';
 
 const config = loadConfig();
 
@@ -27,6 +28,7 @@ export const dataSourceOptions: DataSourceOptions = {
     Search1700000000003,
     BlockVisibility1700000000004,
     Indexes1700000000005,
+    NotificationActor1700000000006,
   ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],

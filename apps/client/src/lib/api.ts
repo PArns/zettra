@@ -81,6 +81,7 @@ export interface Notification {
   id: string;
   kind: 'mention' | 'task_assignment' | 'review_request';
   sourceBlockId: string | null;
+  actorName: string | null;
   read: boolean;
   createdAt: string;
 }

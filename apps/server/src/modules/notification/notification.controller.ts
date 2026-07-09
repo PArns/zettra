@@ -2,8 +2,7 @@ import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
-import { NotificationService } from './notification.service';
-import { Notification } from '../../entities/index';
+import { NotificationService, NotificationView } from './notification.service';
 
 @Controller('notifications')
 @UseGuards(AuthGuard)
@@ -11,7 +10,7 @@ export class NotificationController {
   constructor(private readonly notifications: NotificationService) {}
 
   @Get()
-  list(@Ctx() ctx: RequestContext): Promise<Notification[]> {
+  list(@Ctx() ctx: RequestContext): Promise<NotificationView[]> {
     return ctx.userId ? this.notifications.list(ctx.tenantId, ctx.userId) : Promise.resolve([]);
   }
 

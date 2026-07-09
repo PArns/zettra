@@ -129,7 +129,8 @@ export class MaterializeService {
       const target = await repo.findOne({ where: { id: targetId, tenantId } });
       const owner = target?.ownerUserId;
       if (owner && owner !== source?.ownerUserId) {
-        await this.notifications.emit(tenantId, owner, 'mention', sourceId);
+        // Actor = the author of the mentioning block (its owner / most recent editor).
+        await this.notifications.emit(tenantId, owner, 'mention', sourceId, source?.updatedBy ?? source?.ownerUserId ?? null);
       }
     }
   }

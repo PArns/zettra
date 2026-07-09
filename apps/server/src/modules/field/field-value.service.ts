@@ -47,9 +47,9 @@ export class FieldValueService {
     row.updatedBy = userId;
     const saved = await this.values.save(row);
 
-    // Assigning a `user` field (e.g. #task assignee) notifies the assignee (§15.6).
+    // Assigning a `user` field (e.g. #task assignee) notifies the assignee; actor = assigner.
     if (field.type === FieldType.User && typeof raw === 'string' && raw && raw !== userId) {
-      await this.notifications.emit(tenantId, raw, 'task_assignment', blockId);
+      await this.notifications.emit(tenantId, raw, 'task_assignment', blockId, userId);
     }
     return saved;
   }

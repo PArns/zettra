@@ -3,11 +3,17 @@ import { api, type Notification } from '../lib/api';
 import { absoluteTime, relativeTime } from '../lib/time';
 import { clickable } from '../lib/a11y';
 
-const LABEL: Record<Notification['kind'], string> = {
-  mention: 'You were mentioned',
-  task_assignment: 'A task was assigned to you',
-  review_request: 'A connection is waiting for review',
-};
+function describe(n: Notification): string {
+  const who = n.actorName ?? 'Someone';
+  switch (n.kind) {
+    case 'mention':
+      return `${who} mentioned you`;
+    case 'task_assignment':
+      return `${who} assigned you a task`;
+    case 'review_request':
+      return 'A connection is waiting for review';
+  }
+}
 
 /** Topbar notification bell with unread count + dropdown (§15.6). Polls periodically. */
 export function NotificationsBell({ onOpenBlock }: { onOpenBlock: (id: string) => void }) {
@@ -85,7 +91,7 @@ export function NotificationsBell({ onOpenBlock }: { onOpenBlock: (id: string) =
                 style={openable ? undefined : { cursor: 'default' }}
                 {...(openable ? clickable(() => onOpenBlock(n.sourceBlockId as string)) : {})}
               >
-                {LABEL[n.kind]}
+                {describe(n)}
                 <div
                   style={{ color: 'var(--text-faint)', fontSize: 11, marginTop: 2 }}
                   title={absoluteTime(n.createdAt)}
