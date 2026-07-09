@@ -28,6 +28,12 @@ class SetParentBody {
   @IsOptional() @IsString() parentId?: string | null;
 }
 
+class UpdateTagBody {
+  @IsOptional() @IsString() @MinLength(1) name?: string;
+  @IsOptional() @IsString() icon?: string | null;
+  @IsOptional() @IsString() color?: string | null;
+}
+
 @Controller('tags')
 @UseGuards(AuthGuard)
 export class TagController {
@@ -41,6 +47,15 @@ export class TagController {
   @Post()
   create(@Ctx() ctx: RequestContext, @Body() body: CreateTagBody): Promise<Tag> {
     return this.tags.create(ctx.tenantId, body);
+  }
+
+  @Patch(':id')
+  update(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+    @Body() body: UpdateTagBody,
+  ): Promise<Tag> {
+    return this.tags.update(ctx.tenantId, id, body);
   }
 
   @Get(':id/fields')

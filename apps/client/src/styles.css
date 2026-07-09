@@ -602,6 +602,67 @@ body {
     margin-bottom: 8px;
   }
 
+  /* Supertag dialog */
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    max-width: 200px;
+  }
+  .emoji-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    font-size: 15px;
+    padding: 0;
+  }
+  .emoji-swatch.on {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .field-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+  }
+  .field-name {
+    font-weight: 500;
+    flex: 1;
+  }
+  .field-type {
+    font-size: 12px;
+    color: var(--text-faint);
+    text-transform: capitalize;
+  }
+  .field-empty {
+    color: var(--text-faint);
+    font-size: 13px;
+    padding: 6px 2px;
+  }
+  .field-add {
+    display: flex;
+    gap: 8px;
+  }
+  .field-add select,
+  .field-add input {
+    width: auto;
+  }
+  .field-add input {
+    flex: 1;
+  }
+
   /* ---------- Drop zone (§8.3) ---------- */
   .dropzone {
     border: 1.5px dashed var(--border-strong);
@@ -671,9 +732,41 @@ body {
     background: transparent;
   }
   .tag-node .tag-name {
+    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .tag-edit {
+    opacity: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    padding: 2px 5px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .tag-node:hover .tag-edit {
+    opacity: 1;
+  }
+  .tag-edit:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+  .nav-section > .label .label-add {
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .nav-section > .label .label-add:hover {
+    background: var(--surface-hover);
+    color: var(--text);
   }
 
   /* ---------- For Review cards ---------- */

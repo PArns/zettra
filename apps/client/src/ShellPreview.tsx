@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sidebar, type Nav } from './components/Sidebar';
+import { SupertagDialog } from './components/SupertagDialog';
 import { Badge, IconButton } from './ui';
 import type { Space, Tag, View } from './lib/api';
 
@@ -67,6 +68,9 @@ function Task({ text, tag }: { text: string; tag?: string }) {
 export function ShellPreview() {
   const [nav, setNav] = useState<Nav>({ kind: 'view', id: 'v-day', name: 'Daily notes' });
   const [navOpen, setNavOpen] = useState(false);
+  const [tagEdit, setTagEdit] = useState<{ tag: Tag | null } | null>(
+    new URLSearchParams(window.location.search).get('dialog') === 'supertag' ? { tag: null } : null,
+  );
 
   return (
     <div className={`app${navOpen ? ' nav-open' : ''}`}>
@@ -81,6 +85,8 @@ export function ShellPreview() {
         nav={nav}
         onNav={setNav}
         onReparentTag={() => undefined}
+        onCreateTag={() => setTagEdit({ tag: null })}
+        onEditTag={(t) => setTagEdit({ tag: t })}
         onCapture={() => undefined}
         email="patrick@zettra.app"
         onSignOut={() => undefined}
@@ -193,6 +199,15 @@ export function ShellPreview() {
           </aside>
         </div>
       </div>
+
+      {tagEdit && (
+        <SupertagDialog
+          tag={tagEdit.tag}
+          tags={TAGS}
+          onClose={() => setTagEdit(null)}
+          onSaved={() => setTagEdit(null)}
+        />
+      )}
     </div>
   );
 }

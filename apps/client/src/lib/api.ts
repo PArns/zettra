@@ -184,6 +184,21 @@ export const api = {
       body: JSON.stringify({ parentId }),
     }),
 
+  // Supertag definition CRUD (§8.1).
+  createTag: (i: { name: string; icon?: string; color?: string; parentId?: string | null }) =>
+    request<Tag>('/tags', { method: 'POST', body: JSON.stringify(i) }),
+  updateTag: (
+    tagId: string,
+    patch: { name?: string; icon?: string | null; color?: string | null },
+  ) => request<Tag>(`/tags/${tagId}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+  addField: (
+    tagId: string,
+    field: { name: string; type: string; config?: Record<string, unknown> },
+  ) => request(`/tags/${tagId}/fields`, { method: 'POST', body: JSON.stringify(field) }),
+  updateField: (fieldId: string, patch: { name?: string; type?: string }) =>
+    request(`/tags/fields/${fieldId}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+  removeField: (fieldId: string) => request(`/tags/fields/${fieldId}`, { method: 'DELETE' }),
+
   notifications: () => request<Notification[]>('/notifications'),
   markNotificationsRead: () => request('/notifications/read-all', { method: 'POST' }),
 

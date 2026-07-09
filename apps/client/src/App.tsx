@@ -6,6 +6,7 @@ import { setMode } from './lib/theme';
 import { setAccent } from './lib/accent';
 import { Auth } from './components/Auth';
 import { SettingsDialog } from './components/SettingsDialog';
+import { SupertagDialog } from './components/SupertagDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
 import { DropZone } from './components/DropZone';
@@ -36,6 +37,8 @@ export function App() {
   const [capturing, setCapturing] = useState(false);
   const [railRefresh, setRailRefresh] = useState(0);
   const [navOpen, setNavOpen] = useState(false);
+  // null = closed; { tag: null } = create; { tag } = edit.
+  const [tagEdit, setTagEdit] = useState<{ tag: Tag | null } | null>(null);
   const toast = useToast();
 
   const refresh = useCallback(async () => {
@@ -145,6 +148,8 @@ export function App() {
           setNavOpen(false);
         }}
         onReparentTag={reparentTag}
+        onCreateTag={() => setTagEdit({ tag: null })}
+        onEditTag={(t) => setTagEdit({ tag: t })}
         onCapture={capture}
         email={email || 'you'}
         onSignOut={signOut}
@@ -241,6 +246,15 @@ export function App() {
             setEmail(p.email);
             setDisplayName(p.displayName ?? '');
           }}
+        />
+      )}
+
+      {tagEdit && (
+        <SupertagDialog
+          tag={tagEdit.tag}
+          tags={tags}
+          onClose={() => setTagEdit(null)}
+          onSaved={() => void refresh()}
         />
       )}
     </div>

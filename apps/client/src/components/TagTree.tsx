@@ -14,12 +14,14 @@ export function TagTree({
   activeViewId,
   onOpenView,
   onReparent,
+  onEdit,
 }: {
   tags: Tag[];
   views: View[];
   activeViewId: string | null;
   onOpenView: (view: View) => void;
   onReparent: (tagId: string, parentId: string | null) => void;
+  onEdit?: (tag: Tag) => void;
 }) {
   const tree = buildTagTree(tags);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -81,6 +83,19 @@ export function TagTree({
           </button>
           <span className="emoji">{tag.icon ?? '#'}</span>
           <span className="tag-name">{tag.name}</span>
+          {onEdit && (
+            <button
+              className="tag-edit"
+              aria-label={`Edit ${tag.name}`}
+              title="Edit supertag"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(tag);
+              }}
+            >
+              ✎
+            </button>
+          )}
         </div>
         {hasChildren && !isCollapsed && node.children.map(renderNode)}
       </div>

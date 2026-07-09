@@ -18,6 +18,8 @@ export function Sidebar(props: {
   nav: Nav;
   onNav: (n: Nav) => void;
   onReparentTag: (tagId: string, parentId: string | null) => void;
+  onCreateTag: () => void;
+  onEditTag: (tag: Tag) => void;
   onCapture: () => void;
   email: string;
   onSignOut: () => void;
@@ -70,13 +72,24 @@ export function Sidebar(props: {
         </div>
 
         <div className="nav-section">
-          <div className="label">Tags</div>
+          <div className="label">
+            <span>Tags</span>
+            <button
+              className="label-add"
+              aria-label="New supertag"
+              title="New supertag"
+              onClick={props.onCreateTag}
+            >
+              +
+            </button>
+          </div>
           <TagTree
             tags={tags}
             views={views}
             activeViewId={activeViewId}
             onOpenView={(v) => props.onNav({ kind: 'view', id: v.id, name: v.name })}
             onReparent={props.onReparentTag}
+            onEdit={props.onEditTag}
           />
         </div>
 

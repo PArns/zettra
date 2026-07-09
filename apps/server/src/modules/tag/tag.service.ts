@@ -59,6 +59,20 @@ export class TagService {
     return tag;
   }
 
+  /** Update a supertag's display fields (name, icon, color). */
+  async update(
+    tenantId: string,
+    tagId: string,
+    patch: { name?: string; icon?: string | null; color?: string | null },
+  ): Promise<Tag> {
+    const tag = await this.tags.findOne({ where: { id: tagId, tenantId } });
+    if (!tag) throw new NotFoundException('Tag not found');
+    if (patch.name !== undefined) tag.name = patch.name;
+    if (patch.icon !== undefined) tag.icon = patch.icon;
+    if (patch.color !== undefined) tag.color = patch.color;
+    return this.tags.save(tag);
+  }
+
   /**
    * Move a tag under a new organizational parent (the folder tree). Rejects self-parenting and
    * any move that would create a cycle, so the tree stays a tree (§8.1).
