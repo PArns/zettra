@@ -62,7 +62,15 @@ export class QueueService implements OnModuleDestroy {
     // ':' as a natural separator (e.g. `embed:<blockId>`), so normalize it here — one place
     // covers every call site while keeping the key stable for debouncing.
     const jobId = debounceKey ? safeJobId(debounceKey) : undefined;
-    await this.queue(name).add(name, data, jobId ? { jobId } : undefined);
+    // removeOnComplete is essential for the debounce jobId to work as a *debounce* and not a
+    // permanent lock: while a job is pending/active the stable jobId collapses an edit storm, but
+    // once it completes it must be removed so the next edit re-enqueues (else a block embeds/
+    // materializes exactly once, ever — RAG/embeddings/curation silently stop updating).
+    await this.queue(name).add(name, data, {
+      ...(jobId ? { jobId } : {}),
+      removeOnComplete: true,
+      removeOnFail: 100,
+    });
     this.logger.debug(`enqueued ${name}${jobId ? ` (${jobId})` : ''}`);
   }
 
