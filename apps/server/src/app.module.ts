@@ -28,6 +28,7 @@ import { LimitsModule } from './modules/limits/limits.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { SearchModule } from './modules/search/search.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ReminderModule } from './modules/reminder/reminder.module';
 
 /**
  * Root module wiring the domain-focused feature modules (§3). Global modules (AI, Jobs,
@@ -53,6 +54,7 @@ import { AdminModule } from './modules/admin/admin.module';
     TenantModule,
     SpaceModule,
     AdminModule,
+    ReminderModule,
     LimitsModule,
     TagModule,
     FieldModule,

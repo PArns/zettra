@@ -5,6 +5,7 @@ import type { StringKey } from '../i18n';
 import { blockTitle } from '../lib/blocks';
 import { clickable } from '../lib/a11y';
 import { FieldsPanel } from './FieldsPanel';
+import { RemindersPanel } from './RemindersPanel';
 
 function matchLabel(distance: number, t: (key: StringKey) => string): string {
   const score = 1 - distance;
@@ -48,6 +49,7 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
   return (
     <div className="rail">
       <FieldsPanel blockId={blockId} />
+      <RemindersPanel blockId={blockId} />
       <h3>{t('rail.related')}</h3>
       {related === null && <div className="spinner" />}
       {related?.length === 0 && (

@@ -1705,4 +1705,44 @@ body {
     justify-content: space-between;
     margin-top: 8px;
   }
+
+  /* ---------- Reminders (§4) ---------- */
+  .reminders {
+    margin-bottom: 8px;
+  }
+  .reminder-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .reminder-when {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .reminder-note {
+    color: var(--text-muted);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .reminder-actions {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+  }
+  .reminder-add {
+    position: relative;
+  }
+  .reminder-note-input {
+    width: 100%;
+    margin-bottom: 6px;
+  }
 }

@@ -213,6 +213,12 @@ const en = {
   'date.nextMonth': 'Next month',
   'date.pick': 'Pick a date',
 
+  'reminder.title': 'Reminders',
+  'reminder.add': 'Remind me',
+  'reminder.done': 'Done',
+  'reminder.dismiss': 'Dismiss',
+  'reminder.notePlaceholder': 'Note (optional)',
+
   'notif.title': 'Notifications',
   'notif.unread': 'unread',
   'notif.caughtUp': "You're all caught up.",
@@ -429,6 +435,12 @@ const de: Catalog = {
   'date.nextMonth': 'Nächster Monat',
   'date.pick': 'Datum wählen',
 
+  'reminder.title': 'Erinnerungen',
+  'reminder.add': 'Erinnere mich',
+  'reminder.done': 'Erledigt',
+  'reminder.dismiss': 'Verwerfen',
+  'reminder.notePlaceholder': 'Notiz (optional)',
+
   'notif.title': 'Benachrichtigungen',
   'notif.unread': 'ungelesen',
   'notif.caughtUp': 'Du bist auf dem neuesten Stand.',
@@ -640,6 +652,12 @@ const es: Catalog = {
   'date.prevMonth': 'Mes anterior',
   'date.nextMonth': 'Mes siguiente',
   'date.pick': 'Elegir fecha',
+
+  'reminder.title': 'Recordatorios',
+  'reminder.add': 'Recordarme',
+  'reminder.done': 'Hecho',
+  'reminder.dismiss': 'Descartar',
+  'reminder.notePlaceholder': 'Nota (opcional)',
 
   'notif.title': 'Notificaciones',
   'notif.unread': 'sin leer',
@@ -853,6 +871,12 @@ const fr: Catalog = {
   'date.prevMonth': 'Mois précédent',
   'date.nextMonth': 'Mois suivant',
   'date.pick': 'Choisir une date',
+
+  'reminder.title': 'Rappels',
+  'reminder.add': 'Me rappeler',
+  'reminder.done': 'Terminé',
+  'reminder.dismiss': 'Ignorer',
+  'reminder.notePlaceholder': 'Note (facultatif)',
 
   'notif.title': 'Notifications',
   'notif.unread': 'non lues',

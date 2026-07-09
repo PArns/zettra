@@ -13,6 +13,7 @@ import { HierarchyAndReview1700000000007 } from './migrations/1700000000007-Hier
 import { UserSettings1700000000008 } from './migrations/1700000000008-UserSettings';
 import { TenantTier1700000000009 } from './migrations/1700000000009-TenantTier';
 import { UserRole1700000000010 } from './migrations/1700000000010-UserRole';
+import { Reminders1700000000011 } from './migrations/1700000000011-Reminders';
 
 const config = loadConfig();
 
@@ -37,6 +38,7 @@ export const dataSourceOptions: DataSourceOptions = {
     UserSettings1700000000008,
     TenantTier1700000000009,
     UserRole1700000000010,
+    Reminders1700000000011,
   ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],

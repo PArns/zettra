@@ -101,6 +101,15 @@ export interface RelationBacklink {
   fieldId: string;
   fieldName: string;
 }
+/** A reminder / Wiedervorlage as returned by the API. */
+export interface ReminderView {
+  id: string;
+  blockId: string;
+  title: string;
+  remindAt: string;
+  note: string | null;
+  status: string;
+}
 export interface ReviewEdge {
   id: string;
   source: { id: string; title: string };
@@ -178,6 +187,15 @@ export const api = {
 
   related: (id: string) => request<RelatedResult[]>(`/blocks/${id}/related`),
   backlinks: (id: string) => request<BacklinkResult[]>(`/blocks/${id}/backlinks`),
+
+  // Reminders / Wiedervorlage (§3–§4).
+  blockReminders: (blockId: string) => request<ReminderView[]>(`/reminders/block/${blockId}`),
+  remindersUpcoming: () => request<ReminderView[]>('/reminders/upcoming'),
+  createReminder: (i: { blockId: string; remindAt: string; note?: string }) =>
+    request<ReminderView>('/reminders', { method: 'POST', body: JSON.stringify(i) }),
+  reminderDone: (id: string) => request(`/reminders/${id}/done`, { method: 'POST' }),
+  reminderDismiss: (id: string) => request(`/reminders/${id}/dismiss`, { method: 'POST' }),
+  deleteReminder: (id: string) => request(`/reminders/${id}`, { method: 'DELETE' }),
   relationBacklinks: (id: string) =>
     request<RelationBacklink[]>(`/blocks/${id}/relation-backlinks`),
   fieldValues: (id: string) =>
