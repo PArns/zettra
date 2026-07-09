@@ -16,4 +16,5 @@ export * from './policy';
 export * from './dto';
 export * from './space-template';
 export * from './calendar';
+export * from './calendar-agenda';
 export * from './date-extract';

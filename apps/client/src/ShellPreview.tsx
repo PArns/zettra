@@ -1,8 +1,58 @@
 import { useState } from 'react';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { SupertagDialog } from './components/SupertagDialog';
+import { CalendarPane } from './components/CalendarPane';
 import { Badge, IconButton } from './ui';
-import type { Space, Tag, View } from './lib/api';
+import type { Agenda, Space, Tag, View } from './lib/api';
+
+/** A backend-free agenda anchored to the current month, for the `?shell=1&pane=calendar` preview. */
+function mockAgenda(): Agenda {
+  const now = new Date();
+  const day = (n: number): string =>
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), n)).toISOString().slice(0, 10);
+  return {
+    days: [
+      {
+        iso: day(9),
+        items: [
+          {
+            blockId: 'a',
+            title: 'Rechnung fällig',
+            date: day(9),
+            kind: 'reminder',
+            label: 'in 3 Tagen',
+          },
+        ],
+      },
+      {
+        iso: day(14),
+        items: [
+          { blockId: 'b', title: 'Launch review', date: day(14), kind: 'field', label: 'Due date' },
+          {
+            blockId: 'c',
+            title: 'Call with Alex',
+            date: day(14),
+            kind: 'reminder',
+            label: 'Termin in 2 Wochen',
+          },
+        ],
+      },
+      {
+        iso: day(22),
+        items: [
+          {
+            blockId: 'd',
+            title: 'Quarterly report',
+            date: day(22),
+            kind: 'field',
+            label: 'Deadline',
+          },
+        ],
+      },
+    ],
+    conflicts: [day(14)],
+  };
+}
 
 /**
  * Static, backend-free preview of the Tana-style app shell (`?shell=1`) — the real Sidebar plus
@@ -100,10 +150,14 @@ function Task({ text, tag }: { text: string; tag?: string }) {
 }
 
 export function ShellPreview() {
-  const [nav, setNav] = useState<Nav>({ kind: 'view', id: 'v-day', name: 'Daily notes' });
+  const params = new URLSearchParams(window.location.search);
+  const previewCalendar = params.get('pane') === 'calendar';
+  const [nav, setNav] = useState<Nav>(
+    previewCalendar ? { kind: 'calendar' } : { kind: 'view', id: 'v-day', name: 'Daily notes' },
+  );
   const [navOpen, setNavOpen] = useState(false);
   const [tagEdit, setTagEdit] = useState<{ tag: Tag | null } | null>(
-    new URLSearchParams(window.location.search).get('dialog') === 'supertag' ? { tag: null } : null,
+    params.get('dialog') === 'supertag' ? { tag: null } : null,
   );
 
   return (
@@ -150,88 +204,98 @@ export function ShellPreview() {
           <IconButton label="More">⋯</IconButton>
         </div>
 
-        <div className="content">
-          <div className="pane">
-            <div className="pane-narrow animate-fade-up">
-              <h1 className="text-3xl font-bold tracking-tight text-text">Today, Wed, Jul 8</h1>
-              <div className="mt-2 flex items-center gap-2">
-                <Badge tone="accent">
-                  <span className="opacity-70">#</span>&nbsp;Day
-                </Badge>
-                <span className="text-xs text-faint">Week 28 · 2026</span>
-              </div>
-
-              <div className="mt-5 flex items-center gap-2">
-                <button className="rounded-lg border border-border bg-surface-2 px-2.5 py-1 text-sm text-muted hover:bg-hover">
-                  ‹
-                </button>
-                <button className="rounded-lg border border-border bg-surface-2 px-3 py-1 text-sm font-medium text-text hover:bg-hover">
-                  Today
-                </button>
-                <button className="rounded-lg border border-border bg-surface-2 px-2.5 py-1 text-sm text-muted hover:bg-hover">
-                  ›
-                </button>
-              </div>
-
-              <div className="mt-6 space-y-3 text-[15px] leading-relaxed text-text">
-                <p className="text-muted">
-                  Type <span className="font-mono text-accent">/</span> for blocks,{' '}
-                  <span className="font-mono text-accent">#</span> to tag,{' '}
-                  <span className="font-mono text-accent">[[</span> to link.
-                </p>
-                <div className="zx-callout" style={{ ['--ck' as string]: 'var(--accent)' }}>
-                  <span className="zx-callout-glyph">💡</span>
-                  <div className="zx-callout-body text-sm text-muted">
-                    Standup at 10:00 — review the launch checklist with{' '}
-                    <span className="text-accent">[[Alex]]</span>.
-                  </div>
-                </div>
-                <ul className="space-y-1.5">
-                  {[
-                    'Draft the release notes',
-                    'Merge the theme switcher',
-                    'Reply to design review',
-                  ].map((t, i) => (
-                    <li key={t} className="flex items-center gap-2.5">
-                      <input
-                        type="checkbox"
-                        defaultChecked={i === 1}
-                        className="h-4 w-4 accent-[var(--accent)]"
-                      />
-                      <span className={i === 1 ? 'text-faint line-through' : ''}>{t}</span>
-                    </li>
-                  ))}
-                </ul>
+        {previewCalendar ? (
+          <div className="content no-rail">
+            <div className="pane">
+              <div className="pane-narrow animate-fade-up">
+                <CalendarPane onOpen={() => undefined} previewAgenda={mockAgenda()} />
               </div>
             </div>
           </div>
+        ) : (
+          <div className="content">
+            <div className="pane">
+              <div className="pane-narrow animate-fade-up">
+                <h1 className="text-3xl font-bold tracking-tight text-text">Today, Wed, Jul 8</h1>
+                <div className="mt-2 flex items-center gap-2">
+                  <Badge tone="accent">
+                    <span className="opacity-70">#</span>&nbsp;Day
+                  </Badge>
+                  <span className="text-xs text-faint">Week 28 · 2026</span>
+                </div>
 
-          <aside className="rail space-y-3">
-            <RailCard title="Open tasks">
-              <div className="flex flex-col">
-                <Task text="Rename attractions modal" tag="Website" />
-                <Task text="Ship formula cross-refs" tag="Tasks" />
-                <Task text="Invite the team" tag="People" />
-              </div>
-            </RailCard>
-            <RailCard title="Related">
-              <div className="space-y-2">
-                {[
-                  { t: 'Launch plan', s: 'strong match' },
-                  { t: 'Q3 roadmap', s: 'likely match' },
-                ].map((r) => (
-                  <div
-                    key={r.t}
-                    className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2"
-                  >
-                    <span className="text-sm text-text">{r.t}</span>
-                    <span className="text-xs text-faint">{r.s}</span>
+                <div className="mt-5 flex items-center gap-2">
+                  <button className="rounded-lg border border-border bg-surface-2 px-2.5 py-1 text-sm text-muted hover:bg-hover">
+                    ‹
+                  </button>
+                  <button className="rounded-lg border border-border bg-surface-2 px-3 py-1 text-sm font-medium text-text hover:bg-hover">
+                    Today
+                  </button>
+                  <button className="rounded-lg border border-border bg-surface-2 px-2.5 py-1 text-sm text-muted hover:bg-hover">
+                    ›
+                  </button>
+                </div>
+
+                <div className="mt-6 space-y-3 text-[15px] leading-relaxed text-text">
+                  <p className="text-muted">
+                    Type <span className="font-mono text-accent">/</span> for blocks,{' '}
+                    <span className="font-mono text-accent">#</span> to tag,{' '}
+                    <span className="font-mono text-accent">[[</span> to link.
+                  </p>
+                  <div className="zx-callout" style={{ ['--ck' as string]: 'var(--accent)' }}>
+                    <span className="zx-callout-glyph">💡</span>
+                    <div className="zx-callout-body text-sm text-muted">
+                      Standup at 10:00 — review the launch checklist with{' '}
+                      <span className="text-accent">[[Alex]]</span>.
+                    </div>
                   </div>
-                ))}
+                  <ul className="space-y-1.5">
+                    {[
+                      'Draft the release notes',
+                      'Merge the theme switcher',
+                      'Reply to design review',
+                    ].map((t, i) => (
+                      <li key={t} className="flex items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          defaultChecked={i === 1}
+                          className="h-4 w-4 accent-[var(--accent)]"
+                        />
+                        <span className={i === 1 ? 'text-faint line-through' : ''}>{t}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </RailCard>
-          </aside>
-        </div>
+            </div>
+
+            <aside className="rail space-y-3">
+              <RailCard title="Open tasks">
+                <div className="flex flex-col">
+                  <Task text="Rename attractions modal" tag="Website" />
+                  <Task text="Ship formula cross-refs" tag="Tasks" />
+                  <Task text="Invite the team" tag="People" />
+                </div>
+              </RailCard>
+              <RailCard title="Related">
+                <div className="space-y-2">
+                  {[
+                    { t: 'Launch plan', s: 'strong match' },
+                    { t: 'Q3 roadmap', s: 'likely match' },
+                  ].map((r) => (
+                    <div
+                      key={r.t}
+                      className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2"
+                    >
+                      <span className="text-sm text-text">{r.t}</span>
+                      <span className="text-xs text-faint">{r.s}</span>
+                    </div>
+                  ))}
+                </div>
+              </RailCard>
+            </aside>
+          </div>
+        )}
       </div>
 
       {tagEdit && (

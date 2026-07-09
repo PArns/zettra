@@ -29,6 +29,7 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { SearchModule } from './modules/search/search.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ReminderModule } from './modules/reminder/reminder.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
 import { AiChatModule } from './modules/ai-chat/ai-chat.module';
 
 /**
@@ -56,6 +57,7 @@ import { AiChatModule } from './modules/ai-chat/ai-chat.module';
     SpaceModule,
     AdminModule,
     ReminderModule,
+    CalendarModule,
     AiChatModule,
     LimitsModule,
     TagModule,

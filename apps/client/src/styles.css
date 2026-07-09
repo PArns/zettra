@@ -1706,6 +1706,131 @@ body {
     margin-top: 8px;
   }
 
+  /* ---------- Calendar surface (§3) ---------- */
+  .calendar {
+    max-width: 720px;
+    margin: 0 auto;
+    user-select: none;
+  }
+  .cal-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .cal-title {
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: capitalize;
+  }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-wd {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-faint);
+    padding-bottom: 2px;
+  }
+  .cal-day {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 0 0;
+    gap: 3px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+    transition:
+      background 0.12s ease,
+      border-color 0.12s ease;
+  }
+  .cal-day:hover {
+    background: var(--surface-2);
+  }
+  .cal-day.out {
+    color: var(--text-faint);
+    background: transparent;
+  }
+  .cal-day.today .cal-daynum {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .cal-day.sel {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .cal-day.conflict {
+    border-color: color-mix(in oklab, var(--red) 55%, var(--border));
+  }
+  .cal-daynum {
+    font-variant-numeric: tabular-nums;
+  }
+  .cal-dots {
+    display: flex;
+    gap: 2px;
+  }
+  .cal-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .cal-dot.reminder {
+    background: var(--red);
+  }
+  .cal-day-detail {
+    margin-top: 20px;
+  }
+  .cal-day-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: capitalize;
+    margin-bottom: 10px;
+  }
+  .cal-conflict-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--red);
+    border: 1px solid color-mix(in oklab, var(--red) 45%, transparent);
+    border-radius: 999px;
+    padding: 1px 7px;
+  }
+  .cal-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+  }
+  .cal-item-icon {
+    font-size: 15px;
+  }
+  .cal-item-title {
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .cal-item-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
   /* ---------- Reminders (§4) ---------- */
   .reminders {
     margin-bottom: 8px;

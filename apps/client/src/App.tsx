@@ -12,6 +12,7 @@ import { SupertagDialog } from './components/SupertagDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
 import { TodayPane } from './components/TodayPane';
+import { CalendarPane } from './components/CalendarPane';
 import { AiChatPanel } from './components/AiChatPanel';
 import { WelcomePane } from './components/WelcomePane';
 import { DropZone } from './components/DropZone';
@@ -159,13 +160,15 @@ export function App() {
       ? t('top.note')
       : nav.kind === 'today'
         ? t('nav.today')
-        : nav.kind === 'inbox'
-          ? t('nav.briefkasten')
-          : nav.kind === 'review'
-            ? t('nav.connections')
-            : nav.kind === 'forReview'
-              ? t('nav.forReview')
-              : nav.name;
+        : nav.kind === 'calendar'
+          ? t('nav.calendar')
+          : nav.kind === 'inbox'
+            ? t('nav.briefkasten')
+            : nav.kind === 'review'
+              ? t('nav.connections')
+              : nav.kind === 'forReview'
+                ? t('nav.forReview')
+                : nav.name;
 
   return (
     <div className={`app${navOpen ? ' nav-open' : ''}`}>
@@ -254,6 +257,7 @@ export function App() {
                 {nav.kind === 'today' && (
                   <TodayPane captures={inbox} onOpen={(id) => setSelected(id)} />
                 )}
+                {nav.kind === 'calendar' && <CalendarPane onOpen={(id) => setSelected(id)} />}
                 {nav.kind === 'inbox' && (
                   <>
                     {inbox.length === 0 && tags.length === 0 && (

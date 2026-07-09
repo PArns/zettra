@@ -220,6 +220,9 @@ const en = {
   'reminder.notePlaceholder': 'Note (optional)',
 
   'nav.today': 'Today',
+  'nav.calendar': 'Calendar',
+  'calendar.busy': 'Busy',
+  'calendar.emptyDay': 'Nothing scheduled',
   'today.overdue': 'Overdue',
   'today.dueToday': 'Today',
   'today.upcoming': 'Upcoming',
@@ -456,6 +459,9 @@ const de: Catalog = {
   'reminder.notePlaceholder': 'Notiz (optional)',
 
   'nav.today': 'Heute',
+  'nav.calendar': 'Kalender',
+  'calendar.busy': 'Belegt',
+  'calendar.emptyDay': 'Nichts geplant',
   'today.overdue': 'Überfällig',
   'today.dueToday': 'Heute',
   'today.upcoming': 'Demnächst',
@@ -688,6 +694,9 @@ const es: Catalog = {
   'reminder.notePlaceholder': 'Nota (opcional)',
 
   'nav.today': 'Hoy',
+  'nav.calendar': 'Calendario',
+  'calendar.busy': 'Ocupado',
+  'calendar.emptyDay': 'Nada programado',
   'today.overdue': 'Vencido',
   'today.dueToday': 'Hoy',
   'today.upcoming': 'Próximo',
@@ -921,6 +930,9 @@ const fr: Catalog = {
   'reminder.notePlaceholder': 'Note (facultatif)',
 
   'nav.today': 'Aujourd’hui',
+  'nav.calendar': 'Calendrier',
+  'calendar.busy': 'Occupé',
+  'calendar.emptyDay': 'Rien de prévu',
   'today.overdue': 'En retard',
   'today.dueToday': 'Aujourd’hui',
   'today.upcoming': 'À venir',

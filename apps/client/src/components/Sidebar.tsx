@@ -5,6 +5,7 @@ import { TagTree } from './TagTree';
 
 export type Nav =
   | { kind: 'today' }
+  | { kind: 'calendar' }
   | { kind: 'inbox' }
   | { kind: 'review' }
   | { kind: 'forReview' }
@@ -56,6 +57,12 @@ export function Sidebar(props: {
             {...clickable(() => props.onNav({ kind: 'today' }))}
           >
             <span className="emoji">☀️</span> {t('nav.today')}
+          </div>
+          <div
+            className={`nav-item ${isActive({ kind: 'calendar' }) ? 'active' : ''}`}
+            {...clickable(() => props.onNav({ kind: 'calendar' }))}
+          >
+            <span className="emoji">🗓️</span> {t('nav.calendar')}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'inbox' }) ? 'active' : ''}`}

@@ -110,6 +110,24 @@ export interface ReminderView {
   note: string | null;
   status: string;
 }
+/** One dated thing on the calendar agenda (§3). */
+export interface AgendaItem {
+  blockId: string;
+  title: string;
+  /** `YYYY-MM-DD`. */
+  date: string;
+  kind: 'reminder' | 'field';
+  label?: string;
+}
+export interface AgendaDay {
+  iso: string;
+  items: AgendaItem[];
+}
+export interface Agenda {
+  days: AgendaDay[];
+  /** ISO days carrying more than one item — candidate scheduling conflicts. */
+  conflicts: string[];
+}
 export interface ReviewEdge {
   id: string;
   source: { id: string; title: string };
@@ -194,6 +212,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ question, spaceId }),
     }),
+
+  // Calendar agenda over reminders + date fields (§3).
+  calendarAgenda: (from: string, to: string) =>
+    request<Agenda>(`/calendar/agenda?from=${from}&to=${to}`),
 
   // Reminders / Wiedervorlage (§3–§4).
   blockReminders: (blockId: string) => request<ReminderView[]>(`/reminders/block/${blockId}`),
