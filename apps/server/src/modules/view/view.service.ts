@@ -123,6 +123,7 @@ export class ViewService {
     const compiled = compileView(def, fields, {
       tenantId: ctx.tenantId,
       visibleSpaceIds: ctx.visibleSpaceIds,
+      actingUserId: ctx.userId,
     });
     return this.applyCompiled(compiled).getMany();
   }

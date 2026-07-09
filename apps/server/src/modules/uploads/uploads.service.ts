@@ -1,9 +1,14 @@
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { createWriteStream, existsSync } from 'node:fs';
 import { mkdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { loadConfig } from '../../config/configuration';
 
 /**
@@ -15,6 +20,7 @@ import { loadConfig } from '../../config/configuration';
 @Injectable()
 export class UploadsService {
   private readonly root = loadConfig().uploadDir;
+  private readonly secret = loadConfig().appSecret;
 
   private readonly allowed = new Set([
     '.png',
@@ -43,7 +49,21 @@ export class UploadsService {
     const name = `${randomUUID()}${ext}`;
     const key = `${tenantId}/${name}`;
     await pipeline(data, createWriteStream(join(dir, name)));
-    return { key, url: `/api/files/${key}` };
+    // Sign the key so served URLs are tamper-proof, not merely unguessable (§8.3).
+    return { key, url: `/api/files/${key}?sig=${this.sign(key)}` };
+  }
+
+  /** HMAC-SHA256 of the file key, base64url. Embedded in the served URL as `?sig=`. */
+  sign(key: string): string {
+    return createHmac('sha256', this.secret).update(key).digest('base64url');
+  }
+
+  verify(key: string, sig: string | undefined): void {
+    const expected = Buffer.from(this.sign(key));
+    const given = Buffer.from(sig ?? '');
+    if (expected.length !== given.length || !timingSafeEqual(expected, given)) {
+      throw new ForbiddenException('Invalid file signature');
+    }
   }
 
   /** Resolve a stored file path, guarding against path traversal. */

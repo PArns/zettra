@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
-import { DocBlock, extractPlainText, RelationStatus } from '@zettra/shared';
+import { BlockVisibility, DocBlock, extractPlainText, RelationStatus } from '@zettra/shared';
 import { Block, BlockRelation } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { EmbeddingService } from '../embedding/embedding.service';
@@ -37,7 +37,7 @@ export class GraphService {
   /** Live semantic "Related" sidebar (§8.4 layer 2). Embeds on the fly; never stored. */
   async related(ctx: RequestContext, blockId: string): Promise<RelatedResult[]> {
     const block = await this.blocks.findOne({ where: { id: blockId, tenantId: ctx.tenantId } });
-    if (!block || !ctx.visibleSpaceIds.includes(block.spaceId)) throw new NotFoundException();
+    if (!block || !this.visible(ctx, block)) throw new NotFoundException();
     const text = extractPlainText(toDoc(block.content));
     if (!text) return [];
     const vector = await this.embeddings.embedText(text);
@@ -66,7 +66,7 @@ export class GraphService {
         spaceId: In(ctx.visibleSpaceIds),
       },
     });
-    const byId = new Map(sources.map((s) => [s.id, s]));
+    const byId = new Map(sources.filter((s) => this.visible(ctx, s)).map((s) => [s.id, s]));
     return edges
       .filter((e) => byId.has(e.sourceId))
       .map((e) => ({
@@ -75,6 +75,12 @@ export class GraphService {
         status: e.status,
         confidence: e.confidence,
       }));
+  }
+
+  /** App-level visibility check for secondary reads (§8.8). */
+  private visible(ctx: RequestContext, block: Block): boolean {
+    if (!ctx.visibleSpaceIds.includes(block.spaceId)) return false;
+    return block.visibility !== BlockVisibility.Private || block.ownerUserId === ctx.userId;
   }
 
   /**
@@ -124,11 +130,10 @@ export class GraphService {
     });
     if (suggested.length === 0) return [];
     const ids = new Set(suggested.flatMap((r) => [r.sourceId, r.targetId]));
-    const visible = await this.blocks.find({
+    const candidates = await this.blocks.find({
       where: { id: In([...ids]), spaceId: In(ctx.visibleSpaceIds) },
-      select: { id: true },
     });
-    const visibleIds = new Set(visible.map((b) => b.id));
+    const visibleIds = new Set(candidates.filter((b) => this.visible(ctx, b)).map((b) => b.id));
     return suggested.filter((r) => visibleIds.has(r.sourceId) && visibleIds.has(r.targetId));
   }
 }

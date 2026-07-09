@@ -25,6 +25,15 @@ describe('compileView', () => {
     expect(c.params.visibleSpaceIds).toEqual(['s1', 's2']);
   });
 
+  it('enforces block-level visibility (private → owner only, §8.8)', () => {
+    const def: ViewDefinition = { tagId: null, filters: [], sorts: [], groupBy: null };
+    const c = compileView(def, new Map(), { ...ctx, actingUserId: 'u1' });
+    expect(c.wheres).toContain(
+      '(block."visibility" = \'space\' OR block."ownerUserId" = :actingUserId)',
+    );
+    expect(c.params.actingUserId).toBe('u1');
+  });
+
   it('adds a tag-scope EXISTS clause when tagId is set', () => {
     const def: ViewDefinition = { tagId: 'tag-task', filters: [], sorts: [], groupBy: null };
     const c = compileView(def, new Map(), ctx);

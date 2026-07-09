@@ -13,6 +13,37 @@ export interface AppConfig {
   uploadDir: string;
   /** Whether this process runs the in-process BullMQ workers (§8) alongside the API. */
   runWorkers: boolean;
+  /** IMAP capture source (§8.3). Poller stays idle unless `host` is set. */
+  imap: ImapConfig | null;
+}
+
+export interface ImapConfig {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  password: string;
+  pollIntervalMs: number;
+  /** Which tenant/space/owner captured emails land in (per-mailbox mapping for v1). */
+  tenantId: string;
+  spaceId: string;
+  ownerUserId: string;
+}
+
+function loadImapConfig(): ImapConfig | null {
+  const host = process.env.IMAP_HOST;
+  if (!host) return null;
+  return {
+    host,
+    port: Number(process.env.IMAP_PORT ?? 993),
+    secure: (process.env.IMAP_TLS ?? 'true') !== 'false',
+    user: process.env.IMAP_USER ?? '',
+    password: process.env.IMAP_PASSWORD ?? '',
+    pollIntervalMs: Number(process.env.IMAP_POLL_INTERVAL_MS ?? 60_000),
+    tenantId: process.env.IMAP_TENANT_ID ?? '',
+    spaceId: process.env.IMAP_SPACE_ID ?? '',
+    ownerUserId: process.env.IMAP_OWNER_USER_ID ?? '',
+  };
 }
 
 function required(name: string, fallback?: string): string {
@@ -40,6 +71,7 @@ export function loadConfig(): AppConfig {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     uploadDir: process.env.UPLOAD_DIR ?? '/data/uploads',
     runWorkers: (process.env.RUN_WORKERS ?? 'true') !== 'false',
+    imap: loadImapConfig(),
   };
 }
 

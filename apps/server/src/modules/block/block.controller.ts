@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { IsOptional, IsUUID } from 'class-validator';
-import { BlockDto } from '@zettra/shared';
+import { BlockDto, BlockVisibility } from '@zettra/shared';
 import { BlockService } from './block.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
@@ -51,6 +51,16 @@ export class BlockController {
     @Body() body: UpdateContentBody,
   ): Promise<BlockDto> {
     const block = await this.blocks.updateContent(ctx, id, body.content);
+    return this.toDto(block, await this.blocks.tagIdsFor(id));
+  }
+
+  @Put(':id/visibility')
+  async setVisibility(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+    @Body() body: { visibility: BlockVisibility },
+  ): Promise<BlockDto> {
+    const block = await this.blocks.setVisibility(ctx, id, body.visibility);
     return this.toDto(block, await this.blocks.tagIdsFor(id));
   }
 

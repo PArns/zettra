@@ -6,6 +6,7 @@ import { InitialSchema1700000000000 } from './migrations/1700000000000-InitialSc
 import { Vector1700000000001 } from './migrations/1700000000001-Vector';
 import { Rls1700000000002 } from './migrations/1700000000002-Rls';
 import { Search1700000000003 } from './migrations/1700000000003-Search';
+import { BlockVisibility1700000000004 } from './migrations/1700000000004-BlockVisibility';
 
 const config = loadConfig();
 
@@ -23,6 +24,7 @@ export const dataSourceOptions: DataSourceOptions = {
     Vector1700000000001,
     Rls1700000000002,
     Search1700000000003,
+    BlockVisibility1700000000004,
   ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],

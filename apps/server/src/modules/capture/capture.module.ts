@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Block, Space, Tag } from '../../entities/index';
 import { CaptureService } from './capture.service';
 import { CaptureController } from './capture.controller';
+import { ImapPollerService } from './imap-poller.service';
 import { LinkingModule } from '../linking/linking.module';
 import { TagModule } from '../tag/tag.module';
 import { FieldModule } from '../field/field.module';
@@ -20,7 +21,7 @@ import { AuthModule } from '../auth/auth.module';
     BlockModule,
     AuthModule,
   ],
-  providers: [CaptureService],
+  providers: [CaptureService, ImapPollerService],
   controllers: [CaptureController],
   exports: [CaptureService],
 })

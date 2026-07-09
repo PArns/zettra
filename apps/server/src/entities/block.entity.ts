@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { BlockSource } from '@zettra/shared';
+import { BlockSource, BlockVisibility } from '@zettra/shared';
 
 /**
  * Block — the universal primitive (§5, §6.1). A page, task, email, person, meeting: all are
@@ -48,6 +48,10 @@ export class Block {
 
   @Column({ type: 'enum', enum: BlockSource, default: BlockSource.Manual })
   source!: BlockSource;
+
+  /** Block-level visibility override (§8.8, §11). `private` restricts to the owner. */
+  @Column({ type: 'text', default: BlockVisibility.Space })
+  visibility!: BlockVisibility;
 
   /** External identity for capture idempotency (unique per tenantId + sourceRef). */
   @Column({ type: 'text', nullable: true })

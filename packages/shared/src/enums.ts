@@ -99,3 +99,12 @@ export enum AiProviderKind {
   Local = 'local',
   Remote = 'remote',
 }
+
+/**
+ * Block-level visibility override (§8.8, §11). `space` follows the space's membership roles;
+ * `private` restricts the block to its owner regardless of space membership.
+ */
+export enum BlockVisibility {
+  Space = 'space',
+  Private = 'private',
+}

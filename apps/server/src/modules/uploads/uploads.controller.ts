@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -68,9 +69,12 @@ export class UploadsController {
   async serve(
     @Param('tenantId') tenantId: string,
     @Param('name') name: string,
+    @Query('sig') sig: string | undefined,
     @Res() res: FastifyReply,
   ): Promise<void> {
-    const full = await this.uploads.resolve(`${tenantId}/${basename(name)}`);
+    const key = `${tenantId}/${basename(name)}`;
+    this.uploads.verify(key, sig); // Reject tampered/unsigned URLs (§8.3).
+    const full = await this.uploads.resolve(key);
     res.header('cache-control', 'private, max-age=86400');
     res.send(createReadStream(full));
   }

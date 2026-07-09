@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { CreateBlockDto, BlockSource } from '@zettra/shared';
+import { Repository } from 'typeorm';
+import { CreateBlockDto, BlockSource, BlockVisibility } from '@zettra/shared';
 import { Block, BlockTag } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { QUEUE, QueueService } from '../jobs/queue.service';
@@ -48,24 +48,40 @@ export class BlockService {
     return block;
   }
 
-  /** Fetch a block, enforcing tenant + space visibility (§15.2). */
+  /** Fetch a block, enforcing tenant + space + block-level visibility (§15.2, §8.8). */
   async get(ctx: RequestContext, id: string): Promise<Block> {
     const block = await this.blocks.findOne({ where: { id, tenantId: ctx.tenantId } });
-    if (!block) throw new NotFoundException('Block not found');
-    if (!ctx.visibleSpaceIds.includes(block.spaceId)) {
+    if (!block || !this.canRead(ctx, block)) {
       // Do not distinguish "forbidden" from "not found" to avoid leaking existence (§15.2).
       throw new NotFoundException('Block not found');
     }
     return block;
   }
 
-  /** List blocks in a space the user can see. */
+  /** Whether the acting user may read a block (space membership + private override). */
+  private canRead(ctx: RequestContext, block: Block): boolean {
+    if (!ctx.visibleSpaceIds.includes(block.spaceId)) return false;
+    if (block.visibility === BlockVisibility.Private && block.ownerUserId !== ctx.userId) {
+      return false;
+    }
+    return true;
+  }
+
+  /** List blocks in a space the user can see, honouring private overrides (§8.8). */
   async listInSpace(ctx: RequestContext, spaceId: string): Promise<Block[]> {
     if (!ctx.visibleSpaceIds.includes(spaceId)) return [];
-    return this.blocks.find({
-      where: { tenantId: ctx.tenantId, spaceId },
-      order: { position: 'ASC' },
-    });
+    return this.blocks
+      .createQueryBuilder('block')
+      .where('block."tenantId" = :tenantId AND block."spaceId" = :spaceId', {
+        tenantId: ctx.tenantId,
+        spaceId,
+      })
+      .andWhere('(block."visibility" = :space OR block."ownerUserId" = :uid)', {
+        space: BlockVisibility.Space,
+        uid: ctx.userId,
+      })
+      .orderBy('block.position', 'ASC')
+      .getMany();
   }
 
   async tagIdsFor(blockId: string): Promise<string[]> {
@@ -88,11 +104,37 @@ export class BlockService {
   /** Blocks visible to the context, restricted to those in `ids`. Used by traversals (§15.2). */
   async filterVisible(ctx: RequestContext, ids: string[]): Promise<string[]> {
     if (ids.length === 0) return [];
-    const rows = await this.blocks.find({
-      where: { tenantId: ctx.tenantId, id: In(ids), spaceId: In(ctx.visibleSpaceIds) },
-      select: { id: true },
-    });
+    const rows = await this.blocks
+      .createQueryBuilder('block')
+      .select('block.id', 'id')
+      .where(
+        'block."tenantId" = :tenantId AND block.id IN (:...ids) AND block."spaceId" IN (:...spaceIds)',
+        {
+          tenantId: ctx.tenantId,
+          ids,
+          spaceIds: ctx.visibleSpaceIds,
+        },
+      )
+      .andWhere('(block."visibility" = :space OR block."ownerUserId" = :uid)', {
+        space: BlockVisibility.Space,
+        uid: ctx.userId,
+      })
+      .getRawMany<{ id: string }>();
     return rows.map((r) => r.id);
+  }
+
+  /** Set a block's visibility override (§8.8). Only the owner may make it private. */
+  async setVisibility(
+    ctx: RequestContext,
+    id: string,
+    visibility: BlockVisibility,
+  ): Promise<Block> {
+    const block = await this.get(ctx, id);
+    if (visibility === BlockVisibility.Private && block.ownerUserId !== ctx.userId) {
+      throw new ForbiddenException('Only the owner can make a block private');
+    }
+    block.visibility = visibility;
+    return this.blocks.save(block);
   }
 
   private enqueueEmbed(tenantId: string, blockId: string): Promise<void> {

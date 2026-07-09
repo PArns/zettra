@@ -58,11 +58,12 @@ export class SearchService {
       FROM block_embedding be
       JOIN block b ON b.id = be."blockId"
       WHERE b."tenantId" = $1 AND b."spaceId" = ANY($3)
+        AND (b."visibility" = 'space' OR b."ownerUserId" = $4)
       GROUP BY be."blockId"
       ORDER BY MIN(be."embedding" <=> $2::vector) ASC
       LIMIT 50
       `,
-      [ctx.tenantId, literal, ctx.visibleSpaceIds],
+      [ctx.tenantId, literal, ctx.visibleSpaceIds, ctx.userId],
     );
     return rows.map((r) => r.blockId);
   }
@@ -74,11 +75,12 @@ export class SearchService {
       SELECT b.id AS id
       FROM block b
       WHERE b."tenantId" = $1 AND b."spaceId" = ANY($3)
+        AND (b."visibility" = 'space' OR b."ownerUserId" = $4)
         AND b."search_tsv" @@ websearch_to_tsquery('simple', $2)
       ORDER BY ts_rank(b."search_tsv", websearch_to_tsquery('simple', $2)) DESC
       LIMIT 50
       `,
-      [ctx.tenantId, query, ctx.visibleSpaceIds],
+      [ctx.tenantId, query, ctx.visibleSpaceIds, ctx.userId],
     );
     return rows.map((r) => r.id);
   }

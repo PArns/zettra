@@ -38,6 +38,7 @@ export class SimilarityService {
       JOIN block b ON b.id = be."blockId"
       WHERE b."tenantId" = $2
         AND b."spaceId" = ANY($6)               -- §15.2 permission scoping
+        AND (b."visibility" = 'space' OR b."ownerUserId" = $7)  -- §8.8/§11 block-level
         AND be."blockId" <> $3
         AND be."blockId" NOT IN (
           SELECT "targetId" FROM block_relation WHERE "sourceId" = $3 AND status <> 'dismissed'
@@ -49,7 +50,7 @@ export class SimilarityService {
       ORDER BY distance ASC
       LIMIT $5
       `,
-      [vectorLiteral, ctx.tenantId, blockId, maxDistance, limit, ctx.visibleSpaceIds],
+      [vectorLiteral, ctx.tenantId, blockId, maxDistance, limit, ctx.visibleSpaceIds, ctx.userId],
     );
 
     return rows.map((r) => ({ blockId: r.blockId, distance: Number(r.distance) }));

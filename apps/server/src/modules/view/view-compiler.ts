@@ -36,6 +36,8 @@ export interface CompiledQuery {
 export interface CompileContext {
   tenantId: string;
   visibleSpaceIds: string[];
+  /** The acting user; private blocks are visible only to their owner (§8.8, §11). */
+  actingUserId?: string | null;
 }
 
 /** Map a field type to the physical `field_value` column that holds it (invariant 2). */
@@ -81,6 +83,10 @@ export function compileView(
   // An empty visible-space set yields `= ANY('{}')` which matches nothing — correct: a user
   // with no memberships sees nothing (fail-closed, §15.2).
   wheres.push(`${BLOCK}."spaceId" = ANY(:visibleSpaceIds)`);
+
+  // Block-level visibility override (§8.8, §11): private blocks only for their owner.
+  params.actingUserId = ctx.actingUserId ?? null;
+  wheres.push(`(${BLOCK}."visibility" = 'space' OR ${BLOCK}."ownerUserId" = :actingUserId)`);
 
   // --- Tag scope (§8.2) ---
   if (def.tagId) {
