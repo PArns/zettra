@@ -125,7 +125,9 @@ services:
     ports:
       - '${WEB_PORT:-8080}:80'
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost/']
+      # 127.0.0.1, not localhost: inside the container localhost resolves to IPv6 ::1 first, but
+      # nginx listens on IPv4 only (`listen 80;`), so `localhost` gives a false "unhealthy".
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1/']
       interval: 15s
       timeout: 5s
       retries: 10
