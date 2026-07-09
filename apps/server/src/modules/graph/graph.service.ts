@@ -126,19 +126,41 @@ export class GraphService {
       });
   }
 
-  /** The suggested-link review queue (§8.5). Only edges touching a visible space. */
-  async reviewQueue(ctx: RequestContext): Promise<BlockRelation[]> {
+  /**
+   * The suggested-link review queue (§8.5), enriched with block titles so the UI never shows
+   * raw ids. Only edges whose both endpoints are visible to the acting user (§15.2).
+   */
+  async reviewQueue(ctx: RequestContext): Promise<ReviewEdge[]> {
     const suggested = await this.relations.find({
       where: { tenantId: ctx.tenantId, status: RelationStatus.Suggested },
     });
     if (suggested.length === 0) return [];
     const ids = new Set(suggested.flatMap((r) => [r.sourceId, r.targetId]));
     const candidates = await this.blocks.find({
-      where: { id: In([...ids]), spaceId: In(ctx.visibleSpaceIds) },
+      where: { tenantId: ctx.tenantId, id: In([...ids]), spaceId: In(ctx.visibleSpaceIds) },
     });
-    const visibleIds = new Set(candidates.filter((b) => this.visible(ctx, b)).map((b) => b.id));
-    return suggested.filter((r) => visibleIds.has(r.sourceId) && visibleIds.has(r.targetId));
+    const byId = new Map(candidates.filter((b) => this.visible(ctx, b)).map((b) => [b.id, b]));
+    const title = (id: string): string => {
+      const b = byId.get(id);
+      const text = b ? extractPlainText(toDoc(b.content)).trim() : '';
+      return text ? text.slice(0, 70) : 'Untitled';
+    };
+    return suggested
+      .filter((r) => byId.has(r.sourceId) && byId.has(r.targetId))
+      .map((r) => ({
+        id: r.id,
+        source: { id: r.sourceId, title: title(r.sourceId) },
+        target: { id: r.targetId, title: title(r.targetId) },
+        confidence: r.confidence,
+      }));
   }
+}
+
+export interface ReviewEdge {
+  id: string;
+  source: { id: string; title: string };
+  target: { id: string; title: string };
+  confidence: number | null;
 }
 
 function preview(block: Block | undefined): string {

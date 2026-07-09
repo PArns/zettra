@@ -2,9 +2,8 @@ import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
-import { BacklinkResult, GraphService, RelatedResult } from './graph.service';
+import { BacklinkResult, GraphService, RelatedResult, ReviewEdge } from './graph.service';
 import { ApprovalService } from '../approval/approval.service';
-import { BlockRelation } from '../../entities/index';
 
 @Controller()
 @UseGuards(AuthGuard)
@@ -25,7 +24,7 @@ export class GraphController {
   }
 
   @Get('review')
-  review(@Ctx() ctx: RequestContext): Promise<BlockRelation[]> {
+  review(@Ctx() ctx: RequestContext): Promise<ReviewEdge[]> {
     return this.graph.reviewQueue(ctx);
   }
 

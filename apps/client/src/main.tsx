@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
+import { ToastProvider } from './components/Toast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { initTheme } from './lib/theme';
 import './styles.css';
 
@@ -11,6 +13,10 @@ if (!root) throw new Error('Missing #root');
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );

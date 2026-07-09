@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { api, type ReviewEdge } from '../lib/api';
+import { useToast } from './Toast';
 
 /**
  * The suggested-link review queue (§8.5). Confirm/dismiss feed the dismiss-rate-per-bucket
- * calibration signal (§11).
+ * calibration signal (§11). Shows note titles (not ids) and disables buttons while acting.
  */
 export function ReviewQueue({ onChange }: { onChange: () => void }) {
   const [edges, setEdges] = useState<ReviewEdge[] | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const toast = useToast();
 
   const load = () =>
     api
@@ -18,10 +21,18 @@ export function ReviewQueue({ onChange }: { onChange: () => void }) {
   }, []);
 
   async function act(id: string, confirm: boolean) {
-    if (confirm) await api.confirmReview(id);
-    else await api.dismissReview(id);
-    await load();
-    onChange();
+    if (busy) return;
+    setBusy(id);
+    try {
+      if (confirm) await api.confirmReview(id);
+      else await api.dismissReview(id);
+      await load();
+      onChange();
+    } catch (err) {
+      toast.error(`Could not update: ${(err as Error).message}`);
+    } finally {
+      setBusy(null);
+    }
   }
 
   if (!edges)
@@ -44,25 +55,33 @@ export function ReviewQueue({ onChange }: { onChange: () => void }) {
     <div className="inbox-list">
       {edges.map((e) => (
         <div key={e.id} className="card">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text-muted)' }}>
-              {e.sourceId.slice(0, 8)} → {e.targetId.slice(0, 8)}
-            </div>
-            <span className="badge">
-              <span className="dot" />
-              {e.confidence !== null ? `${(e.confidence * 100).toFixed(0)}%` : 'n/a'}
-            </span>
+          <div className="review-pair">
+            <span className="review-node">{e.source.title}</span>
+            <span className="review-arrow">→</span>
+            <span className="review-node">{e.target.title}</span>
           </div>
-          <div className="row" style={{ marginTop: 10, justifyContent: 'flex-end' }}>
-            <button className="ghost" onClick={() => act(e.id, false)}>
-              Dismiss
-            </button>
-            <button className="primary" onClick={() => act(e.id, true)}>
-              Confirm
-            </button>
+          <div className="row" style={{ marginTop: 12, justifyContent: 'space-between' }}>
+            <span className="badge" title="How confident the model is this is a real relation">
+              <span className="dot" />
+              {e.confidence !== null ? confidenceLabel(e.confidence) : 'unrated'}
+            </span>
+            <div className="row">
+              <button className="ghost" disabled={busy === e.id} onClick={() => act(e.id, false)}>
+                Dismiss
+              </button>
+              <button className="primary" disabled={busy === e.id} onClick={() => act(e.id, true)}>
+                {busy === e.id ? '…' : 'Confirm'}
+              </button>
+            </div>
           </div>
         </div>
       ))}
     </div>
   );
+}
+
+function confidenceLabel(c: number): string {
+  if (c >= 0.85) return 'Strong match';
+  if (c >= 0.6) return 'Likely match';
+  return 'Possible match';
 }

@@ -1,4 +1,5 @@
 import type { Space, Tag, View } from '../lib/api';
+import { clickable } from '../lib/a11y';
 
 export type Nav =
   { kind: 'inbox' } | { kind: 'review' } | { kind: 'view'; id: string; name: string };
@@ -38,14 +39,14 @@ export function Sidebar(props: {
         <div className="nav-section">
           <div
             className={`nav-item ${isActive({ kind: 'inbox' }) ? 'active' : ''}`}
-            onClick={() => props.onNav({ kind: 'inbox' })}
+            {...clickable(() => props.onNav({ kind: 'inbox' }))}
           >
             <span className="emoji">📥</span> Briefkasten
             {props.inboxCount > 0 && <span className="count">{props.inboxCount}</span>}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'review' }) ? 'active' : ''}`}
-            onClick={() => props.onNav({ kind: 'review' })}
+            {...clickable(() => props.onNav({ kind: 'review' }))}
           >
             <span className="emoji">✨</span> Review queue
             {props.reviewCount > 0 && <span className="count">{props.reviewCount}</span>}
@@ -62,7 +63,7 @@ export function Sidebar(props: {
                 <div
                   key={v.id}
                   className={`nav-item ${isActive({ kind: 'view', id: v.id, name: v.name }) ? 'active' : ''}`}
-                  onClick={() => props.onNav({ kind: 'view', id: v.id, name: v.name })}
+                  {...clickable(() => props.onNav({ kind: 'view', id: v.id, name: v.name }))}
                 >
                   <span className="emoji">{tag?.icon ?? '#'}</span> {v.name}
                 </div>
@@ -78,7 +79,7 @@ export function Sidebar(props: {
         <div className="nav-section">
           <div className="label">Spaces</div>
           {props.spaces.map((s) => (
-            <div key={s.id} className="nav-item">
+            <div key={s.id} className="nav-item static" title={s.name}>
               <span className="emoji">{s.aiPolicy === 'local_only' ? '🔒' : '#'}</span> {s.name}
             </div>
           ))}
@@ -94,7 +95,7 @@ export function Sidebar(props: {
             {props.email}
           </div>
         </div>
-        <button className="icon" title="Sign out" onClick={props.onSignOut}>
+        <button className="icon" title="Sign out" aria-label="Sign out" onClick={props.onSignOut}>
           ⏻
         </button>
       </div>

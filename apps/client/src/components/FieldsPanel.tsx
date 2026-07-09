@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, type EffectiveField } from '../lib/api';
+import { useToast } from './Toast';
 
 /**
  * Editable structured fields for the open block (§8.1, §11). Edits write to `field_value` via
@@ -10,6 +11,7 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
   const [fields, setFields] = useState<EffectiveField[]>([]);
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [visibility, setVisibility] = useState<'space' | 'private'>('space');
+  const toast = useToast();
 
   useEffect(() => {
     let live = true;
@@ -30,14 +32,25 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
   }, [blockId]);
 
   async function save(field: EffectiveField, value: unknown) {
+    const previous = values[field.id];
     setValues((prev) => ({ ...prev, [field.id]: value }));
-    await api.setField(blockId, field.id, value).catch(() => undefined);
+    try {
+      await api.setField(blockId, field.id, value);
+    } catch {
+      setValues((prev) => ({ ...prev, [field.id]: previous })); // revert optimistic update
+      toast.error(`Could not save "${field.name}"`);
+    }
   }
 
   async function toggleVisibility() {
     const next = visibility === 'private' ? 'space' : 'private';
     setVisibility(next);
-    await api.setVisibility(blockId, next).catch(() => setVisibility(visibility));
+    try {
+      await api.setVisibility(blockId, next);
+    } catch {
+      setVisibility(visibility);
+      toast.error('Could not change visibility');
+    }
   }
 
   return (
@@ -60,8 +73,13 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
       )}
       {fields.map((f) => (
         <div key={f.id} className="field" style={{ marginBottom: 10 }}>
-          <label>{f.name}</label>
-          <FieldInput field={f} value={values[f.id]} onChange={(v) => save(f, v)} />
+          <label htmlFor={`fld-${f.id}`}>{f.name}</label>
+          <FieldInput
+            id={`fld-${f.id}`}
+            field={f}
+            value={values[f.id]}
+            onChange={(v) => save(f, v)}
+          />
         </div>
       ))}
     </>
@@ -69,10 +87,12 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
 }
 
 function FieldInput({
+  id,
   field,
   value,
   onChange,
 }: {
+  id: string;
   field: EffectiveField;
   value: unknown;
   onChange: (v: unknown) => void;
@@ -82,6 +102,7 @@ function FieldInput({
     case 'checkbox':
       return (
         <input
+          id={id}
           type="checkbox"
           style={{ width: 'auto' }}
           checked={Boolean(value)}
@@ -91,6 +112,7 @@ function FieldInput({
     case 'number':
       return (
         <input
+          id={id}
           type="number"
           defaultValue={value != null ? String(value) : ''}
           onBlur={(e) => onChange(e.target.value)}
@@ -99,6 +121,7 @@ function FieldInput({
     case 'date':
       return (
         <input
+          id={id}
           type="date"
           defaultValue={value ? String(value).slice(0, 10) : ''}
           onChange={(e) => onChange(e.target.value)}
@@ -107,6 +130,7 @@ function FieldInput({
     case 'select':
       return (
         <select
+          id={id}
           value={value != null ? String(value) : ''}
           onChange={(e) => onChange(e.target.value)}
         >
@@ -121,6 +145,7 @@ function FieldInput({
     default:
       return (
         <input
+          id={id}
           defaultValue={value != null ? String(value) : ''}
           onBlur={(e) => onChange(e.target.value)}
         />

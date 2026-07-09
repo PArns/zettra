@@ -56,13 +56,18 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
 
         {mode === 'register' ? (
           <div className="field">
-            <label>Workspace name</label>
-            <input value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
+            <label htmlFor="auth-tenant-name">Workspace name</label>
+            <input
+              id="auth-tenant-name"
+              value={tenantName}
+              onChange={(e) => setTenantName(e.target.value)}
+            />
           </div>
         ) : (
           <div className="field">
-            <label>Workspace ID</label>
+            <label htmlFor="auth-tenant-id">Workspace ID</label>
             <input
+              id="auth-tenant-id"
               value={tenantId}
               onChange={(e) => setTenantId(e.target.value)}
               placeholder="uuid"
@@ -70,8 +75,9 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
           </div>
         )}
         <div className="field">
-          <label>Email</label>
+          <label htmlFor="auth-email">Email</label>
           <input
+            id="auth-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -79,8 +85,9 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
           />
         </div>
         <div className="field">
-          <label>Password</label>
+          <label htmlFor="auth-password">Password</label>
           <input
+            id="auth-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

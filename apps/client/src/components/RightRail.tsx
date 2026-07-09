@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
 import { api, type BacklinkResult, type RelatedResult } from '../lib/api';
 import { blockTitle } from '../lib/blocks';
+import { clickable } from '../lib/a11y';
 import { FieldsPanel } from './FieldsPanel';
+
+function matchLabel(distance: number): string {
+  const score = 1 - distance;
+  if (score >= 0.85) return 'Strong match';
+  if (score >= 0.6) return 'Related';
+  return 'Loosely related';
+}
 
 /**
  * Contextual right rail for the open block: live "Related" (soft connections, §8.4) and
@@ -43,16 +51,16 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
           key={r.blockId}
           className="card clickable"
           style={{ marginBottom: 8 }}
-          onClick={() => onOpen(r.blockId)}
+          {...clickable(() => onOpen(r.blockId))}
         >
           <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{r.preview || 'Untitled'}</div>
           <div
             className="meta"
             style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center' }}
           >
-            <span className="badge">
+            <span className="badge" title={`cosine distance ${r.distance.toFixed(3)}`}>
               <span className="dot" />
-              {(1 - r.distance).toFixed(2)} match
+              {matchLabel(r.distance)}
             </span>
           </div>
         </div>
@@ -68,7 +76,7 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
           key={b.block.id}
           className="card clickable"
           style={{ marginBottom: 8 }}
-          onClick={() => onOpen(b.block.id)}
+          {...clickable(() => onOpen(b.block.id))}
         >
           <div style={{ fontWeight: 600, fontSize: 13 }}>{blockTitle(b.block)}</div>
           <div className="meta" style={{ marginTop: 4 }}>

@@ -11,6 +11,7 @@ import { RightRail } from './components/RightRail';
 import { NotificationsBell } from './components/NotificationsBell';
 import { ApplyTagMenu } from './components/ApplyTagMenu';
 import { SearchBox } from './components/SearchBox';
+import { useToast } from './components/Toast';
 import { Editor } from './editor/Editor';
 
 export function App() {
@@ -25,6 +26,9 @@ export function App() {
   const [nav, setNav] = useState<Nav>({ kind: 'inbox' });
   const [selected, setSelected] = useState<string | null>(null);
   const [theme, setTheme] = useState(currentTheme());
+  const [capturing, setCapturing] = useState(false);
+  const [railRefresh, setRailRefresh] = useState(0);
+  const toast = useToast();
 
   const refresh = useCallback(async () => {
     try {
@@ -66,11 +70,22 @@ export function App() {
   }, [authed]);
 
   async function capture() {
+    if (capturing) return;
     const spaceId = spaces[0]?.id ?? me?.spaces[0];
-    if (!spaceId) return;
-    const block = await api.createBlock({ spaceId });
-    setInbox((prev) => [block, ...prev]);
-    setSelected(block.id);
+    if (!spaceId) {
+      toast.error('No space available to capture into.');
+      return;
+    }
+    setCapturing(true);
+    try {
+      const block = await api.createBlock({ spaceId });
+      setInbox((prev) => [block, ...prev]);
+      setSelected(block.id);
+    } catch (err) {
+      toast.error(`Capture failed: ${(err as Error).message}`);
+    } finally {
+      setCapturing(false);
+    }
   }
 
   function signOut() {
@@ -111,19 +126,31 @@ export function App() {
       <div className="main">
         <div className="topbar">
           {selected && (
-            <button className="icon" title="Back" onClick={() => setSelected(null)}>
+            <button
+              className="icon"
+              title="Back"
+              aria-label="Back"
+              onClick={() => setSelected(null)}
+            >
               ←
             </button>
           )}
           <div className="crumb">{crumb}</div>
           <div className="spacer" />
           <SearchBox onOpen={(id) => setSelected(id)} />
-          {selected && <ApplyTagMenu blockId={selected} />}
-          <button className="ghost" onClick={capture}>
-            ✎ Capture
+          {selected && (
+            <ApplyTagMenu blockId={selected} onApplied={() => setRailRefresh((n) => n + 1)} />
+          )}
+          <button className="ghost" onClick={capture} disabled={capturing}>
+            {capturing ? 'Capturing…' : '✎ Capture'}
           </button>
           <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
-          <button className="icon" title="Toggle theme" onClick={() => setTheme(toggleTheme())}>
+          <button
+            className="icon"
+            title="Toggle theme"
+            aria-label="Toggle light/dark theme"
+            onClick={() => setTheme(toggleTheme())}
+          >
             {theme === 'dark' ? '☀' : '☾'}
           </button>
         </div>
@@ -132,10 +159,14 @@ export function App() {
           <div className="content">
             <div className="pane">
               <div className="pane-narrow">
-                <Editor blockId={selected} />
+                <Editor blockId={selected} userName={email || 'You'} />
               </div>
             </div>
-            <RightRail blockId={selected} onOpen={(id) => setSelected(id)} />
+            <RightRail
+              key={`${selected}:${railRefresh}`}
+              blockId={selected}
+              onOpen={(id) => setSelected(id)}
+            />
           </div>
         ) : (
           <div className="content no-rail">

@@ -69,8 +69,8 @@ export interface BacklinkResult {
 }
 export interface ReviewEdge {
   id: string;
-  sourceId: string;
-  targetId: string;
+  source: { id: string; title: string };
+  target: { id: string; title: string };
   confidence: number | null;
 }
 export interface EntityHit {

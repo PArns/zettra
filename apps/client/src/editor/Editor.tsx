@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { BlockNoteView } from '@blocknote/mantine';
@@ -9,7 +9,10 @@ import {
 } from '@blocknote/react';
 import '@blocknote/mantine/style.css';
 import { api, getToken } from '../lib/api';
+import { useToast } from '../components/Toast';
 import { schema } from './inline';
+
+type SyncState = 'connecting' | 'synced' | 'offline';
 
 /**
  * Collaborative BlockNote editor for one block (§8.6, §13.1). Wires:
@@ -18,7 +21,10 @@ import { schema } from './inline';
  * - `#` tag, `@` person, `[` reference suggestion menus with fuzzy search + create-if-not-
  *   exists against the entity API (§8.6). The Yjs doc stays the source of truth (invariant 7).
  */
-export function Editor({ blockId }: { blockId: string }) {
+export function Editor({ blockId, userName = 'You' }: { blockId: string; userName?: string }) {
+  const toast = useToast();
+  const [sync, setSync] = useState<SyncState>('connecting');
+
   const provider = useMemo(
     () =>
       new HocuspocusProvider({
@@ -29,16 +35,38 @@ export function Editor({ blockId }: { blockId: string }) {
       }),
     [blockId],
   );
-  useEffect(() => () => provider.destroy(), [provider]);
+
+  useEffect(() => {
+    const onStatus = (e: { status: string }) => {
+      if (e.status === 'connected') setSync('synced');
+      else if (e.status === 'disconnected') setSync('offline');
+      else setSync('connecting');
+    };
+    const onSynced = () => setSync('synced');
+    provider.on('status', onStatus);
+    provider.on('synced', onSynced);
+    return () => {
+      provider.off('status', onStatus);
+      provider.off('synced', onSynced);
+      provider.destroy();
+    };
+  }, [provider]);
 
   const editor = useCreateBlockNote(
     {
       schema,
-      uploadFile: async (file: File) => api.upload(file),
+      uploadFile: async (file: File) => {
+        try {
+          return await api.upload(file);
+        } catch {
+          toast.error('Upload failed');
+          throw new Error('upload failed');
+        }
+      },
       collaboration: {
         provider,
         fragment: provider.document.getXmlFragment('document'),
-        user: { name: 'You', color: '#6d5efc' },
+        user: { name: userName, color: '#6d5efc' },
       },
     },
     [provider],
@@ -72,13 +100,23 @@ export function Editor({ blockId }: { blockId: string }) {
   };
 
   return (
-    <div className="editor-host">
-      <BlockNoteView editor={editor} theme={currentTheme()}>
-        {/* # → tag, @ → person reference, [ → general reference (§8.6). */}
-        <SuggestionMenuController triggerCharacter="#" getItems={referenceItems('tag')} />
-        <SuggestionMenuController triggerCharacter="@" getItems={referenceItems('reference')} />
-        <SuggestionMenuController triggerCharacter="[" getItems={referenceItems('reference')} />
-      </BlockNoteView>
+    <div>
+      <div className="editor-status">
+        <span className={`sync-dot ${sync}`} />
+        {sync === 'synced'
+          ? 'Synced'
+          : sync === 'offline'
+            ? 'Offline — changes saved locally'
+            : 'Connecting…'}
+      </div>
+      <div className="editor-host">
+        <BlockNoteView editor={editor} theme={currentTheme()}>
+          {/* # → tag, @ → person reference, [ → general reference (§8.6). */}
+          <SuggestionMenuController triggerCharacter="#" getItems={referenceItems('tag')} />
+          <SuggestionMenuController triggerCharacter="@" getItems={referenceItems('reference')} />
+          <SuggestionMenuController triggerCharacter="[" getItems={referenceItems('reference')} />
+        </BlockNoteView>
+      </div>
     </div>
   );
 }
