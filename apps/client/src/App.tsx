@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { BlockDto } from '@zettra/shared';
 import { api, getToken, setToken, type Space, type Tag, type View } from './lib/api';
+import { clearSessions } from './lib/session';
 import { IconButton } from './ui';
 import { setMode } from './lib/theme';
 import { setAccent } from './lib/accent';
@@ -28,6 +29,8 @@ import { Editor } from './editor/Editor';
 
 export function App() {
   const [authed, setAuthed] = useState(!!getToken());
+  // Adding another workspace: shows the auth screen again while keeping current sessions.
+  const [addingWorkspace, setAddingWorkspace] = useState(false);
   const [me, setMe] = useState<{
     tenantId: string;
     spaces: string[];
@@ -123,7 +126,7 @@ export function App() {
   }
 
   function signOut() {
-    setToken(null);
+    clearSessions();
     setImpersonatorToken(null);
     setAuthed(false);
     setSelected(null);
@@ -147,6 +150,8 @@ export function App() {
   }
 
   if (!authed) return <Auth onAuthed={() => setAuthed(true)} />;
+  // Adding a workspace reuses the auth screen; on success reload so data re-inits under the new one.
+  if (addingWorkspace) return <Auth onAuthed={() => window.location.reload()} />;
 
   async function reparentTag(tagId: string, parentId: string | null) {
     try {
@@ -194,6 +199,7 @@ export function App() {
         onCapture={capture}
         email={email || 'you'}
         onSignOut={signOut}
+        onAddWorkspace={() => setAddingWorkspace(true)}
       />
 
       <div className="main">

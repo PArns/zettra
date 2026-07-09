@@ -1,4 +1,4 @@
-import type { AuthTokenDto, BlockDto } from '@zettra/shared';
+import type { AuthTokenDto, BlockDto, LoginResultDto } from '@zettra/shared';
 
 /** Typed API client. Same-origin `/api` (dev proxy / prod nginx). JWT in localStorage (§2). */
 const TOKEN_KEY = 'zettra.token';
@@ -151,8 +151,8 @@ export interface Notification {
 export const api = {
   register: (i: { tenantName: string; email: string; password: string }) =>
     request<AuthTokenDto>('/auth/register', { method: 'POST', body: JSON.stringify(i) }),
-  login: (i: { tenantId: string; email: string; password: string }) =>
-    request<AuthTokenDto>('/auth/login', { method: 'POST', body: JSON.stringify(i) }),
+  login: (i: { email: string; password: string }) =>
+    request<LoginResultDto>('/auth/login', { method: 'POST', body: JSON.stringify(i) }),
   me: () =>
     request<{
       userId: string;

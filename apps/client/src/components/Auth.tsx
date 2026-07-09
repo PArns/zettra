@@ -1,9 +1,15 @@
 import { useState } from 'react';
-import { api, setToken } from '../lib/api';
+import type { WorkspaceSessionDto } from '@zettra/shared';
+import { api } from '../lib/api';
+import { activate, workspaceAccent, workspaceInitial } from '../lib/session';
 import { useT } from '../i18n';
 import { Button, Field, Input, ThemeSwitcher } from '../ui';
 
-/** Register/login gate (§2). Registration provisions a whole seeded tenant (§8.2). */
+/**
+ * Register/login gate (§2). Registration provisions a whole seeded tenant (§8.2). Login is
+ * email-first: no workspace UUID — the server returns every workspace the credentials unlock,
+ * and if there is more than one we show a picker.
+ */
 export function Auth({ onAuthed }: { onAuthed: () => void }) {
   const t = useT();
   const HIGHLIGHTS = [
@@ -14,23 +20,37 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
   ];
   const [mode, setMode] = useState<'register' | 'login'>('register');
   const [tenantName, setTenantName] = useState('My Second Brain');
-  const [tenantId, setTenantId] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // When a login unlocks more than one workspace, offer a picker instead of auto-entering one.
+  const [picker, setPicker] = useState<WorkspaceSessionDto[] | null>(null);
+
+  function choose(s: WorkspaceSessionDto): void {
+    activate({
+      tenantId: s.tenantId,
+      tenantName: s.tenantName,
+      accessToken: s.accessToken,
+      email: s.user.email,
+    });
+    onAuthed();
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setBusy(true);
     try {
-      const res =
-        mode === 'register'
-          ? await api.register({ tenantName, email, password })
-          : await api.login({ tenantId, email, password });
-      setToken(res.accessToken);
-      onAuthed();
+      if (mode === 'register') {
+        const res = await api.register({ tenantName, email, password });
+        activate({ tenantId: res.user.tenantId, tenantName, accessToken: res.accessToken, email });
+        onAuthed();
+        return;
+      }
+      const { sessions } = await api.login({ email, password });
+      if (sessions.length === 1) choose(sessions[0]);
+      else setPicker(sessions);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -90,7 +110,34 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
         <div className="absolute right-5 top-5">
           <ThemeSwitcher />
         </div>
-        <form onSubmit={submit} className="w-full max-w-sm">
+        {picker ? (
+          <div className="w-full max-w-sm">
+            <h2 className="text-2xl font-bold tracking-tight text-text">Choose a workspace</h2>
+            <p className="mb-6 mt-1 text-sm text-muted">{email}</p>
+            <div className="flex flex-col gap-2">
+              {picker.map((s) => (
+                <button
+                  key={s.tenantId}
+                  type="button"
+                  onClick={() => choose(s)}
+                  className="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-2.5 text-left transition-colors hover:border-accent"
+                >
+                  <span
+                    className="grid h-8 w-8 flex-none place-items-center rounded-lg text-sm font-bold text-white"
+                    style={{ background: workspaceAccent(s.tenantId) }}
+                  >
+                    {workspaceInitial(s.tenantName)}
+                  </span>
+                  <span className="font-semibold text-text">{s.tenantName}</span>
+                </button>
+              ))}
+            </div>
+            <Button variant="ghost" block className="mt-4" onClick={() => setPicker(null)}>
+              ← Back
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="w-full max-w-sm">
           <div className="mb-1 flex items-center gap-2 lg:hidden">
             <span
               className="grid h-8 w-8 place-items-center rounded-lg font-extrabold text-white"
@@ -140,20 +187,16 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
             </button>
           </div>
 
-          {mode === 'register' ? (
+          {mode === 'register' && (
             <Field label={t('auth.workspaceName')} htmlFor="auth-tenant-name">
-              {(id) => (
-                <Input id={id} value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
-              )}
-            </Field>
-          ) : (
-            <Field label={t('auth.workspaceId')} htmlFor="auth-tenant-id">
               {(id) => (
                 <Input
                   id={id}
-                  value={tenantId}
-                  onChange={(e) => setTenantId(e.target.value)}
-                  placeholder="uuid"
+                  value={tenantName}
+                  onChange={(e) => setTenantName(e.target.value)}
+                  autoComplete="off"
+                  data-1p-ignore
+                  data-lpignore="true"
                 />
               )}
             </Field>
@@ -166,6 +209,7 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
+                autoComplete="email"
               />
             )}
           </Field>
@@ -177,6 +221,7 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('auth.passwordHint')}
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
               />
             )}
           </Field>
@@ -195,7 +240,8 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
           )}
 
           <p className="mt-6 text-center text-xs text-faint">{t('auth.agree')}</p>
-        </form>
+          </form>
+        )}
       </main>
     </div>
   );

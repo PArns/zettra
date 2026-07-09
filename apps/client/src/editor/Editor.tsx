@@ -42,13 +42,19 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
   const theme = useResolvedTheme();
 
   const provider = useMemo(
-    () =>
-      new HocuspocusProvider({
-        url: `${location.origin.replace(/^http/, 'ws')}/collab`,
+    () => {
+      // Same-origin `/collab` in prod (nginx). In dev, VITE_COLLAB_URL can point straight at the
+      // backend origin (e.g. ws://localhost:5050) so the Hocuspocus WS bypasses the vite dev proxy.
+      // Vite inlines import.meta.env; cast avoids needing the vite/client ambient types here.
+      const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
+      const base = env?.VITE_COLLAB_URL || location.origin.replace(/^http/, 'ws');
+      return new HocuspocusProvider({
+        url: `${base}/collab`,
         name: blockId,
         token: getToken() ?? '',
         document: new Y.Doc(),
-      }),
+      });
+    },
     [blockId],
   );
 

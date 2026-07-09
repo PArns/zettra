@@ -152,6 +152,111 @@ body {
       0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent);
   }
 
+  /* Workspace switcher (left, top of sidebar) */
+  .ws-switch {
+    position: relative;
+    padding: 12px 12px 8px;
+  }
+  .ws-current {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 8px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: left;
+    transition:
+      background 0.12s ease,
+      border-color 0.12s ease;
+  }
+  .ws-current:hover {
+    background: var(--surface-2);
+    border-color: var(--border);
+  }
+  .ws-ico {
+    width: 26px;
+    height: 26px;
+    flex: none;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+  }
+  .ws-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ws-caret {
+    color: var(--text-faint);
+    font-size: 11px;
+    flex: none;
+  }
+  .ws-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+  }
+  .ws-menu {
+    position: absolute;
+    z-index: 201;
+    top: 46px;
+    left: 12px;
+    right: 12px;
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ws-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+  }
+  .ws-item:hover {
+    background: var(--accent-soft);
+  }
+  .ws-item.on {
+    background: var(--surface-2);
+  }
+  .ws-check {
+    color: var(--accent);
+    font-weight: 700;
+    flex: none;
+  }
+  .ws-ico-add {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    border: 1px dashed var(--border-strong);
+  }
+  .ws-add .ws-name {
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
   /* Create-new + search row */
   .side-actions {
     display: flex;

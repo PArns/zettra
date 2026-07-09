@@ -178,6 +178,7 @@ export function ShellPreview() {
         onCapture={() => undefined}
         email="patrick@zettra.app"
         onSignOut={() => undefined}
+        onAddWorkspace={() => undefined}
       />
 
       <div className="main">

@@ -2,6 +2,7 @@ import type { Space, Tag, View } from '../lib/api';
 import { clickable } from '../lib/a11y';
 import { useT } from '../i18n';
 import { TagTree } from './TagTree';
+import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 
 export type Nav =
   | { kind: 'today' }
@@ -26,6 +27,7 @@ export function Sidebar(props: {
   onCapture: () => void;
   email: string;
   onSignOut: () => void;
+  onAddWorkspace: () => void;
 }) {
   const { tags, views, nav } = props;
   const t = useT();
@@ -37,9 +39,7 @@ export function Sidebar(props: {
 
   return (
     <aside className="sidebar">
-      <div className="brand">
-        <span className="logo">Z</span> Zettra
-      </div>
+      <WorkspaceSwitcher onAddWorkspace={props.onAddWorkspace} />
 
       <div className="side-actions">
         <button className="primary side-new" onClick={props.onCapture}>
