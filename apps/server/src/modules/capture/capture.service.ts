@@ -141,8 +141,11 @@ export class CaptureService {
    * pending reminders via the shared `reconcile()`; a date that clashes with a day already booked
    * is marked so the owner sees the potential conflict. Only the owner's own reminders are
    * consulted (no cross-user read), so this stays permission-safe in the background job.
+   *
+   * Public so the embed worker can run it over OCR-extracted text too (a deadline photographed in
+   * a scanned letter also reminds); idempotency keeps the two passes from double-booking a date.
    */
-  private async detectDeadlines(block: Block, text: string): Promise<void> {
+  async detectDeadlines(block: Block, text: string): Promise<void> {
     const refIso = block.createdAt.toISOString().slice(0, 10);
     const dates = extractDueDates(text, refIso).filter((d) => d.iso >= refIso);
     const candidates = dates.slice(0, 5);

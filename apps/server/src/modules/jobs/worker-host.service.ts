@@ -80,6 +80,11 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
     const text = mergeSearchText(base, ocrTexts);
     // Maintain the full-text column for hybrid search (§11); the tsvector is generated.
     await this.blocks.update({ id: blockId }, { searchText: text });
+    // A deadline photographed in a scanned letter should remind too: run detection over the OCR
+    // text (idempotent, so it never double-books a date the capture pass already found).
+    if (ocrTexts.length) {
+      await this.capture.detectDeadlines(block, ocrTexts.join('\n')).catch(() => undefined);
+    }
     const chunks = chunkText(text);
     const vectors: number[][] = [];
     for (const chunk of chunks) {
@@ -94,7 +99,7 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
   /**
    * OCR text for every stored raster image referenced by the block, scoped to the block's tenant
    * (an image URL from another tenant's directory is refused by the path guard). Empty when OCR is
-   * disabled. SPEC-GAP: feed this text into deadline detection so a "Termin" in a scan reminds.
+   * disabled. The caller also runs deadline detection over this text so a "Termin" in a scan reminds.
    */
   private async ocrTextsFor(tenantId: string, block: Block): Promise<string[]> {
     if (!this.ocr.enabled) return [];
