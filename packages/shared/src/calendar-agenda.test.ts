@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { findConflicts, groupByDay, reconcile, type AgendaItem } from './calendar-agenda';
+import {
+  findConflicts,
+  groupByDay,
+  nearestFreeDay,
+  reconcile,
+  type AgendaItem,
+} from './calendar-agenda';
 
 function item(date: string, over: Partial<AgendaItem> = {}): AgendaItem {
   return { blockId: 'b', title: 't', date, kind: 'field', ...over };
@@ -51,5 +57,26 @@ describe('reconcile', () => {
 
   it('treats an empty agenda as all-free', () => {
     expect(reconcile([], ['2026-07-10']).free).toEqual(['2026-07-10']);
+  });
+});
+
+describe('nearestFreeDay', () => {
+  it('returns the target when it is already free', () => {
+    expect(nearestFreeDay([item('2026-07-10')], '2026-07-12')).toBe('2026-07-12');
+  });
+
+  it('steps forward past consecutive booked days', () => {
+    const busy = [item('2026-07-12'), item('2026-07-13')];
+    expect(nearestFreeDay(busy, '2026-07-12')).toBe('2026-07-14');
+  });
+
+  it('crosses a month boundary', () => {
+    const busy = [item('2026-07-31'), item('2026-08-01')];
+    expect(nearestFreeDay(busy, '2026-07-31')).toBe('2026-08-02');
+  });
+
+  it('returns null when the whole window is booked', () => {
+    const busy = Array.from({ length: 4 }, (_, i) => item(`2026-07-${10 + i}`));
+    expect(nearestFreeDay(busy, '2026-07-10', 3)).toBeNull();
   });
 });

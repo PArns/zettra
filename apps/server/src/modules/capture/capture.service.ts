@@ -9,6 +9,7 @@ import {
   DocBlock,
   extractDueDates,
   extractPlainText,
+  nearestFreeDay,
   reconcile,
 } from '@zettra/shared';
 import { Block, Reminder, Space, Tag } from '../../entities/index';
@@ -177,7 +178,9 @@ export class CaptureService {
       const remindAt = new Date(`${d.iso}T09:00:00Z`);
       const exists = await this.reminders.findOne({ where: { blockId: block.id, remindAt } });
       if (exists) continue;
-      const note = clashing.has(d.iso) ? `⚠ ${d.match.slice(0, 78)}` : d.match.slice(0, 80);
+      const note = clashing.has(d.iso)
+        ? conflictNote(d.match, nearestFreeDay(agenda, d.iso))
+        : d.match.slice(0, 80);
       await this.reminders.save(
         this.reminders.create({
           tenantId: block.tenantId,
@@ -190,6 +193,12 @@ export class CaptureService {
       );
     }
   }
+}
+
+/** A conflict reminder note: the matched phrase, flagged, with the nearest free day if one exists. */
+function conflictNote(match: string, freeDay: string | null): string {
+  const suffix = freeDay ? ` → free: ${freeDay}` : '';
+  return `⚠ ${match.slice(0, 78 - suffix.length)}${suffix}`;
 }
 
 const TAG_PROPOSAL_SCHEMA = {

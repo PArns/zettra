@@ -7,6 +7,8 @@
  * `Date.now()`), so the reconciliation heart is unit-testable.
  */
 
+import { addDaysIso } from './date-extract';
+
 export type AgendaKind = 'reminder' | 'field';
 
 export interface AgendaItem {
@@ -84,4 +86,23 @@ export function reconcile(existing: AgendaItem[], proposed: string[]): Reconcili
     (busy.has(date) ? clashes : free).push(date);
   }
   return { clashes, free };
+}
+
+/**
+ * The nearest open day at or after `targetIso` (§ mail↔calendar "find a free slot"). If the target
+ * day is itself free it is returned unchanged; otherwise the search steps forward one day at a time
+ * up to `maxSearch` days. Returns null when every day in the window is booked. Deterministic —
+ * UTC date math against the caller's ISO input.
+ */
+export function nearestFreeDay(
+  existing: AgendaItem[],
+  targetIso: string,
+  maxSearch = 14,
+): string | null {
+  const busy = new Set(existing.map((i) => i.date));
+  for (let offset = 0; offset <= maxSearch; offset++) {
+    const day = addDaysIso(targetIso, offset);
+    if (!busy.has(day)) return day;
+  }
+  return null;
 }
