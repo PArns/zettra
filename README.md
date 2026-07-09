@@ -109,6 +109,13 @@ You still need Postgres (pgvector), Redis and Ollama reachable per `.env`.
 - **Signed uploads** — HMAC-signed, tamper-proof served file URLs.
 - **Structured field editing** — an editable field panel that writes `field_value` and
   reflects in table/board/calendar views.
+- **Dropbox capture** — a drag-and-drop zone in the Briefkasten: dropped audio/images/files
+  land as `source: upload` blocks and text/URLs as captures, both running the auto-tag pipeline.
+- **"For Review" bucket** — captures the AI can't confidently tag are flagged (`block.needsReview`)
+  and surfaced in a triage pane; applying a supertag or marking reviewed resolves them.
+- **Tag folder hierarchy** — `tag.parentId` gives an organizational folder tree (distinct from
+  `extendsId` inheritance), rendered as a collapsible, drag-to-reparent sidebar tree with
+  server-side cycle rejection.
 
 ### Design system & UI
 
