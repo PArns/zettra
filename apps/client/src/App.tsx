@@ -31,6 +31,8 @@ export function App() {
   const [authed, setAuthed] = useState(!!getToken());
   // Adding another workspace: shows the auth screen again while keeping current sessions.
   const [addingWorkspace, setAddingWorkspace] = useState(false);
+  // Live title of the open note (its first line), for the topbar crumb.
+  const [noteTitle, setNoteTitle] = useState('');
   const [me, setMe] = useState<{
     tenantId: string;
     spaces: string[];
@@ -164,7 +166,7 @@ export function App() {
 
   const crumb =
     selected != null
-      ? t('top.note')
+      ? noteTitle || t('top.note')
       : nav.kind === 'today'
         ? t('nav.today')
         : nav.kind === 'calendar'
@@ -261,7 +263,11 @@ export function App() {
           <div className="content">
             <div className="pane">
               <div className="pane-narrow">
-                <Editor blockId={selected} userName={email || 'You'} />
+                <Editor
+                  blockId={selected}
+                  userName={email || 'You'}
+                  onTitle={setNoteTitle}
+                />
               </div>
             </div>
             <RightRail

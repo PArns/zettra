@@ -16,6 +16,20 @@ import { useToast } from '../components/Toast';
 import { resolvedTheme } from '../lib/theme';
 import { schema } from './inline';
 
+/** The note's title: the first non-empty line of the document, trimmed to 80 chars. */
+function firstLineTitle(editor: { document: Array<{ content?: unknown }> }): string {
+  for (const block of editor.document) {
+    const c = block.content;
+    if (!Array.isArray(c)) continue;
+    const text = c
+      .map((n) => (n && typeof n === 'object' && 'text' in n ? String((n as { text?: string }).text ?? '') : ''))
+      .join('')
+      .trim();
+    if (text) return text.length > 80 ? `${text.slice(0, 80)}…` : text;
+  }
+  return '';
+}
+
 /** Track the resolved light/dark theme so the editor re-themes when the switcher changes it. */
 function useResolvedTheme(): 'light' | 'dark' {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => resolvedTheme());
@@ -36,7 +50,16 @@ type SyncState = 'connecting' | 'synced' | 'offline';
  * - `#` tag, `@` person, `[` reference suggestion menus with fuzzy search + create-if-not-
  *   exists against the entity API (§8.6). The Yjs doc stays the source of truth (invariant 7).
  */
-export function Editor({ blockId, userName = 'You' }: { blockId: string; userName?: string }) {
+export function Editor({
+  blockId,
+  userName = 'You',
+  onTitle,
+}: {
+  blockId: string;
+  userName?: string;
+  /** Reports the note's first non-empty line so the shell can title the note live. */
+  onTitle?: (title: string) => void;
+}) {
   const toast = useToast();
   const [sync, setSync] = useState<SyncState>('connecting');
   const theme = useResolvedTheme();
@@ -93,6 +116,15 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
     },
     [provider],
   );
+
+  // Report the initial title once content has loaded from the collab doc.
+  useEffect(() => {
+    const report = () => onTitle?.(firstLineTitle(editor));
+    report();
+    const t = setTimeout(report, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor]);
 
   const referenceItems = (kind: 'reference' | 'tag', tagName?: string) => {
     return async (query: string): Promise<DefaultReactSuggestionItem[]> => {
@@ -210,7 +242,12 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
             : 'Connecting…'}
       </div>
       <div className="editor-host">
-        <BlockNoteView editor={editor} theme={theme} slashMenu={false}>
+        <BlockNoteView
+          editor={editor}
+          theme={theme}
+          slashMenu={false}
+          onChange={() => onTitle?.(firstLineTitle(editor))}
+        >
           {/* / → block insert menu (defaults + custom blocks). */}
           <SuggestionMenuController triggerCharacter="/" getItems={slashItems} />
           {/* # → tag, @ → person reference, [ → general reference (§8.6). */}
