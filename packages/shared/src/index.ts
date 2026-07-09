@@ -18,3 +18,4 @@ export * from './space-template';
 export * from './calendar';
 export * from './calendar-agenda';
 export * from './date-extract';
+export * from './ocr';

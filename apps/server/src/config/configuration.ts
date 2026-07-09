@@ -13,6 +13,10 @@ export interface AppConfig {
   uploadDir: string;
   /** Whether this process runs the in-process BullMQ workers (§8) alongside the API. */
   runWorkers: boolean;
+  /** Run OCR on uploaded raster images so their text feeds search + deadline detection (§5/§6). */
+  ocrEnabled: boolean;
+  /** OCR recognition languages, tesseract codes joined by `+` (e.g. `eng+deu`). */
+  ocrLanguages: string;
   /** IMAP capture source (§8.3). Poller stays idle unless `host` is set. */
   imap: ImapConfig | null;
   /** Authentication provider wiring (§2). */
@@ -121,6 +125,8 @@ export function loadConfig(): AppConfig {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     uploadDir: process.env.UPLOAD_DIR ?? '/data/uploads',
     runWorkers: (process.env.RUN_WORKERS ?? 'true') !== 'false',
+    ocrEnabled: process.env.OCR_ENABLED === 'true',
+    ocrLanguages: process.env.OCR_LANGUAGES ?? 'eng+deu',
     imap: loadImapConfig(),
     auth: loadAuthConfig(),
   };

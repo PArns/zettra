@@ -7,6 +7,8 @@ import { TagModule } from '../tag/tag.module';
 import { FieldModule } from '../field/field.module';
 import { CaptureModule } from '../capture/capture.module';
 import { CurationModule } from '../curation/curation.module';
+import { OcrModule } from '../ocr/ocr.module';
+import { UploadsModule } from '../uploads/uploads.module';
 
 /**
  * In-process BullMQ workers (§8). Separate from the producer-side JobsModule so a deployment
@@ -20,6 +22,8 @@ import { CurationModule } from '../curation/curation.module';
     FieldModule,
     CaptureModule,
     CurationModule,
+    OcrModule,
+    UploadsModule,
   ],
   providers: [WorkerHost],
 })

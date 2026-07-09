@@ -3,7 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job, Worker } from 'bullmq';
 import IORedis, { Redis } from 'ioredis';
-import { chunkText, DocBlock, extractPlainText } from '@zettra/shared';
+import {
+  chunkText,
+  DocBlock,
+  extractImageUrls,
+  extractPlainText,
+  mergeSearchText,
+} from '@zettra/shared';
 import { loadConfig } from '../../config/configuration';
 import { Block, BlockTag } from '../../entities/index';
 import { QUEUE, QueueName } from './queue.service';
@@ -12,6 +18,8 @@ import { TagService } from '../tag/tag.service';
 import { FieldValueService } from '../field/field-value.service';
 import { CaptureService } from '../capture/capture.service';
 import { CurationService } from '../curation/curation.service';
+import { OcrService } from '../ocr/ocr.service';
+import { UploadsService } from '../uploads/uploads.service';
 
 /**
  * In-process BullMQ workers (§8). Runs the queues the producers enqueue: embed, capture,
@@ -32,6 +40,8 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
     private readonly fieldValues: FieldValueService,
     private readonly capture: CaptureService,
     private readonly curation: CurationService,
+    private readonly ocr: OcrService,
+    private readonly uploads: UploadsService,
   ) {
     this.connection = new IORedis(loadConfig().redisUrl, { maxRetriesPerRequest: null });
   }
@@ -63,7 +73,11 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
     const { tenantId, blockId } = job.data as { tenantId: string; blockId: string };
     const block = await this.blocks.findOne({ where: { id: blockId, tenantId } });
     if (!block) return;
-    const text = extractPlainText(toDoc(block.content));
+    const base = extractPlainText(toDoc(block.content));
+    // OCR pass (§5/§6): fold any recognized image text into the block's search text so scanned
+    // documents / screenshots become findable. No-op unless OCR_ENABLED and tesseract.js present.
+    const ocrTexts = await this.ocrTextsFor(tenantId, block);
+    const text = mergeSearchText(base, ocrTexts);
     // Maintain the full-text column for hybrid search (§11); the tsvector is generated.
     await this.blocks.update({ id: blockId }, { searchText: text });
     const chunks = chunkText(text);
@@ -75,6 +89,30 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
     if (vectors.length) await this.embeddings.replaceForBlock(tenantId, blockId, vectors);
     // Kick curation once the block is embedded (§8.4 cascade).
     await this.curation.curateBlock(tenantId, blockId).catch(() => undefined);
+  }
+
+  /**
+   * OCR text for every stored raster image referenced by the block, scoped to the block's tenant
+   * (an image URL from another tenant's directory is refused by the path guard). Empty when OCR is
+   * disabled. SPEC-GAP: feed this text into deadline detection so a "Termin" in a scan reminds.
+   */
+  private async ocrTextsFor(tenantId: string, block: Block): Promise<string[]> {
+    if (!this.ocr.enabled) return [];
+    const urls = extractImageUrls(toDoc(block.content));
+    const texts: string[] = [];
+    for (const url of urls) {
+      const key = fileKeyFromUrl(url);
+      // Only OCR images that live in this tenant's own upload directory (defense-in-depth).
+      if (!key || !key.startsWith(`${tenantId}/`)) continue;
+      try {
+        const path = await this.uploads.resolve(key);
+        const recognized = await this.ocr.recognize(path);
+        if (recognized) texts.push(recognized);
+      } catch {
+        // Missing/altered file → skip; OCR must never fail the embed job.
+      }
+    }
+    return texts;
   }
 
   private async onBackfill(job: Job): Promise<void> {
@@ -127,4 +165,16 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
 
 function toDoc(content: unknown): DocBlock[] {
   return Array.isArray(content) ? (content as DocBlock[]) : [];
+}
+
+/** Extract the `<tenantId>/<name>` storage key from a served file URL (`…/files/<key>?sig=…`). */
+function fileKeyFromUrl(url: string): string | null {
+  const marker = '/files/';
+  const at = url.indexOf(marker);
+  if (at < 0) return null;
+  const rest = url
+    .slice(at + marker.length)
+    .split('?')[0]
+    .split('#')[0];
+  return rest.includes('/') ? rest : null;
 }

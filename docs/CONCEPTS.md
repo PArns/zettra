@@ -82,23 +82,31 @@ pipeline, AiRouter JSON mode, For Review bucket. _New:_ the extraction step + re
 each row opening its block. A calm, single-column daily briefing.
 
 **AI & OCR.** Uploaded images run an **OCR pass** (a job step: local `tesseract.js`, or an Ollama
-vision model when GPU is available) → extracted text is stored on the block's `searchText` so it
-feeds hybrid search **and** the mail-style date extraction (§5). So a photographed letter with a
-due date lands in Today automatically.
+vision model when GPU is available) → extracted text is folded into the block's `searchText` so it
+feeds hybrid search. _Built:_ `OcrService` (flag `OCR_ENABLED`, langs `OCR_LANGUAGES`) wired into
+the embed worker; `tesseract.js` is an optional dependency the service loads lazily and degrades
+gracefully without. Pure extraction/cleanup (`shouldOcr`, `extractImageUrls`, `cleanOcrText`,
+`mergeSearchText`) is unit-tested in `@zettra/shared`. SPEC-GAP: feed OCR text into the mail-style
+date extraction (§5) so a photographed letter with a due date reminds automatically.
 
 **Data & jobs.** No new store — a union query across `reminder`, `field_value.valueDate`, recent
-blocks, all permission-scoped. _New:_ the Today nav surface + an OCR step in the embed/capture
-worker.
+blocks, all permission-scoped. _Built:_ the Today nav surface (folds in date-field items via the
+calendar agenda) + the OCR step in the embed worker.
 
 ---
 
 ## Suggested build order
 
-1. **DatePicker + calendar surface** (§3) — no AI, fully buildable/verifiable now; unblocks §4/§6.
-2. **Reminders** (§4) — table + repeatable job + notification; small, verifiable.
-3. **Today view** (§6, without OCR first) — union query + agenda UI.
-4. **AI chat + semantic answer** (§1/§2) — needs Ollama running to verify end-to-end.
-5. **Mail extraction + reconciliation** (§5) and **OCR** (§6) — the AI-heavy finale.
+1. **DatePicker + calendar surface** (§3) — _done_: DatePicker, calendar agenda endpoint + month
+   view, conflict highlighting.
+2. **Reminders** (§4) — _done_: table + due-scan job + notification.
+3. **Today view** (§6) — _done_: union agenda UI, now folding in today's date-field items.
+4. **AI chat + semantic answer** (§1/§2) — _done_ (retrieval + chat + "Ask AI" from search); needs
+   Ollama running to verify answers end-to-end.
+5. **Mail extraction + reconciliation** (§5) — _done_: deterministic date extraction →
+   reminders, reconciled against existing reminders (⚠ on clashes). **OCR** (§6) — _done_: flag-gated
+   embed-worker step. Remaining AI-heavy work: full mail parsing via structured `AiRouter` JSON and
+   feeding OCR text into date extraction.
 
 Cross-cutting: everything stays behind the `AiRouter` privacy gate (invariant 9/§14), every read
 stays permission-scoped (invariant 11), and AI output only ever _suggests_ (invariant 10).
