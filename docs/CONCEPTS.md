@@ -22,7 +22,7 @@ store id, render label).
 
 **Data & jobs.** No new index — reuse `block_embedding`. Add a small `chat_thread` / `chat_message`
 pair (tenant + space scoped) for history. Streaming via SSE from a new `/ai/chat` endpoint.
-*Already in place:* embeddings, similarity, AiRouter, privacy gate. *New:* chat endpoint + panel +
+_Already in place:_ embeddings, similarity, AiRouter, privacy gate. _New:_ chat endpoint + panel +
 thread tables.
 
 ## 2. AI semantic search
@@ -32,7 +32,7 @@ matched sentence highlighted. Enter = results; ⇧Enter = ask-AI answer.
 
 **AI.** Hybrid dense+FTS with RRF **already exists** (§11). Add a semantic-answer path (same RAG as
 §1, single-shot) and optional query expansion via the local LLM.
-*New:* the "answer" affordance on top of the current results.
+_New:_ the "answer" affordance on top of the current results.
 
 ## 3. Calendar & date component (tag a date)
 
@@ -42,7 +42,7 @@ fields and by an inline **`/date`** editor block so any note can carry a tagged 
 rows; promote it to a first-class nav item that unions all date fields across supertags.
 
 **Data & jobs.** The `date` field type + typed `valueDate` column **already exist** (indexed, so a
-calendar query is cheap). *New:* the DatePicker component, the `/date` block, and a calendar nav
+calendar query is cheap). _New:_ the DatePicker component, the `/date` block, and a calendar nav
 surface querying `field_value.valueDate` across the tenant (permission-scoped).
 
 ## 4. Reminders / Wiedervorlage on nodes
@@ -58,8 +58,8 @@ notification (the notification plumbing already exists). Idempotent + debounced 
 ## 5. Mail integration → auto due-dates & appointment reconciliation
 
 **Visual/UX.** The IMAP poller already captures mail into blocks (§8.3). Add an **extraction pass**:
-captured mail that mentions dates surfaces a suggestion card in **For Review** — *"Detected:
-appointment in ~2 weeks (Thu 24 Jul). Add reminder · Add to calendar · Check for conflicts"*.
+captured mail that mentions dates surfaces a suggestion card in **For Review** — _"Detected:
+appointment in ~2 weeks (Thu 24 Jul). Add reminder · Add to calendar · Check for conflicts"_.
 Important mail (sender/keywords) is flagged and its deadlines auto-detected.
 
 **AI.** On capture of a `source: email` block, run an `AiRouter` **structured-extraction** prompt
@@ -70,9 +70,10 @@ conflicts / propose free slots. Confident extractions auto-create a reminder (§
 For Review (invariant 10: suggest, never force).
 
 **Data & jobs.** Extends the existing `process-capture` worker with an extraction step; writes
-reminders (§4) and/or a `date` field on the block. *Already in place:* IMAP poller, capture
-pipeline, AiRouter JSON mode, For Review bucket. *New:* the extraction step + reconciliation query
-+ suggestion card.
+reminders (§4) and/or a `date` field on the block. _Already in place:_ IMAP poller, capture
+pipeline, AiRouter JSON mode, For Review bucket. _New:_ the extraction step + reconciliation query
+
+- suggestion card.
 
 ## 6. "Today" view — aggregated from all sources (incl. OCR)
 
@@ -86,7 +87,7 @@ feeds hybrid search **and** the mail-style date extraction (§5). So a photograp
 due date lands in Today automatically.
 
 **Data & jobs.** No new store — a union query across `reminder`, `field_value.valueDate`, recent
-blocks, all permission-scoped. *New:* the Today nav surface + an OCR step in the embed/capture
+blocks, all permission-scoped. _New:_ the Today nav surface + an OCR step in the embed/capture
 worker.
 
 ---
@@ -100,4 +101,4 @@ worker.
 5. **Mail extraction + reconciliation** (§5) and **OCR** (§6) — the AI-heavy finale.
 
 Cross-cutting: everything stays behind the `AiRouter` privacy gate (invariant 9/§14), every read
-stays permission-scoped (invariant 11), and AI output only ever *suggests* (invariant 10).
+stays permission-scoped (invariant 11), and AI output only ever _suggests_ (invariant 10).

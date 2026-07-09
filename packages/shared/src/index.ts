@@ -15,3 +15,4 @@ export * from './routing';
 export * from './policy';
 export * from './dto';
 export * from './space-template';
+export * from './calendar';

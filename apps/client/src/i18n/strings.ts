@@ -207,6 +207,12 @@ const en = {
   'admin.impersonating': 'Impersonating',
   'admin.exitImpersonation': 'Exit',
 
+  'date.today': 'Today',
+  'date.clear': 'Clear',
+  'date.prevMonth': 'Previous month',
+  'date.nextMonth': 'Next month',
+  'date.pick': 'Pick a date',
+
   'notif.title': 'Notifications',
   'notif.unread': 'unread',
   'notif.caughtUp': "You're all caught up.",
@@ -417,6 +423,12 @@ const de: Catalog = {
   'admin.impersonating': 'Angemeldet als',
   'admin.exitImpersonation': 'Beenden',
 
+  'date.today': 'Heute',
+  'date.clear': 'Löschen',
+  'date.prevMonth': 'Vorheriger Monat',
+  'date.nextMonth': 'Nächster Monat',
+  'date.pick': 'Datum wählen',
+
   'notif.title': 'Benachrichtigungen',
   'notif.unread': 'ungelesen',
   'notif.caughtUp': 'Du bist auf dem neuesten Stand.',
@@ -622,6 +634,12 @@ const es: Catalog = {
   'admin.open': 'Consola de admin',
   'admin.impersonating': 'Suplantando a',
   'admin.exitImpersonation': 'Salir',
+
+  'date.today': 'Hoy',
+  'date.clear': 'Borrar',
+  'date.prevMonth': 'Mes anterior',
+  'date.nextMonth': 'Mes siguiente',
+  'date.pick': 'Elegir fecha',
 
   'notif.title': 'Notificaciones',
   'notif.unread': 'sin leer',
@@ -829,6 +847,12 @@ const fr: Catalog = {
   'admin.open': 'Console admin',
   'admin.impersonating': 'Incarne',
   'admin.exitImpersonation': 'Quitter',
+
+  'date.today': 'Aujourd’hui',
+  'date.clear': 'Effacer',
+  'date.prevMonth': 'Mois précédent',
+  'date.nextMonth': 'Mois suivant',
+  'date.pick': 'Choisir une date',
 
   'notif.title': 'Notifications',
   'notif.unread': 'non lues',

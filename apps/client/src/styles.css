@@ -1638,4 +1638,71 @@ body {
     padding: 2px 10px;
     border-radius: 999px;
   }
+
+  /* ---------- Date picker (§3) ---------- */
+  .date-field {
+    position: relative;
+    width: 100%;
+  }
+  .dp-pop {
+    width: 264px;
+    padding: 8px;
+  }
+  .datepicker {
+    user-select: none;
+  }
+  .dp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .dp-title {
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: capitalize;
+  }
+  .dp-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .dp-wd {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding-bottom: 2px;
+  }
+  .dp-day {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .dp-day:hover {
+    background: var(--surface-2);
+  }
+  .dp-day.out {
+    color: var(--text-faint);
+  }
+  .dp-day.today {
+    border-color: var(--border-strong);
+  }
+  .dp-day.sel {
+    background: var(--accent);
+    color: #fff;
+    border-color: transparent;
+  }
+  .dp-foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
 }

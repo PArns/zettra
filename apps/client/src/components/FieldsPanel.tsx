@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api, type EffectiveField, type EntityOption, type Member, type Tag } from '../lib/api';
 import { useT } from '../i18n';
 import { clickable } from '../lib/a11y';
+import { DatePicker } from './DatePicker';
 import { useToast } from './Toast';
 
 /** Resolve a relation field's target supertag id from its config (id preferred, else by name). */
@@ -172,11 +173,10 @@ function FieldInput({
       );
     case 'date':
       return (
-        <input
+        <DateField
           id={id}
-          type="date"
-          defaultValue={value ? String(value).slice(0, 10) : ''}
-          onChange={(e) => onChange(e.target.value)}
+          value={value != null ? String(value).slice(0, 10) : ''}
+          onChange={onChange}
         />
       );
     case 'select':
@@ -358,6 +358,69 @@ function RefPicker({
             </div>
           ))}
           {filtered.length === 0 && <div className="m-item muted">{t('search.noMatches')}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** A date field: a trigger showing the chosen date that opens the reusable DatePicker popover. */
+function DateField({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const label = value
+    ? new Date(`${value}T00:00:00Z`).toLocaleDateString(document.documentElement.lang || 'en', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      })
+    : t('date.pick');
+
+  return (
+    <div className="menu date-field" ref={ref}>
+      <button
+        id={id}
+        type="button"
+        className="ref-picker-trigger"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className={value ? '' : 'placeholder'}>📅 {label}</span>
+      </button>
+      {open && (
+        <div className="menu-list dp-pop">
+          <DatePicker
+            value={value}
+            onChange={(iso) => {
+              onChange(iso);
+              setOpen(false);
+            }}
+          />
         </div>
       )}
     </div>
