@@ -2,7 +2,7 @@
  * HTTP DTOs — the wire contract between client and server. Kept framework-agnostic here;
  * the server re-declares validated versions (class-validator) that structurally match.
  */
-import { BlockSource, FieldType, MembershipRole, ViewLayout } from './enums';
+import { BlockSource, BlockVisibility, FieldType, MembershipRole, ViewLayout } from './enums';
 import { ViewFilter, ViewSort } from './views';
 
 export interface AuthCredentialsDto {
@@ -39,6 +39,7 @@ export interface BlockDto {
   content: unknown;
   source: BlockSource;
   sourceRef: string | null;
+  visibility: BlockVisibility;
   ownerUserId: string | null;
   createdBy: string | null;
   createdAt: string;

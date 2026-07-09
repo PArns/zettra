@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Allow, IsString } from 'class-validator';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
@@ -6,8 +7,9 @@ import { FieldValueService } from './field-value.service';
 import { FieldValue } from '../../entities/index';
 
 class SetFieldBody {
-  fieldId!: string;
-  value!: unknown;
+  @IsString() fieldId!: string;
+  // Arbitrary-typed value; @Allow keeps it past the whitelisting ValidationPipe.
+  @Allow() value!: unknown;
 }
 
 @Controller('blocks/:blockId/fields')

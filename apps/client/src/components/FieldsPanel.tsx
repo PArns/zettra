@@ -16,7 +16,7 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
     (async () => {
       const block = await api.block(blockId).catch(() => null);
       if (!block || !live) return;
-      setVisibility((block as { visibility?: 'space' | 'private' }).visibility ?? 'space');
+      setVisibility(block.visibility === 'private' ? 'private' : 'space');
       const perTag = await Promise.all(block.tagIds.map((t) => api.tagFields(t).catch(() => [])));
       const all = dedupe(perTag.flat());
       const vals = await api.fieldValues(blockId).catch(() => []);

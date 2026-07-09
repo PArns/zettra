@@ -1,11 +1,12 @@
 import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Allow, IsString } from 'class-validator';
 import { DocBlock } from '@zettra/shared';
 import { InternalGuard } from '../../common/internal.guard';
 import { MaterializeService } from './materialize.service';
 
 class MaterializeBody {
-  tenantId!: string;
-  doc!: DocBlock[];
+  @IsString() tenantId!: string;
+  @Allow() doc!: DocBlock[];
 }
 
 /**

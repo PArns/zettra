@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { IsOptional, IsUUID } from 'class-validator';
+import { Allow, IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { BlockDto, BlockVisibility } from '@zettra/shared';
 import { BlockService } from './block.service';
 import { AuthGuard } from '../auth/auth.guard';
@@ -10,11 +10,15 @@ import { Block } from '../../entities/index';
 class CreateBlockBody {
   @IsUUID() spaceId!: string;
   @IsOptional() @IsUUID() parentId?: string;
-  @IsOptional() content?: unknown;
+  @IsOptional() @Allow() content?: unknown;
 }
 
 class UpdateContentBody {
-  content!: unknown;
+  @Allow() content!: unknown;
+}
+
+class SetVisibilityBody {
+  @IsEnum(BlockVisibility) visibility!: BlockVisibility;
 }
 
 @Controller('blocks')
@@ -58,7 +62,7 @@ export class BlockController {
   async setVisibility(
     @Ctx() ctx: RequestContext,
     @Param('id') id: string,
-    @Body() body: { visibility: BlockVisibility },
+    @Body() body: SetVisibilityBody,
   ): Promise<BlockDto> {
     const block = await this.blocks.setVisibility(ctx, id, body.visibility);
     return this.toDto(block, await this.blocks.tagIdsFor(id));
@@ -74,6 +78,7 @@ export class BlockController {
       content: b.content,
       source: b.source,
       sourceRef: b.sourceRef,
+      visibility: b.visibility,
       ownerUserId: b.ownerUserId,
       createdBy: b.createdBy,
       createdAt: b.createdAt.toISOString(),
