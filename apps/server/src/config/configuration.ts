@@ -17,6 +17,10 @@ export interface AppConfig {
   ocrEnabled: boolean;
   /** OCR recognition languages, tesseract codes joined by `+` (e.g. `eng+deu`). */
   ocrLanguages: string;
+  /** OCR engine: local `tesseract` (default) or an Ollama `ollama` vision model. */
+  ocrBackend: 'tesseract' | 'ollama';
+  /** Ollama vision model used when `ocrBackend='ollama'` (e.g. `llama3.2-vision`, `llava`). */
+  ocrVisionModel: string;
   /** IMAP capture source (§8.3). Poller stays idle unless `host` is set. */
   imap: ImapConfig | null;
   /** Authentication provider wiring (§2). */
@@ -127,6 +131,8 @@ export function loadConfig(): AppConfig {
     runWorkers: (process.env.RUN_WORKERS ?? 'true') !== 'false',
     ocrEnabled: process.env.OCR_ENABLED === 'true',
     ocrLanguages: process.env.OCR_LANGUAGES ?? 'eng+deu',
+    ocrBackend: process.env.OCR_BACKEND === 'ollama' ? 'ollama' : 'tesseract',
+    ocrVisionModel: process.env.OCR_VISION_MODEL ?? 'llama3.2-vision',
     imap: loadImapConfig(),
     auth: loadAuthConfig(),
   };

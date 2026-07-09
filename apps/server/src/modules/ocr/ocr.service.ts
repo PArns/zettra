@@ -1,6 +1,8 @@
+import { readFile } from 'node:fs/promises';
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { cleanOcrText } from '@zettra/shared';
 import { loadConfig } from '../../config/configuration';
+import { imageDataUrl, OCR_VISION_PROMPT } from './ocr-vision';
 
 /** Minimal shape of the tesseract.js worker we rely on (kept local so the dep stays optional). */
 interface TesseractWorker {
@@ -15,10 +17,12 @@ type TesseractModule = {
  * OCR pass (§5/§6): recognize text in uploaded raster images so it feeds hybrid search and
  * deadline detection (a "Termin" written in a scanned letter becomes findable + reminder-able).
  *
- * tesseract.js is an OPTIONAL dependency loaded lazily only when `OCR_ENABLED=true`. If the flag
- * is off, or the package/language data is absent, the service degrades to returning no text rather
- * than failing the embed job — the seam is ready and an operator turns it on by installing
- * tesseract.js and setting the flag. SPEC-GAP: a vision-model backend (Ollama) as an alternative.
+ * Two backends, selected by `OCR_BACKEND` (default `tesseract`):
+ *  - `tesseract`: tesseract.js, an OPTIONAL dependency loaded lazily only when `OCR_ENABLED=true`.
+ *  - `ollama`: a vision model (`OCR_VISION_MODEL`) over Ollama's OpenAI-compatible endpoint —
+ *    better on handwriting/layout, no extra Node dependency.
+ * Either way the service degrades to returning no text (never failing the embed job) if the flag
+ * is off, the dependency/model is absent, or recognition errors.
  */
 @Injectable()
 export class OcrService implements OnModuleDestroy {
@@ -33,6 +37,7 @@ export class OcrService implements OnModuleDestroy {
   /** Recognize + normalize the text in an image file (path or data URL). Empty on any failure. */
   async recognize(imagePath: string): Promise<string> {
     if (!this.enabled) return '';
+    if (this.cfg.ocrBackend === 'ollama') return this.recognizeWithOllama(imagePath);
     const worker = await this.getWorker();
     if (!worker) return '';
     try {
@@ -40,6 +45,38 @@ export class OcrService implements OnModuleDestroy {
       return cleanOcrText(data.text ?? '');
     } catch (err) {
       this.logger.warn(`OCR failed for ${imagePath}: ${(err as Error).message}`);
+      return '';
+    }
+  }
+
+  /** Vision-model OCR via Ollama's OpenAI-compatible endpoint. Empty on any failure. */
+  private async recognizeWithOllama(imagePath: string): Promise<string> {
+    try {
+      const base64 = (await readFile(imagePath)).toString('base64');
+      const res = await fetch(`${this.cfg.ollamaUrl}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model: this.cfg.ocrVisionModel,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: OCR_VISION_PROMPT },
+                { type: 'image_url', image_url: { url: imageDataUrl(imagePath, base64) } },
+              ],
+            },
+          ],
+          keep_alive: '30m',
+        }),
+      });
+      if (!res.ok) throw new Error(`Ollama vision OCR failed: ${res.status}`);
+      const json = (await res.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+      };
+      return cleanOcrText(json.choices?.[0]?.message?.content ?? '');
+    } catch (err) {
+      this.logger.warn(`Ollama OCR failed for ${imagePath}: ${(err as Error).message}`);
       return '';
     }
   }
