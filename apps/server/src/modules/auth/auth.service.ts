@@ -50,13 +50,14 @@ export class AuthService {
     return this.tokenFor(user.id, tenantId, this.toDto(user, tenantId));
   }
 
-  /** Current user's identity + visible spaces (§2, §15.2). */
+  /** Current user's identity + visible spaces + role (§2, §15.2). */
   async me(ctx: RequestContext): Promise<{
     userId: string | null;
     tenantId: string;
     spaces: string[];
     email: string | null;
     displayName: string | null;
+    role: string;
   }> {
     const user = ctx.userId
       ? await this.users.findOne({ where: { id: ctx.userId, tenantId: ctx.tenantId } })
@@ -67,6 +68,7 @@ export class AuthService {
       spaces: ctx.visibleSpaceIds,
       email: user?.email ?? null,
       displayName: user?.displayName ?? null,
+      role: user?.role ?? 'member',
     };
   }
 

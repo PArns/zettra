@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { MembershipRole } from '@zettra/shared';
+import { MembershipRole, UserRole } from '@zettra/shared';
 import { Membership, Space, Tenant, User } from '../../entities/index';
 import { hashPassword } from '../../common/password';
 import { SeederService } from './seeder.service';
@@ -45,6 +45,8 @@ export class TenantService {
           tenantId: tenant.id,
           email: input.ownerEmail,
           displayName: input.ownerDisplayName ?? null,
+          // The tenant creator is the workspace admin (§2).
+          role: UserRole.Admin,
           passwordHash: await hashPassword(input.ownerPassword),
         }),
       );

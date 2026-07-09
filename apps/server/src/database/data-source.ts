@@ -12,6 +12,7 @@ import { NotificationActor1700000000006 } from './migrations/1700000000006-Notif
 import { HierarchyAndReview1700000000007 } from './migrations/1700000000007-HierarchyAndReview';
 import { UserSettings1700000000008 } from './migrations/1700000000008-UserSettings';
 import { TenantTier1700000000009 } from './migrations/1700000000009-TenantTier';
+import { UserRole1700000000010 } from './migrations/1700000000010-UserRole';
 
 const config = loadConfig();
 
@@ -35,6 +36,7 @@ export const dataSourceOptions: DataSourceOptions = {
     HierarchyAndReview1700000000007,
     UserSettings1700000000008,
     TenantTier1700000000009,
+    UserRole1700000000010,
   ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],

@@ -72,6 +72,14 @@ export interface Member {
   displayName: string | null;
   email: string;
 }
+/** A tenant user as seen in the admin console. */
+export interface AdminUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: string;
+  createdAt: string;
+}
 export interface ViewData {
   view: View;
   fields: EffectiveField[];
@@ -124,6 +132,7 @@ export const api = {
       spaces: string[];
       email: string | null;
       displayName: string | null;
+      role: string;
     }>('/auth/me'),
   getSettings: () => request<UserSettings>('/auth/me/settings'),
   saveSettings: (patch: UserSettings) =>
@@ -192,6 +201,20 @@ export const api = {
   tagEntities: (tagId: string) => request<EntityOption[]>(`/views/tag/${tagId}/entities`),
   /** Workspace members visible to the caller — the option list for a user field. */
   members: () => request<Member[]>('/members'),
+
+  // Admin console (§2) — admin-only endpoints.
+  adminUsers: () => request<AdminUser[]>('/admin/users'),
+  adminCreateUser: (i: { email: string; password: string; displayName?: string; role?: string }) =>
+    request<AdminUser>('/admin/users', { method: 'POST', body: JSON.stringify(i) }),
+  adminSetUserRole: (userId: string, role: string) =>
+    request(`/admin/users/${userId}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
+  adminDeleteUser: (userId: string) => request(`/admin/users/${userId}`, { method: 'DELETE' }),
+  adminImpersonate: (userId: string) =>
+    request<{ accessToken: string }>(`/admin/users/${userId}/impersonate`, { method: 'POST' }),
+  adminSpaces: () => request<Space[]>('/admin/spaces'),
+  adminCreateSpace: (name: string) =>
+    request<Space>('/admin/spaces', { method: 'POST', body: JSON.stringify({ name }) }),
+  adminDeleteSpace: (spaceId: string) => request(`/admin/spaces/${spaceId}`, { method: 'DELETE' }),
   setVisibility: (blockId: string, visibility: 'space' | 'private') =>
     request<BlockDto>(`/blocks/${blockId}/visibility`, {
       method: 'PUT',

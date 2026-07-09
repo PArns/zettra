@@ -7,6 +7,7 @@ import { setAccent } from './lib/accent';
 import { useI18n } from './i18n';
 import { Auth } from './components/Auth';
 import { SettingsDialog } from './components/SettingsDialog';
+import { AdminConsole } from './components/AdminConsole';
 import { SupertagDialog } from './components/SupertagDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
@@ -24,10 +25,18 @@ import { Editor } from './editor/Editor';
 
 export function App() {
   const [authed, setAuthed] = useState(!!getToken());
-  const [me, setMe] = useState<{ tenantId: string; spaces: string[] } | null>(null);
+  const [me, setMe] = useState<{
+    tenantId: string;
+    spaces: string[];
+    userId?: string | null;
+  } | null>(null);
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [role, setRole] = useState('member');
   const [showSettings, setShowSettings] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  // When set, we're impersonating another user; holds the admin's own token to restore.
+  const [impersonatorToken, setImpersonatorToken] = useState<string | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
   const [views, setViews] = useState<View[]>([]);
   const [spaces, setSpaces] = useState<Space[]>([]);
@@ -58,6 +67,7 @@ export function App() {
       setMe(meRes);
       if (meRes.email) setEmail(meRes.email);
       if (meRes.displayName) setDisplayName(meRes.displayName);
+      setRole(meRes.role ?? 'member');
       setTags(t);
       setViews(v);
       setSpaces(s);
@@ -108,8 +118,26 @@ export function App() {
 
   function signOut() {
     setToken(null);
+    setImpersonatorToken(null);
     setAuthed(false);
     setSelected(null);
+  }
+
+  function startImpersonation(token: string) {
+    setImpersonatorToken(getToken());
+    setToken(token);
+    setShowAdmin(false);
+    setSelected(null);
+    setNav({ kind: 'inbox' });
+    void refresh();
+  }
+
+  function exitImpersonation() {
+    if (!impersonatorToken) return;
+    setToken(impersonatorToken);
+    setImpersonatorToken(null);
+    setSelected(null);
+    void refresh();
   }
 
   if (!authed) return <Auth onAuthed={() => setAuthed(true)} />;
@@ -188,6 +216,11 @@ export function App() {
             {capturing ? t('top.capturing') : `✎ ${t('top.capture')}`}
           </button>
           <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
+          {role === 'admin' && !impersonatorToken && (
+            <IconButton label={t('admin.open')} onClick={() => setShowAdmin(true)}>
+              🛡️
+            </IconButton>
+          )}
           <IconButton label={t('top.settings')} onClick={() => setShowSettings(true)}>
             ⚙
           </IconButton>
@@ -245,6 +278,25 @@ export function App() {
           </div>
         )}
       </div>
+
+      {impersonatorToken && (
+        <div className="impersonation-banner">
+          <span>
+            {t('admin.impersonating')} <strong>{displayName || email}</strong>
+          </span>
+          <button className="ghost" onClick={exitImpersonation}>
+            {t('admin.exitImpersonation')}
+          </button>
+        </div>
+      )}
+
+      {showAdmin && (
+        <AdminConsole
+          currentUserId={me?.userId ?? null}
+          onClose={() => setShowAdmin(false)}
+          onImpersonate={startImpersonation}
+        />
+      )}
 
       {showSettings && (
         <SettingsDialog

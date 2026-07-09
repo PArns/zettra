@@ -17,6 +17,10 @@ export class User {
   @Column({ type: 'text', nullable: true })
   displayName!: string | null;
 
+  /** Tenant-level role. `admin` unlocks the admin console (user + space management). */
+  @Column({ type: 'text', default: 'member' })
+  role!: string;
+
   /** Argon2/bcrypt hash for the email+password provider. Null for OIDC-only users. */
   @Column({ type: 'text', nullable: true, select: false })
   passwordHash!: string | null;

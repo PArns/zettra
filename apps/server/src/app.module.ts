@@ -27,6 +27,7 @@ import { SpaceModule } from './modules/space/space.module';
 import { LimitsModule } from './modules/limits/limits.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { SearchModule } from './modules/search/search.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 /**
  * Root module wiring the domain-focused feature modules (§3). Global modules (AI, Jobs,
@@ -51,6 +52,7 @@ import { SearchModule } from './modules/search/search.module';
     AuthModule,
     TenantModule,
     SpaceModule,
+    AdminModule,
     LimitsModule,
     TagModule,
     FieldModule,

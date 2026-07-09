@@ -14,6 +14,12 @@ export enum BlockSource {
   Voice = 'voice',
 }
 
+/** Tenant-level user role (§2). `admin` unlocks the admin console (user + space management). */
+export enum UserRole {
+  Admin = 'admin',
+  Member = 'member',
+}
+
 /** Field types for a supertag's schema (§6.1 `tag_field.type`). */
 export enum FieldType {
   Text = 'text',
