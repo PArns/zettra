@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { Demo } from './Demo';
 import { ShellPreview } from './ShellPreview';
+import { AnnotationLayer } from './annotate/AnnotationLayer';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initTheme, setMode } from './lib/theme';
@@ -40,6 +41,8 @@ ReactDOM.createRoot(root).render(
           <App />
         </ToastProvider>
       )}
+      {/* Admin-only design annotation overlay (renders null unless admin mode is on). */}
+      <AnnotationLayer />
     </ErrorBoundary>
   </React.StrictMode>,
 );

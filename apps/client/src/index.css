@@ -151,3 +151,223 @@ body {
 .animate-pop {
   animation: pop 0.2s ease both;
 }
+
+/* ---- Admin design-annotation overlay (impeccable-style; admin mode only) ---- */
+.anno-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+}
+.anno-root > * {
+  pointer-events: auto;
+}
+.anno-pin {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.anno-pin.resolved {
+  background: var(--green, #16a34a);
+  opacity: 0.7;
+}
+.anno-draft {
+  position: fixed;
+  width: 264px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 10px;
+  z-index: 9100;
+}
+.anno-draft-label {
+  font-size: 11px;
+  color: var(--faint);
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.anno-draft textarea {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+.anno-draft-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.anno-draft-actions button {
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+.anno-draft-actions .primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+}
+.anno-bar {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 5px 6px 5px 5px;
+  box-shadow: var(--shadow-lg);
+}
+.anno-toggle {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  cursor: pointer;
+}
+.anno-toggle.on {
+  background: var(--surface-2);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.anno-count {
+  min-width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+.anno-close {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+}
+.anno-close:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.anno-panel {
+  position: fixed;
+  bottom: 62px;
+  right: 18px;
+  width: 320px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.anno-panel-head,
+.anno-panel-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 13px;
+}
+.anno-panel-foot {
+  border-bottom: none;
+  border-top: 1px solid var(--border);
+}
+.anno-panel .ghost {
+  font: inherit;
+  font-size: 12px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.anno-panel .ghost:hover {
+  background: var(--hover);
+}
+.anno-list {
+  overflow-y: auto;
+  padding: 6px;
+}
+.anno-empty {
+  color: var(--faint);
+  font-size: 13px;
+  padding: 16px;
+  text-align: center;
+}
+.anno-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 10px;
+  margin: 6px;
+}
+.anno-item.resolved {
+  opacity: 0.6;
+}
+.anno-item-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.anno-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+.anno-item-note {
+  font-size: 13px;
+  color: var(--text);
+  margin: 5px 0;
+}
+.anno-item-actions {
+  display: flex;
+  gap: 4px;
+}
