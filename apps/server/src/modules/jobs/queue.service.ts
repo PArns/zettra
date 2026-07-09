@@ -15,6 +15,15 @@ export const QUEUE = {
 export type QueueName = (typeof QUEUE)[keyof typeof QUEUE];
 
 /**
+ * Make a debounce key safe as a BullMQ custom jobId. BullMQ v5 rejects ':' (its Redis key
+ * separator) with "Custom Id cannot contain :", so replace it with '_'. Pure and unit-tested —
+ * the mapping must stay stable or debouncing (same key → same job) silently breaks.
+ */
+export function safeJobId(key: string): string {
+  return key.replace(/:/g, '_');
+}
+
+/**
  * Thin wrapper over BullMQ. Provides lazily-created queues sharing one Redis connection.
  * Producers enqueue here; workers (later phases) consume. Debounce via a stable jobId so an
  * edit storm collapses to one job (§8.7 embed enqueue is debounced).
@@ -49,8 +58,12 @@ export class QueueService implements OnModuleDestroy {
     data: Record<string, unknown>,
     debounceKey?: string,
   ): Promise<void> {
-    await this.queue(name).add(name, data, debounceKey ? { jobId: debounceKey } : undefined);
-    this.logger.debug(`enqueued ${name}${debounceKey ? ` (${debounceKey})` : ''}`);
+    // BullMQ v5 forbids ':' in a custom jobId (it is the Redis key separator). Producers use
+    // ':' as a natural separator (e.g. `embed:<blockId>`), so normalize it here — one place
+    // covers every call site while keeping the key stable for debouncing.
+    const jobId = debounceKey ? safeJobId(debounceKey) : undefined;
+    await this.queue(name).add(name, data, jobId ? { jobId } : undefined);
+    this.logger.debug(`enqueued ${name}${jobId ? ` (${jobId})` : ''}`);
   }
 
   async onModuleDestroy(): Promise<void> {
