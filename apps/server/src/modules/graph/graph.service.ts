@@ -1,8 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
-import { BlockVisibility, DocBlock, extractPlainText, RelationStatus } from '@zettra/shared';
-import { Block, BlockRelation } from '../../entities/index';
+import {
+  BlockVisibility,
+  DocBlock,
+  extractPlainText,
+  FieldType,
+  RelationStatus,
+} from '@zettra/shared';
+import { Block, BlockRelation, FieldValue, TagField } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { EmbeddingService } from '../embedding/embedding.service';
 import { SimilarityService } from '../embedding/similarity.service';
@@ -20,6 +26,13 @@ export interface BacklinkResult {
   confidence: number | null;
 }
 
+/** A block that points at this one through a `relation`-typed field (the inverse edge). */
+export interface RelationBacklink {
+  block: Block;
+  fieldId: string;
+  fieldName: string;
+}
+
 /**
  * Smart-connections read surface (§8.4): live "Related" (soft), backlinks (hard-edge
  * traversal), and the suggested-link review queue. Every read is permission-scoped to the
@@ -30,6 +43,8 @@ export class GraphService {
   constructor(
     @InjectRepository(Block) private readonly blocks: Repository<Block>,
     @InjectRepository(BlockRelation) private readonly relations: Repository<BlockRelation>,
+    @InjectRepository(FieldValue) private readonly fieldValues: Repository<FieldValue>,
+    @InjectRepository(TagField) private readonly tagFields: Repository<TagField>,
     private readonly embeddings: EmbeddingService,
     private readonly similarity: SimilarityService,
   ) {}
@@ -77,6 +92,38 @@ export class GraphService {
         kind: e.kind,
         status: e.status,
         confidence: e.confidence,
+      }));
+  }
+
+  /**
+   * The inverse of a relation field (§8.1): blocks whose `relation`-typed field value points at
+   * this block. Computed live from `field_value` (never materialized into `block_relation`, so
+   * the hard-edge graph stays clean, invariant 5), permission-scoped like every other read.
+   */
+  async relationBacklinks(ctx: RequestContext, blockId: string): Promise<RelationBacklink[]> {
+    // Relation values are stored as the target blockId in valueText (invariant 4).
+    const rows = await this.fieldValues.find({
+      where: { tenantId: ctx.tenantId, valueText: blockId },
+    });
+    if (rows.length === 0) return [];
+    // Keep only rows whose field is actually a relation (valueText is shared with text/url/…).
+    const fieldIds = [...new Set(rows.map((r) => r.fieldId))];
+    const relFields = await this.tagFields.find({
+      where: { id: In(fieldIds), type: FieldType.Relation },
+    });
+    const fieldById = new Map(relFields.map((f) => [f.id, f]));
+    const relRows = rows.filter((r) => fieldById.has(r.fieldId) && r.blockId !== blockId);
+    if (relRows.length === 0) return [];
+    const sources = await this.blocks.find({
+      where: { id: In(relRows.map((r) => r.blockId)), spaceId: In(ctx.visibleSpaceIds) },
+    });
+    const byId = new Map(sources.filter((s) => this.visible(ctx, s)).map((s) => [s.id, s]));
+    return relRows
+      .filter((r) => byId.has(r.blockId))
+      .map((r) => ({
+        block: byId.get(r.blockId)!,
+        fieldId: r.fieldId,
+        fieldName: fieldById.get(r.fieldId)!.name,
       }));
   }
 

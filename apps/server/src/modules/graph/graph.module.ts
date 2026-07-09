@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Block, BlockRelation } from '../../entities/index';
+import { Block, BlockRelation, FieldValue, TagField } from '../../entities/index';
 import { GraphService } from './graph.service';
 import { GraphController } from './graph.controller';
 import { EntitiesController } from './entities.controller';
@@ -13,7 +13,7 @@ import { TagModule } from '../tag/tag.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Block, BlockRelation]),
+    TypeOrmModule.forFeature([Block, BlockRelation, FieldValue, TagField]),
     EmbeddingModule,
     ApprovalModule,
     AuthModule,

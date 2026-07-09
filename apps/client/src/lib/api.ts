@@ -88,6 +88,11 @@ export interface BacklinkResult {
   status: string;
   confidence: number | null;
 }
+export interface RelationBacklink {
+  block: BlockDto;
+  fieldId: string;
+  fieldName: string;
+}
 export interface ReviewEdge {
   id: string;
   source: { id: string; title: string };
@@ -164,6 +169,8 @@ export const api = {
 
   related: (id: string) => request<RelatedResult[]>(`/blocks/${id}/related`),
   backlinks: (id: string) => request<BacklinkResult[]>(`/blocks/${id}/backlinks`),
+  relationBacklinks: (id: string) =>
+    request<RelationBacklink[]>(`/blocks/${id}/relation-backlinks`),
   fieldValues: (id: string) =>
     request<
       {

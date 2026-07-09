@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, type BacklinkResult, type RelatedResult } from '../lib/api';
+import { api, type BacklinkResult, type RelatedResult, type RelationBacklink } from '../lib/api';
 import { useT } from '../i18n';
 import type { StringKey } from '../i18n';
 import { blockTitle } from '../lib/blocks';
@@ -21,11 +21,13 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
   const t = useT();
   const [related, setRelated] = useState<RelatedResult[] | null>(null);
   const [backlinks, setBacklinks] = useState<BacklinkResult[] | null>(null);
+  const [refBy, setRefBy] = useState<RelationBacklink[] | null>(null);
 
   useEffect(() => {
     let live = true;
     setRelated(null);
     setBacklinks(null);
+    setRefBy(null);
     api
       .related(blockId)
       .then((r) => live && setRelated(r))
@@ -34,6 +36,10 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
       .backlinks(blockId)
       .then((b) => live && setBacklinks(b))
       .catch(() => live && setBacklinks([]));
+    api
+      .relationBacklinks(blockId)
+      .then((r) => live && setRefBy(r))
+      .catch(() => live && setRefBy([]));
     return () => {
       live = false;
     };
@@ -91,6 +97,25 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
           </div>
         </div>
       ))}
+
+      {refBy && refBy.length > 0 && (
+        <>
+          <h3>{t('rail.referencedBy')}</h3>
+          {refBy.map((r) => (
+            <div
+              key={`${r.block.id}:${r.fieldId}`}
+              className="card clickable"
+              style={{ marginBottom: 8 }}
+              {...clickable(() => onOpen(r.block.id))}
+            >
+              <div style={{ fontWeight: 600, fontSize: 13 }}>{blockTitle(r.block)}</div>
+              <div className="meta" style={{ marginTop: 4 }}>
+                <span className="source-pill">{r.fieldName}</span>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 }

@@ -2,7 +2,13 @@ import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
-import { BacklinkResult, GraphService, RelatedResult, ReviewEdge } from './graph.service';
+import {
+  BacklinkResult,
+  GraphService,
+  RelatedResult,
+  RelationBacklink,
+  ReviewEdge,
+} from './graph.service';
 import { ApprovalService } from '../approval/approval.service';
 
 @Controller()
@@ -21,6 +27,15 @@ export class GraphController {
   @Get('blocks/:id/backlinks')
   backlinks(@Ctx() ctx: RequestContext, @Param('id') id: string): Promise<BacklinkResult[]> {
     return this.graph.backlinks(ctx, id);
+  }
+
+  /** Inverse relation edges: blocks that reference this one through a relation field. */
+  @Get('blocks/:id/relation-backlinks')
+  relationBacklinks(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+  ): Promise<RelationBacklink[]> {
+    return this.graph.relationBacklinks(ctx, id);
   }
 
   @Get('review')
