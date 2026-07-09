@@ -33,6 +33,14 @@ export class Reminder {
   @Column({ type: 'text', default: 'pending' })
   status!: string;
 
+  /**
+   * Recurrence rule (§4 Wiedervorlage): `daily` | `weekly` | `monthly` | `yearly`, or null for a
+   * one-off. Completing a recurring reminder reschedules it to the next occurrence rather than
+   * closing it.
+   */
+  @Column({ type: 'text', nullable: true })
+  recurrence!: string | null;
+
   /** Set when the due-scan job has emitted a notification, so it fires once. */
   @Column({ type: 'timestamptz', nullable: true })
   notifiedAt!: Date | null;

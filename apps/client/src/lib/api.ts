@@ -109,6 +109,7 @@ export interface ReminderView {
   remindAt: string;
   note: string | null;
   status: string;
+  recurrence: string | null;
 }
 /** One dated thing on the calendar agenda (§3). */
 export interface AgendaItem {
@@ -220,7 +221,7 @@ export const api = {
   // Reminders / Wiedervorlage (§3–§4).
   blockReminders: (blockId: string) => request<ReminderView[]>(`/reminders/block/${blockId}`),
   remindersUpcoming: () => request<ReminderView[]>('/reminders/upcoming'),
-  createReminder: (i: { blockId: string; remindAt: string; note?: string }) =>
+  createReminder: (i: { blockId: string; remindAt: string; note?: string; recurrence?: string }) =>
     request<ReminderView>('/reminders', { method: 'POST', body: JSON.stringify(i) }),
   reminderDone: (id: string) => request(`/reminders/${id}/done`, { method: 'POST' }),
   reminderDismiss: (id: string) => request(`/reminders/${id}/dismiss`, { method: 'POST' }),

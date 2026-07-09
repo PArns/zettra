@@ -1881,6 +1881,27 @@ body {
     width: 100%;
     margin-bottom: 6px;
   }
+  .reminder-recur {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .reminder-recur-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .reminder-recur-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .reminder-recur-select {
+    flex: 1;
+    max-width: 60%;
+  }
 
   /* ---------- Today briefing (§6) ---------- */
   .today {

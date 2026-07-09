@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { RECURRENCE_RULES } from '@zettra/shared';
 import { api, type ReminderView } from '../lib/api';
-import { useT } from '../i18n';
+import { useT, type TFn } from '../i18n';
 import { DatePicker } from './DatePicker';
 import { useToast } from './Toast';
 
@@ -12,6 +13,13 @@ function fmt(iso: string): string {
   });
 }
 
+/** Localized label for a recurrence rule (`daily` → "reminder.recur.daily`), or empty for one-off. */
+export function recurrenceLabel(t: TFn, recurrence: string | null): string {
+  if (!recurrence) return '';
+  const key = `reminder.recur.${recurrence}` as Parameters<TFn>[0];
+  return t(key);
+}
+
 /** Reminders / Wiedervorlage for the open block (§4): list, add (date + note), done/dismiss. */
 export function RemindersPanel({ blockId }: { blockId: string }) {
   const t = useT();
@@ -19,6 +27,7 @@ export function RemindersPanel({ blockId }: { blockId: string }) {
   const [items, setItems] = useState<ReminderView[]>([]);
   const [adding, setAdding] = useState(false);
   const [note, setNote] = useState('');
+  const [recurrence, setRecurrence] = useState('');
   const ref = useRef<HTMLDivElement>(null);
 
   const load = () =>
@@ -31,6 +40,7 @@ export function RemindersPanel({ blockId }: { blockId: string }) {
     void load();
     setAdding(false);
     setNote('');
+    setRecurrence('');
   }, [blockId]);
 
   useEffect(() => {
@@ -45,9 +55,15 @@ export function RemindersPanel({ blockId }: { blockId: string }) {
   async function add(iso: string) {
     if (!iso) return;
     try {
-      await api.createReminder({ blockId, remindAt: iso, note: note.trim() || undefined });
+      await api.createReminder({
+        blockId,
+        remindAt: iso,
+        note: note.trim() || undefined,
+        recurrence: recurrence || undefined,
+      });
       setAdding(false);
       setNote('');
+      setRecurrence('');
       await load();
     } catch (err) {
       toast.error((err as Error).message);
@@ -69,6 +85,11 @@ export function RemindersPanel({ blockId }: { blockId: string }) {
       {items.map((r) => (
         <div key={r.id} className="reminder-row">
           <span className="reminder-when">🔔 {fmt(r.remindAt)}</span>
+          {r.recurrence && (
+            <span className="reminder-recur" title={recurrenceLabel(t, r.recurrence)}>
+              ↻ {recurrenceLabel(t, r.recurrence)}
+            </span>
+          )}
           {r.note && <span className="reminder-note">{r.note}</span>}
           <div className="reminder-actions">
             <button
@@ -100,6 +121,21 @@ export function RemindersPanel({ blockId }: { blockId: string }) {
               placeholder={t('reminder.notePlaceholder')}
               onChange={(e) => setNote(e.target.value)}
             />
+            <div className="reminder-recur-row">
+              <span className="reminder-recur-label">↻ {t('reminder.repeat')}</span>
+              <select
+                className="reminder-recur-select"
+                value={recurrence}
+                onChange={(e) => setRecurrence(e.target.value)}
+              >
+                <option value="">{t('reminder.recur.none')}</option>
+                {RECURRENCE_RULES.map((rule) => (
+                  <option key={rule} value={rule}>
+                    {t(`reminder.recur.${rule}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
             <DatePicker value="" onChange={add} />
           </div>
         )}

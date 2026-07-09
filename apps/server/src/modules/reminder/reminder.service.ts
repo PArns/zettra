@@ -1,7 +1,13 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, LessThanOrEqual, Repository } from 'typeorm';
-import { BlockVisibility, DocBlock, extractPlainText } from '@zettra/shared';
+import {
+  asRecurrenceRule,
+  BlockVisibility,
+  DocBlock,
+  extractPlainText,
+  nextOccurrence,
+} from '@zettra/shared';
 import { Block, Reminder } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 
@@ -12,6 +18,7 @@ export interface ReminderView {
   remindAt: string;
   note: string | null;
   status: string;
+  recurrence: string | null;
 }
 
 /**
@@ -30,6 +37,7 @@ export class ReminderService {
     blockId: string,
     remindAt: string,
     note?: string,
+    recurrence?: string,
   ): Promise<ReminderView> {
     const block = await this.visibleBlock(ctx, blockId);
     const row = await this.reminders.save(
@@ -40,6 +48,7 @@ export class ReminderService {
         remindAt: parseWhen(remindAt),
         note: note ?? null,
         status: 'pending',
+        recurrence: asRecurrenceRule(recurrence),
       }),
     );
     return this.toView(row, entityTitle(block));
@@ -75,6 +84,17 @@ export class ReminderService {
   async setStatus(ctx: RequestContext, id: string, status: 'done' | 'dismissed'): Promise<void> {
     const row = await this.reminders.findOne({ where: { id, tenantId: ctx.tenantId } });
     if (!row) throw new NotFoundException('Reminder not found');
+    // Wiedervorlage: completing a recurring reminder reschedules it to the next occurrence instead
+    // of closing it, so it resurfaces on its cycle. Dismiss always closes it.
+    const rule = status === 'done' ? asRecurrenceRule(row.recurrence) : null;
+    if (rule) {
+      const currentIso = row.remindAt.toISOString().slice(0, 10);
+      await this.reminders.update(
+        { id, tenantId: ctx.tenantId },
+        { remindAt: new Date(`${nextOccurrence(currentIso, rule)}T09:00:00Z`), notifiedAt: null },
+      );
+      return;
+    }
     await this.reminders.update({ id, tenantId: ctx.tenantId }, { status });
   }
 
@@ -127,6 +147,7 @@ export class ReminderService {
       remindAt: r.remindAt.toISOString(),
       note: r.note,
       status: r.status,
+      recurrence: r.recurrence,
     };
   }
 }

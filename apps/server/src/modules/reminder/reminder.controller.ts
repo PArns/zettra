@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import { RECURRENCE_RULES } from '@zettra/shared';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
@@ -9,6 +10,7 @@ class CreateReminderBody {
   @IsString() blockId!: string;
   @IsString() @MinLength(8) remindAt!: string;
   @IsOptional() @IsString() note?: string;
+  @IsOptional() @IsIn(RECURRENCE_RULES as readonly string[]) recurrence?: string;
 }
 
 /** Reminders / Wiedervorlage (§3–§4). Permission-scoped in the service. */
@@ -29,7 +31,7 @@ export class ReminderController {
 
   @Post()
   create(@Ctx() ctx: RequestContext, @Body() body: CreateReminderBody): Promise<ReminderView> {
-    return this.reminders.create(ctx, body.blockId, body.remindAt, body.note);
+    return this.reminders.create(ctx, body.blockId, body.remindAt, body.note, body.recurrence);
   }
 
   @Post(':id/done')

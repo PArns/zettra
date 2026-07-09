@@ -6,6 +6,7 @@ import { relativeTime } from '../lib/time';
 import { clickable } from '../lib/a11y';
 import { useT } from '../i18n';
 import { EmptyState } from '../ui';
+import { recurrenceLabel } from './RemindersPanel';
 import { useToast } from './Toast';
 
 function dayOf(iso: string): string {
@@ -80,6 +81,7 @@ export function TodayPane({
               <div className="today-title">🔔 {r.title}</div>
               <div className="today-meta">
                 {fmt(r.remindAt)}
+                {r.recurrence ? ` · ↻ ${recurrenceLabel(t, r.recurrence)}` : ''}
                 {r.note ? ` · ${r.note}` : ''}
               </div>
             </div>

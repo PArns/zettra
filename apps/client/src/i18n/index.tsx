@@ -58,7 +58,10 @@ export function useI18n(): I18nContextValue {
   return useContext(I18nContext) ?? FALLBACK;
 }
 
+/** The translate function type, for components that pass `t` around. */
+export type TFn = (key: StringKey) => string;
+
 /** Shorthand for components that only need the translate function. */
-export function useT(): (key: StringKey) => string {
+export function useT(): TFn {
   return useI18n().t;
 }

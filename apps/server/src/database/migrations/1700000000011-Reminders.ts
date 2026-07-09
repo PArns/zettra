@@ -14,6 +14,7 @@ export class Reminders1700000000011 implements MigrationInterface {
         "remindAt" timestamptz NOT NULL,
         "note" text,
         "status" text NOT NULL DEFAULT 'pending',
+        "recurrence" text,
         "notifiedAt" timestamptz,
         "createdAt" timestamptz NOT NULL DEFAULT now(),
         CONSTRAINT "PK_reminder" PRIMARY KEY ("id")
