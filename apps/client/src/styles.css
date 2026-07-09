@@ -535,19 +535,25 @@ body {
     display: grid;
     place-items: center;
     padding: 20px;
-    background: color-mix(in srgb, #000 45%, transparent);
-    backdrop-filter: blur(2px);
+    /* macOS sheet: the content behind frosts (heavy blur + saturation), only lightly dimmed. */
+    background: color-mix(in srgb, #000 26%, transparent);
+    -webkit-backdrop-filter: saturate(150%) blur(14px);
+    backdrop-filter: saturate(150%) blur(14px);
     animation: toast-in 0.15s ease;
   }
   .modal {
     width: 100%;
     max-width: 560px;
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: saturate(180%) blur(30px);
-    backdrop-filter: saturate(180%) blur(30px);
+    /* Translucent vibrancy material — lets the frosted backdrop read through the sheet. */
+    background: color-mix(in srgb, var(--surface) 66%, transparent);
+    -webkit-backdrop-filter: saturate(200%) blur(34px);
+    backdrop-filter: saturate(200%) blur(34px);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
+    /* Soft depth + the macOS "lit" top glass edge. */
+    box-shadow:
+      var(--shadow-lg),
+      inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
     overflow: hidden;
     animation: pop 0.16s ease;
   }
