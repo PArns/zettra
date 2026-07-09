@@ -12,8 +12,12 @@ export function extractRefs(blocks: DocBlock[]): ExtractedRefs {
   const referenceIds = new Set<string>();
   const tagIds = new Set<string>();
 
-  const visitInline = (nodes: InlineNode[] = []): void => {
-    for (const n of nodes) {
+  const visitInline = (nodes?: unknown): void => {
+    // BlockNote content is only an inline-node array for text blocks. `content: 'none'` blocks
+    // (image/file/math/mermaid…) carry undefined, and table blocks carry a non-array object —
+    // iterating those threw "nodes is not iterable" and failed the whole persist (data loss).
+    if (!Array.isArray(nodes)) return;
+    for (const n of nodes as InlineNode[]) {
       const id = n.props?.blockId;
       if (id && n.type === REFERENCE_NODE_TYPE) referenceIds.add(id);
       if (id && n.type === TAG_NODE_TYPE) tagIds.add(id);

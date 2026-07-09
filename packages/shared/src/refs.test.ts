@@ -51,4 +51,19 @@ describe('extractRefs', () => {
     ];
     expect(extractRefs(doc).referenceIds.size).toBe(1);
   });
+
+  it('tolerates non-array block content without throwing (table/image/math blocks)', () => {
+    // Regression: a document that mixes a table block (content is an object), a `content: 'none'`
+    // block (content undefined), and a normal paragraph must NOT throw — otherwise the whole
+    // persist 500s and the note is lost. References in the normal blocks are still collected.
+    const doc = [
+      { type: 'table', content: { type: 'tableContent', rows: [] } },
+      { type: 'math', content: undefined },
+      { type: 'image' },
+      { type: 'paragraph', content: [{ type: 'reference', props: { blockId: 'keep', label: 'K' } }] },
+    ] as unknown as DocBlock[];
+    let refs!: ReturnType<typeof extractRefs>;
+    expect(() => (refs = extractRefs(doc))).not.toThrow();
+    expect([...refs.referenceIds]).toEqual(['keep']);
+  });
 });
