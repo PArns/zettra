@@ -124,6 +124,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
         subtext: 'Highlighted info / tip / warning box',
         aliases: ['callout', 'admonition', 'note', 'info'],
         group: 'Blocks',
+        icon: <span className="zx-slash-ico">💡</span>,
         onItemClick: () =>
           insertOrUpdateBlock(editor, { type: 'callout', props: { kind: 'info' } }),
       },
@@ -132,6 +133,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
         subtext: 'Blockquote',
         aliases: ['quote', 'blockquote', 'citation'],
         group: 'Blocks',
+        icon: <span className="zx-slash-ico">❝</span>,
         onItemClick: () => insertOrUpdateBlock(editor, { type: 'quote' }),
       },
       {
@@ -139,6 +141,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
         subtext: 'Horizontal rule',
         aliases: ['divider', 'hr', 'separator', 'rule'],
         group: 'Blocks',
+        icon: <span className="zx-slash-ico">➖</span>,
         onItemClick: () => insertOrUpdateBlock(editor, { type: 'divider' }),
       },
       {
@@ -146,6 +149,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
         subtext: 'Rich link preview card',
         aliases: ['bookmark', 'link', 'embed', 'url'],
         group: 'Blocks',
+        icon: <span className="zx-slash-ico">🔖</span>,
         onItemClick: () => {
           const url = window.prompt('Bookmark URL')?.trim();
           if (!url) return;
@@ -160,6 +164,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
         subtext: 'LaTeX formula (KaTeX)',
         aliases: ['math', 'latex', 'formula', 'equation', 'katex'],
         group: 'Blocks',
+        icon: <span className="zx-slash-ico">∑</span>,
         onItemClick: () => {
           const latex = window.prompt('LaTeX')?.trim();
           insertOrUpdateBlock(editor, { type: 'math', props: { latex: latex ?? '' } });
@@ -170,6 +175,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
         subtext: 'Mermaid diagram',
         aliases: ['mermaid', 'diagram', 'flowchart', 'graph', 'sequence'],
         group: 'Blocks',
+        icon: <span className="zx-slash-ico">📊</span>,
         onItemClick: () => {
           const code = window.prompt('Mermaid diagram source')?.trim();
           insertOrUpdateBlock(editor, { type: 'mermaid', props: { code: code ?? '' } });
@@ -180,6 +186,7 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
         subtext: 'Collapsible section (indent blocks under it)',
         aliases: ['toggle', 'collapse', 'collapsible', 'details', 'accordion'],
         group: 'Blocks',
+        icon: <span className="zx-slash-ico">▸</span>,
         onItemClick: () => insertOrUpdateBlock(editor, { type: 'toggle', props: { open: true } }),
       },
     ];

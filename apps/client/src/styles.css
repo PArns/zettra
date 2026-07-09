@@ -288,6 +288,9 @@ body {
     gap: 12px;
     padding: 0 18px;
     flex-shrink: 0;
+    /* Own stacking context above `.content` so topbar dropdowns (search) sit over the editor. */
+    position: relative;
+    z-index: 50;
   }
   .topbar .crumb {
     font-weight: 600;
@@ -314,8 +317,9 @@ body {
     padding: 28px 40px 80px;
   }
   .pane-narrow {
-    max-width: 760px;
-    margin: 0 auto;
+    /* Full page width for the editor (was a centered 760px column). */
+    max-width: none;
+    margin: 0;
   }
 
   /* ---------- Right rail ---------- */
@@ -1098,6 +1102,15 @@ body {
     font-style: italic;
     font-size: 14px;
   }
+  /* Slash-menu icon glyph for the custom blocks. */
+  .zx-slash-ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    font-size: 15px;
+    line-height: 1;
+  }
 
   /* ---------- Toggle / collapsible ---------- */
   .zx-toggle {
@@ -1210,7 +1223,7 @@ body {
     border: 1px solid var(--border-strong);
     border-radius: var(--radius);
     box-shadow: var(--shadow-lg);
-    z-index: 40;
+    z-index: 60;
     overflow: hidden;
     max-height: 300px;
     overflow-y: auto;
@@ -1326,14 +1339,14 @@ body {
 
   /* ---------- BlockNote surface tuning ---------- */
   .editor-host {
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: saturate(180%) blur(18px);
-    backdrop-filter: saturate(180%) blur(18px);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    padding: 8px 4px;
-    min-height: 420px;
+    /* Full-bleed writing surface: no card chrome, fills the pane width and viewport height so a
+       click anywhere focuses the editor. */
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    min-height: calc(100dvh - 150px);
   }
   .bn-container,
   .bn-editor {

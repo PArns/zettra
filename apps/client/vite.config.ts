@@ -13,8 +13,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': { target: 'http://localhost:3000', changeOrigin: true },
-      '/collab': { target: 'ws://localhost:1234', ws: true },
+      // Proxy targets are env-overridable so `pnpm dev` can point at a dockerized backend
+      // (e.g. VITE_DEV_API=http://localhost:5050 VITE_DEV_COLLAB=ws://localhost:5050, both via
+      // the nginx entrypoint). Defaults match a local non-docker `pnpm dev` (server 3000 / collab 1234).
+      '/api': { target: process.env.VITE_DEV_API ?? 'http://localhost:3000', changeOrigin: true },
+      '/collab': { target: process.env.VITE_DEV_COLLAB ?? 'ws://localhost:1234', ws: true },
     },
   },
   resolve: {
