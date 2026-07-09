@@ -58,6 +58,32 @@ docker compose -f docker-compose.yml up --build
 `/api` → `server` and `/collab` (WebSocket) → `collab`. The API entrypoint runs idempotent
 migrations — including `CREATE EXTENSION vector` and the HNSW index — before boot.
 
+Every long-running service has `restart: unless-stopped`, and all state lives in named volumes
+(`pgdata`, `redisdata`, `ollama`, `uploads`) so **data persists across redeploys**. Ports are
+env-configurable: the API via `PORT`, collab via `COLLAB_PORT`, and the public entrypoint via
+`WEB_PORT` (default 8080).
+
+### Deploying to Coolify
+
+The compose file is Coolify-ready. Create a **Docker Compose** resource pointing at
+`docker-compose.yml`, set the env vars from `.env.example` in Coolify's UI, and attach your
+domain to the **`web`** service (container port 80) — Coolify's Traefik proxy handles TLS and
+routing, so you don't need to publish `WEB_PORT`. The named volumes are managed by Coolify and
+survive redeploys. To add the local LLM on a GPU host, include `docker-compose.gpu.yml` as a
+second compose file.
+
+### Local GPU (NVIDIA / RTX 5080)
+
+Give Ollama the GPU for local embeddings + reasoning:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+```
+
+Needs the NVIDIA driver + Container Toolkit on the host. The RTX 5080 is Blackwell (sm_120), so
+use a recent `ollama/ollama` image (CUDA 12.x). `ollama-pull` fetches `EMBEDDING_MODEL` and
+`LLM_MODEL` on first boot; verify with `docker compose exec ollama nvidia-smi`.
+
 ## Local development (without Docker)
 
 ```bash

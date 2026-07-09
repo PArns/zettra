@@ -1,0 +1,30 @@
+# GPU overlay for local Ollama inference on an NVIDIA card (e.g. RTX 5080 / Blackwell).
+# Usage:  docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# On Coolify: add this file as a second compose file, or paste the `ollama` block below into
+# the deployment's compose.
+#
+# Requirements on the host:
+#   - NVIDIA driver + CUDA runtime, and the NVIDIA Container Toolkit
+#     (`nvidia-ctk runtime configure`), so containers can see the GPU.
+#   - The RTX 5080 is Blackwell (sm_120) — use a recent `ollama/ollama` image (CUDA 12.x);
+#     older builds don't have kernels for it and silently fall back to CPU.
+#
+# Verify the GPU is used:  docker compose exec ollama nvidia-smi   (should list the process)
+
+services:
+  ollama:
+    # Reserve all NVIDIA GPUs for Ollama. Compose translates this to the nvidia runtime.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m
+      # Expose all GPUs to the container (belt-and-suspenders alongside the reservation above).
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      # Parallelism the 16 GB RTX 5080 comfortably handles for bge-m3 + a 7B chat model.
+      OLLAMA_NUM_PARALLEL: 2

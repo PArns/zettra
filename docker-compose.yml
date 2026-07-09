@@ -1,15 +1,20 @@
 # Zettra production topology (§13.1). `web` is the only public entrypoint.
 # Dev overrides live in docker-compose.override.yml (auto-merged by compose).
+# Coolify: deploy this file as-is. Coolify injects env, provides its own Traefik proxy, and
+# persists the named volumes below across redeploys. Point the domain at `web` (port 80) and
+# set WEB_PORT if you also want a published host port. GPU: add docker-compose.gpu.yml.
 
 services:
   postgres:
     # MUST be the pgvector image — stock postgres:16 lacks the vector extension (§13.2).
     image: pgvector/pgvector:pg16
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
+      # Named volume → data survives redeploys/container recreation (persistence).
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
@@ -19,6 +24,9 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    # Persist to disk so queued jobs survive a restart.
+    command: ['redis-server', '--appendonly', 'yes']
     volumes:
       - redisdata:/data
     healthcheck:
@@ -29,6 +37,7 @@ services:
 
   ollama:
     image: ollama/ollama
+    restart: unless-stopped
     volumes:
       - ollama:/root/.ollama
     environment:
@@ -40,7 +49,8 @@ services:
       timeout: 5s
       retries: 20
 
-  # One-shot companion: pull the embedding model once into the shared volume, then exit (§13.2).
+  # One-shot companion: pull the embedding + local LLM models once into the shared volume, then
+  # exit (§13.2). Idempotent — re-pulling an existing model is a no-op.
   ollama-pull:
     image: ollama/ollama
     depends_on:
@@ -50,22 +60,30 @@ services:
       - ollama:/root/.ollama
     environment:
       OLLAMA_HOST: http://ollama:11434
-    entrypoint: ['/bin/sh', '-c', 'ollama pull ${EMBEDDING_MODEL:-bge-m3}']
+    entrypoint:
+      - /bin/sh
+      - -c
+      - 'ollama pull ${EMBEDDING_MODEL:-bge-m3} && ollama pull ${LLM_MODEL:-qwen2.5:7b-instruct}'
     restart: 'no'
 
   server:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
+    restart: unless-stopped
     env_file: .env
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
       OLLAMA_URL: ${OLLAMA_URL}
+      # Listening port is env-configurable (defaults to 3000).
       PORT: ${PORT:-3000}
       UPLOAD_DIR: /data/uploads
     volumes:
+      # Uploaded files persist across redeploys.
       - uploads:/data/uploads
+    expose:
+      - ${PORT:-3000}
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,12 +97,15 @@ services:
     build:
       context: .
       dockerfile: apps/collab/Dockerfile
+    restart: unless-stopped
     env_file: .env
     environment:
       REDIS_URL: ${REDIS_URL}
       APP_SECRET: ${APP_SECRET}
       SERVER_INTERNAL_URL: ${SERVER_INTERNAL_URL:-http://server:3000}
       COLLAB_PORT: ${COLLAB_PORT:-1234}
+    expose:
+      - ${COLLAB_PORT:-1234}
     depends_on:
       redis:
         condition: service_healthy
@@ -93,11 +114,21 @@ services:
     build:
       context: .
       dockerfile: apps/client/Dockerfile
+    restart: unless-stopped
     depends_on:
       - server
       - collab
+    # Public entrypoint. On Coolify, point the domain here (container port 80); WEB_PORT only
+    # matters for a directly published host port (default 8080).
+    expose:
+      - '80'
     ports:
-      - '8080:80'
+      - '${WEB_PORT:-8080}:80'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost/']
+      interval: 15s
+      timeout: 5s
+      retries: 10
 
 volumes:
   pgdata:
