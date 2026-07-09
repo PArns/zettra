@@ -3,11 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   AiPrivacyScope,
+  type AgendaItem,
   AiStakes,
   AiTaskType,
   DocBlock,
   extractDueDates,
   extractPlainText,
+  reconcile,
 } from '@zettra/shared';
 import { Block, Reminder, Space, Tag } from '../../entities/index';
 import { AiRouterService } from '../ai/ai-router.service';
@@ -134,21 +136,52 @@ export class CaptureService {
    * Detect deadlines / appointments in captured text (e.g. a mail asking for a meeting "in 2
    * weeks") and create reminders for the block owner (§5). Only future dates; idempotent (skips
    * a date already reminded on this block). Pure extraction is unit-tested in shared.
+   *
+   * Mail↔calendar reconciliation: each candidate date is checked against the owner's existing
+   * pending reminders via the shared `reconcile()`; a date that clashes with a day already booked
+   * is marked so the owner sees the potential conflict. Only the owner's own reminders are
+   * consulted (no cross-user read), so this stays permission-safe in the background job.
    */
   private async detectDeadlines(block: Block, text: string): Promise<void> {
     const refIso = block.createdAt.toISOString().slice(0, 10);
     const dates = extractDueDates(text, refIso).filter((d) => d.iso >= refIso);
-    for (const d of dates.slice(0, 5)) {
+    const candidates = dates.slice(0, 5);
+    if (candidates.length === 0) return;
+
+    // Existing pending reminders for this owner become the "already booked" agenda to reconcile
+    // against. SPEC-GAP: date-field values would also count as busy, but that needs the owner's
+    // visibleSpaceIds (a RequestContext the capture job doesn't carry) — deferred.
+    const existing = block.ownerUserId
+      ? await this.reminders.find({
+          where: { tenantId: block.tenantId, userId: block.ownerUserId, status: 'pending' },
+          take: 500,
+        })
+      : [];
+    const agenda: AgendaItem[] = existing.map((r) => ({
+      blockId: r.blockId,
+      title: r.note ?? '',
+      date: r.remindAt.toISOString().slice(0, 10),
+      kind: 'reminder',
+    }));
+    const clashing = new Set(
+      reconcile(
+        agenda,
+        candidates.map((c) => c.iso),
+      ).clashes,
+    );
+
+    for (const d of candidates) {
       const remindAt = new Date(`${d.iso}T09:00:00Z`);
       const exists = await this.reminders.findOne({ where: { blockId: block.id, remindAt } });
       if (exists) continue;
+      const note = clashing.has(d.iso) ? `⚠ ${d.match.slice(0, 78)}` : d.match.slice(0, 80);
       await this.reminders.save(
         this.reminders.create({
           tenantId: block.tenantId,
           blockId: block.id,
           userId: block.ownerUserId,
           remindAt,
-          note: d.match.slice(0, 80),
+          note,
           status: 'pending',
         }),
       );
