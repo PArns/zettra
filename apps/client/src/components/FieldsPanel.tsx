@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, type EffectiveField } from '../lib/api';
+import { useT } from '../i18n';
 import { useToast } from './Toast';
 
 /**
@@ -12,6 +13,7 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [visibility, setVisibility] = useState<'space' | 'private'>('space');
   const toast = useToast();
+  const t = useT();
 
   useEffect(() => {
     let live = true;
@@ -56,19 +58,19 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
   return (
     <>
       <h3 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        Fields
+        {t('supertag.fields')}
         <button
           className="ghost"
           style={{ fontSize: 11, padding: '2px 8px' }}
           onClick={toggleVisibility}
-          title="Toggle block visibility"
+          title={t('rail.toggleVisibility')}
         >
-          {visibility === 'private' ? '🔒 Private' : '🌐 Space'}
+          {visibility === 'private' ? `🔒 ${t('rail.private')}` : `🌐 ${t('rail.space')}`}
         </button>
       </h3>
       {fields.length === 0 && (
         <p style={{ color: 'var(--text-faint)', fontSize: 13, margin: 4 }}>
-          Add a supertag to give this note fields.
+          {t('rail.noFieldsHint')}
         </p>
       )}
       {fields.map((f) => (

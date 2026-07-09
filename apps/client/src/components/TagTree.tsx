@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { buildTagTree, type TagTreeNode } from '@zettra/shared';
 import type { Tag, View } from '../lib/api';
 import { clickable } from '../lib/a11y';
+import { useT } from '../i18n';
 
 /**
  * Hierarchical tag/folder tree (§8.1). Renders `tag.parentId` as a collapsible tree; clicking a
@@ -24,6 +25,7 @@ export function TagTree({
   onEdit?: (tag: Tag) => void;
 }) {
   const tree = buildTagTree(tags);
+  const t = useT();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -72,7 +74,7 @@ export function TagTree({
         >
           <button
             className="tag-caret"
-            aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+            aria-label={isCollapsed ? t('common.expand') : t('common.collapse')}
             style={{ visibility: hasChildren ? 'visible' : 'hidden' }}
             onClick={(e) => {
               e.stopPropagation();
@@ -86,8 +88,8 @@ export function TagTree({
           {onEdit && (
             <button
               className="tag-edit"
-              aria-label={`Edit ${tag.name}`}
-              title="Edit supertag"
+              aria-label={`${t('common.edit')} ${tag.name}`}
+              title={t('supertag.editTitle')}
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit(tag);
@@ -113,7 +115,7 @@ export function TagTree({
     >
       {tree.length === 0 && (
         <div className="nav-item" style={{ opacity: 0.6 }}>
-          No tags yet
+          {t('nav.noTags')}
         </div>
       )}
       {tree.map(renderNode)}

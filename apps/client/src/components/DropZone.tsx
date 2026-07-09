@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { BlockDto } from '@zettra/shared';
 import { api } from '../lib/api';
+import { useT } from '../i18n';
 import { useToast } from './Toast';
 
 /** BlockNote content for an uploaded file, by mime type. */
@@ -26,6 +27,7 @@ export function DropZone({
   onCaptured: (block: BlockDto) => void;
 }) {
   const toast = useToast();
+  const t = useT();
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -106,12 +108,8 @@ export function DropZone({
       <div className="dropzone-glyph" aria-hidden>
         {busy ? '⏳' : '📎'}
       </div>
-      <div className="dropzone-title">
-        {busy ? 'Capturing…' : 'Drop files, audio, images or a link'}
-      </div>
-      <div className="dropzone-hint">
-        Everything you drop is captured and auto-tagged — click to browse.
-      </div>
+      <div className="dropzone-title">{busy ? t('drop.capturing') : t('drop.title')}</div>
+      <div className="dropzone-hint">{t('drop.hint')}</div>
     </div>
   );
 }

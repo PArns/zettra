@@ -1,5 +1,6 @@
 import type { Space, Tag, View } from '../lib/api';
 import { clickable } from '../lib/a11y';
+import { useT } from '../i18n';
 import { TagTree } from './TagTree';
 
 export type Nav =
@@ -25,6 +26,7 @@ export function Sidebar(props: {
   onSignOut: () => void;
 }) {
   const { tags, views, nav } = props;
+  const t = useT();
   const isActive = (n: Nav) =>
     (n.kind === nav.kind && n.kind !== 'view') ||
     (n.kind === 'view' && nav.kind === 'view' && n.id === nav.id);
@@ -39,9 +41,9 @@ export function Sidebar(props: {
 
       <div className="side-actions">
         <button className="primary side-new" onClick={props.onCapture}>
-          <span>✎</span> Create new
+          <span>✎</span> {t('nav.createNew')}
         </button>
-        <button className="side-search" aria-label="Search" title="Search">
+        <button className="side-search" aria-label={t('nav.search')} title={t('nav.search')}>
           🔍
         </button>
       </div>
@@ -52,32 +54,32 @@ export function Sidebar(props: {
             className={`nav-item ${isActive({ kind: 'inbox' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'inbox' }))}
           >
-            <span className="emoji">📥</span> Briefkasten
+            <span className="emoji">📥</span> {t('nav.briefkasten')}
             {props.inboxCount > 0 && <span className="count">{props.inboxCount}</span>}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'forReview' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'forReview' }))}
           >
-            <span className="emoji">🗂️</span> For Review
+            <span className="emoji">🗂️</span> {t('nav.forReview')}
             {props.forReviewCount > 0 && <span className="count">{props.forReviewCount}</span>}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'review' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'review' }))}
           >
-            <span className="emoji">✨</span> Connections
+            <span className="emoji">✨</span> {t('nav.connections')}
             {props.reviewCount > 0 && <span className="count">{props.reviewCount}</span>}
           </div>
         </div>
 
         <div className="nav-section">
           <div className="label">
-            <span>Tags</span>
+            <span>{t('nav.tags')}</span>
             <button
               className="label-add"
-              aria-label="New supertag"
-              title="New supertag"
+              aria-label={t('nav.newSupertag')}
+              title={t('nav.newSupertag')}
               onClick={props.onCreateTag}
             >
               +
@@ -94,7 +96,7 @@ export function Sidebar(props: {
         </div>
 
         <div className="nav-section">
-          <div className="label">Spaces</div>
+          <div className="label">{t('nav.spaces')}</div>
           {props.spaces.map((s) => (
             <div key={s.id} className="nav-item static" title={s.name}>
               <span className="emoji">{s.aiPolicy === 'local_only' ? '🔒' : '#'}</span> {s.name}
@@ -112,7 +114,12 @@ export function Sidebar(props: {
             {props.email}
           </div>
         </div>
-        <button className="icon" title="Sign out" aria-label="Sign out" onClick={props.onSignOut}>
+        <button
+          className="icon"
+          title={t('nav.signOut')}
+          aria-label={t('nav.signOut')}
+          onClick={props.onSignOut}
+        >
           ⏻
         </button>
       </div>

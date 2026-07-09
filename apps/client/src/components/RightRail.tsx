@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { api, type BacklinkResult, type RelatedResult } from '../lib/api';
+import { useT } from '../i18n';
+import type { StringKey } from '../i18n';
 import { blockTitle } from '../lib/blocks';
 import { clickable } from '../lib/a11y';
 import { FieldsPanel } from './FieldsPanel';
 
-function matchLabel(distance: number): string {
+function matchLabel(distance: number, t: (key: StringKey) => string): string {
   const score = 1 - distance;
-  if (score >= 0.85) return 'Strong match';
-  if (score >= 0.6) return 'Related';
-  return 'Loosely related';
+  if (score >= 0.85) return t('rail.strongMatch');
+  if (score >= 0.6) return t('rail.relatedMatch');
+  return t('rail.looselyRelated');
 }
 
 /**
@@ -16,6 +18,7 @@ function matchLabel(distance: number): string {
  * backlinks (hard edges). Both are permission-scoped server-side.
  */
 export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: string) => void }) {
+  const t = useT();
   const [related, setRelated] = useState<RelatedResult[] | null>(null);
   const [backlinks, setBacklinks] = useState<BacklinkResult[] | null>(null);
 
@@ -39,11 +42,11 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
   return (
     <div className="rail">
       <FieldsPanel blockId={blockId} />
-      <h3>Related</h3>
+      <h3>{t('rail.related')}</h3>
       {related === null && <div className="spinner" />}
       {related?.length === 0 && (
         <p style={{ color: 'var(--text-faint)', fontSize: 13, margin: '4px' }}>
-          Nothing similar yet.
+          {t('rail.nothingSimilar')}
         </p>
       )}
       {related?.map((r) => (
@@ -53,23 +56,27 @@ export function RightRail({ blockId, onOpen }: { blockId: string; onOpen: (id: s
           style={{ marginBottom: 8 }}
           {...clickable(() => onOpen(r.blockId))}
         >
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{r.preview || 'Untitled'}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+            {r.preview || t('common.untitled')}
+          </div>
           <div
             className="meta"
             style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center' }}
           >
             <span className="badge" title={`cosine distance ${r.distance.toFixed(3)}`}>
               <span className="dot" />
-              {matchLabel(r.distance)}
+              {matchLabel(r.distance, t)}
             </span>
           </div>
         </div>
       ))}
 
-      <h3>Backlinks</h3>
+      <h3>{t('rail.backlinks')}</h3>
       {backlinks === null && <div className="spinner" />}
       {backlinks?.length === 0 && (
-        <p style={{ color: 'var(--text-faint)', fontSize: 13, margin: '4px' }}>No backlinks.</p>
+        <p style={{ color: 'var(--text-faint)', fontSize: 13, margin: '4px' }}>
+          {t('rail.noBacklinks')}
+        </p>
       )}
       {backlinks?.map((b) => (
         <div

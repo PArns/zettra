@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, type ReviewEdge } from '../lib/api';
+import { useT } from '../i18n';
+import type { StringKey } from '../i18n';
 import { useToast } from './Toast';
 
 /**
@@ -10,6 +12,7 @@ export function ReviewQueue({ onChange }: { onChange: () => void }) {
   const [edges, setEdges] = useState<ReviewEdge[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const toast = useToast();
+  const t = useT();
 
   const load = () =>
     api
@@ -45,8 +48,8 @@ export function ReviewQueue({ onChange }: { onChange: () => void }) {
     return (
       <div className="empty">
         <div className="big">✨</div>
-        No suggested connections to review.
-        <div className="hint">As you capture notes, Zettra proposes typed relations here.</div>
+        {t('queue.emptyTitle')}
+        <div className="hint">{t('queue.emptyHint')}</div>
       </div>
     );
   }
@@ -61,16 +64,16 @@ export function ReviewQueue({ onChange }: { onChange: () => void }) {
             <span className="review-node">{e.target.title}</span>
           </div>
           <div className="row" style={{ marginTop: 12, justifyContent: 'space-between' }}>
-            <span className="badge" title="How confident the model is this is a real relation">
+            <span className="badge" title={t('queue.confidenceTitle')}>
               <span className="dot" />
-              {e.confidence !== null ? confidenceLabel(e.confidence) : 'unrated'}
+              {e.confidence !== null ? t(confidenceLabelKey(e.confidence)) : t('queue.unrated')}
             </span>
             <div className="row">
               <button className="ghost" disabled={busy === e.id} onClick={() => act(e.id, false)}>
-                Dismiss
+                {t('queue.dismiss')}
               </button>
               <button className="primary" disabled={busy === e.id} onClick={() => act(e.id, true)}>
-                {busy === e.id ? '…' : 'Confirm'}
+                {busy === e.id ? '…' : t('queue.confirm')}
               </button>
             </div>
           </div>
@@ -80,8 +83,8 @@ export function ReviewQueue({ onChange }: { onChange: () => void }) {
   );
 }
 
-function confidenceLabel(c: number): string {
-  if (c >= 0.85) return 'Strong match';
-  if (c >= 0.6) return 'Likely match';
-  return 'Possible match';
+function confidenceLabelKey(c: number): StringKey {
+  if (c >= 0.85) return 'rail.strongMatch';
+  if (c >= 0.6) return 'queue.likelyMatch';
+  return 'queue.possibleMatch';
 }

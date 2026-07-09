@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, type Tag } from '../lib/api';
+import { useT } from '../i18n';
 import { useToast } from './Toast';
 import { clickable } from '../lib/a11y';
 
@@ -9,6 +10,7 @@ export function ApplyTagMenu({ blockId, onApplied }: { blockId: string; onApplie
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const toast = useToast();
+  const t = useT();
 
   useEffect(() => {
     api
@@ -44,16 +46,16 @@ export function ApplyTagMenu({ blockId, onApplied }: { blockId: string; onApplie
   return (
     <div className="menu" ref={ref}>
       <button className="ghost" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        🏷️ Add supertag
+        🏷️ {t('review.addSupertag')}
       </button>
       {open && (
         <div className="menu-list">
-          {tags.map((t) => (
-            <div key={t.id} className="m-item" {...clickable(() => apply(t))}>
-              <span>{t.icon ?? '#'}</span> {t.name}
+          {tags.map((tag) => (
+            <div key={tag.id} className="m-item" {...clickable(() => apply(tag))}>
+              <span>{tag.icon ?? '#'}</span> {tag.name}
             </div>
           ))}
-          {tags.length === 0 && <div className="m-item">No supertags</div>}
+          {tags.length === 0 && <div className="m-item">{t('review.noSupertags')}</div>}
         </div>
       )}
     </div>

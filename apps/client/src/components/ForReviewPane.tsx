@@ -5,6 +5,7 @@ import { absoluteTime, relativeTime } from '../lib/time';
 import { clickable } from '../lib/a11y';
 import { ApplyTagMenu } from './ApplyTagMenu';
 import { EmptyState, Button } from '../ui';
+import { useT } from '../i18n';
 import { useToast } from './Toast';
 
 /**
@@ -21,6 +22,7 @@ export function ForReviewPane({
   onResolved: () => void;
 }) {
   const toast = useToast();
+  const t = useT();
 
   async function markReviewed(id: string) {
     try {
@@ -32,13 +34,7 @@ export function ForReviewPane({
   }
 
   if (blocks.length === 0) {
-    return (
-      <EmptyState
-        glyph="🗂️"
-        title="Nothing to review"
-        hint="Captures the AI couldn't confidently tag land here for a quick human decision."
-      />
-    );
+    return <EmptyState glyph="🗂️" title={t('review.emptyTitle')} hint={t('review.emptyHint')} />;
   }
 
   return (
@@ -47,7 +43,7 @@ export function ForReviewPane({
         <div key={b.id} className="card review-card">
           <div {...clickable(() => onOpen(b.id))} style={{ cursor: 'pointer' }}>
             <div className="title">{blockTitle(b)}</div>
-            <div className="preview">{blockPreview(b) || 'Empty note'}</div>
+            <div className="preview">{blockPreview(b) || t('inbox.emptyNote')}</div>
             <div className="meta">
               <span className="source-pill">{b.source}</span>
               <span>·</span>
@@ -57,7 +53,7 @@ export function ForReviewPane({
           <div className="review-card-actions">
             <ApplyTagMenu blockId={b.id} onApplied={onResolved} />
             <Button variant="ghost" size="sm" onClick={() => markReviewed(b.id)}>
-              ✓ Mark reviewed
+              ✓ {t('review.markReviewed')}
             </Button>
           </div>
         </div>

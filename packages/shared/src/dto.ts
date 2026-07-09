@@ -26,7 +26,7 @@ export interface UserDto {
 export interface UserSettingsDto {
   themeMode?: 'light' | 'dark' | 'system';
   accent?: string;
-  language?: 'de' | 'en';
+  language?: 'en' | 'de' | 'es' | 'fr';
 }
 
 export interface CreateBlockDto {

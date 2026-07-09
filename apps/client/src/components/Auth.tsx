@@ -1,32 +1,17 @@
 import { useState } from 'react';
 import { api, setToken } from '../lib/api';
+import { useT } from '../i18n';
 import { Button, Field, Input, ThemeSwitcher } from '../ui';
-
-const HIGHLIGHTS = [
-  {
-    glyph: '🧠',
-    title: 'Entities, not just pages',
-    body: 'Every note can become a typed, queryable thing.',
-  },
-  {
-    glyph: '🔗',
-    title: 'Connections you can trust',
-    body: 'Hard links are explicit; soft ones stay suggestions.',
-  },
-  {
-    glyph: '⚡',
-    title: 'Real-time & offline-first',
-    body: 'Yjs keeps everyone in sync, even off the grid.',
-  },
-  {
-    glyph: '🔒',
-    title: 'Self-hosted & permission-scoped',
-    body: 'Your data, your server, scoped to what you can see.',
-  },
-];
 
 /** Register/login gate (§2). Registration provisions a whole seeded tenant (§8.2). */
 export function Auth({ onAuthed }: { onAuthed: () => void }) {
+  const t = useT();
+  const HIGHLIGHTS = [
+    { glyph: '🧠', title: t('auth.h1t'), body: t('auth.h1b') },
+    { glyph: '🔗', title: t('auth.h2t'), body: t('auth.h2b') },
+    { glyph: '⚡', title: t('auth.h3t'), body: t('auth.h3b') },
+    { glyph: '🔒', title: t('auth.h4t'), body: t('auth.h4b') },
+  ];
   const [mode, setMode] = useState<'register' | 'login'>('register');
   const [tenantName, setTenantName] = useState('My Second Brain');
   const [tenantId, setTenantId] = useState('');
@@ -79,12 +64,9 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
 
         <div className="relative">
           <h1 className="max-w-md text-4xl font-bold leading-tight tracking-tight">
-            The second brain that thinks in connections.
+            {t('auth.heroTitle')}
           </h1>
-          <p className="mt-4 max-w-md text-white/80">
-            Capture anything, tag it into a typed entity, and let Zettra surface the links you’d
-            never find yourself.
-          </p>
+          <p className="mt-4 max-w-md text-white/80">{t('auth.heroSub')}</p>
           <ul className="mt-8 grid max-w-md gap-4 sm:grid-cols-2">
             {HIGHLIGHTS.map((h) => (
               <li key={h.title} className="flex gap-3">
@@ -100,9 +82,7 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
           </ul>
         </div>
 
-        <div className="relative text-sm text-white/60">
-          Open source · Postgres · pgvector · Yjs
-        </div>
+        <div className="relative text-sm text-white/60">{t('auth.openSource')}</div>
       </aside>
 
       {/* Form panel */}
@@ -122,12 +102,10 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
           </div>
 
           <h2 className="mt-4 text-2xl font-bold tracking-tight text-text">
-            {mode === 'register' ? 'Create your workspace' : 'Welcome back'}
+            {mode === 'register' ? t('auth.createTitle') : t('auth.welcomeTitle')}
           </h2>
           <p className="mb-6 mt-1 text-sm text-muted">
-            {mode === 'register'
-              ? 'Spin up a fresh, seeded second brain in seconds.'
-              : 'Sign in to your self-hosted workspace.'}
+            {mode === 'register' ? t('auth.createSub') : t('auth.signinSub')}
           </p>
 
           <div
@@ -146,7 +124,7 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
                   : 'text-muted hover:text-text')
               }
             >
-              Create account
+              {t('auth.tabCreate')}
             </button>
             <button
               type="button"
@@ -158,18 +136,18 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
                 (mode === 'login' ? 'bg-surface text-text shadow-sm' : 'text-muted hover:text-text')
               }
             >
-              Sign in
+              {t('auth.tabSignin')}
             </button>
           </div>
 
           {mode === 'register' ? (
-            <Field label="Workspace name" htmlFor="auth-tenant-name">
+            <Field label={t('auth.workspaceName')} htmlFor="auth-tenant-name">
               {(id) => (
                 <Input id={id} value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
               )}
             </Field>
           ) : (
-            <Field label="Workspace ID" htmlFor="auth-tenant-id">
+            <Field label={t('auth.workspaceId')} htmlFor="auth-tenant-id">
               {(id) => (
                 <Input
                   id={id}
@@ -180,7 +158,7 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
               )}
             </Field>
           )}
-          <Field label="Email" htmlFor="auth-email">
+          <Field label={t('auth.email')} htmlFor="auth-email">
             {(id) => (
               <Input
                 id={id}
@@ -191,20 +169,24 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
               />
             )}
           </Field>
-          <Field label="Password" htmlFor="auth-password">
+          <Field label={t('auth.password')} htmlFor="auth-password">
             {(id) => (
               <Input
                 id={id}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
+                placeholder={t('auth.passwordHint')}
               />
             )}
           </Field>
 
           <Button variant="primary" size="lg" block type="submit" disabled={busy} className="mt-2">
-            {busy ? 'Please wait…' : mode === 'register' ? 'Create workspace' : 'Sign in'}
+            {busy
+              ? t('auth.pleaseWait')
+              : mode === 'register'
+                ? t('auth.createWorkspace')
+                : t('auth.tabSignin')}
           </Button>
           {error && (
             <p className="mt-3 text-sm text-red" role="alert">
@@ -212,9 +194,7 @@ export function Auth({ onAuthed }: { onAuthed: () => void }) {
             </p>
           )}
 
-          <p className="mt-6 text-center text-xs text-faint">
-            By continuing you agree this is your data on your server.
-          </p>
+          <p className="mt-6 text-center text-xs text-faint">{t('auth.agree')}</p>
         </form>
       </main>
     </div>

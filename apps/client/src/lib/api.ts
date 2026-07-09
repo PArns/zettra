@@ -42,7 +42,7 @@ export interface Space {
 export interface UserSettings {
   themeMode?: 'light' | 'dark' | 'system';
   accent?: string;
-  language?: 'de' | 'en';
+  language?: 'en' | 'de' | 'es' | 'fr';
 }
 export interface View {
   id: string;

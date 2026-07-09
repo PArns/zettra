@@ -4,6 +4,7 @@ import { App } from './App';
 import { Demo } from './Demo';
 import { ShellPreview } from './ShellPreview';
 import { AnnotationLayer } from './annotate/AnnotationLayer';
+import { I18nProvider } from './i18n';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initTheme, setMode } from './lib/theme';
@@ -35,19 +36,21 @@ const isShell = params.get('shell') === '1';
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {isDemo ? (
-        <Demo />
-      ) : isShell ? (
-        <ToastProvider>
-          <ShellPreview />
-        </ToastProvider>
-      ) : (
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      )}
-      {/* Admin-only design annotation overlay (renders null unless admin mode is on). */}
-      <AnnotationLayer />
+      <I18nProvider>
+        {isDemo ? (
+          <Demo />
+        ) : isShell ? (
+          <ToastProvider>
+            <ShellPreview />
+          </ToastProvider>
+        ) : (
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        )}
+        {/* Admin-only design annotation overlay (renders null unless admin mode is on). */}
+        <AnnotationLayer />
+      </I18nProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 );

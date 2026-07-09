@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, type Notification } from '../lib/api';
+import { useT } from '../i18n';
+import type { StringKey } from '../i18n';
 import { absoluteTime, relativeTime } from '../lib/time';
 import { clickable } from '../lib/a11y';
 
-function describe(n: Notification): string {
-  const who = n.actorName ?? 'Someone';
+function describe(n: Notification, t: (key: StringKey) => string): string {
+  const who = n.actorName ?? t('notif.someone');
   switch (n.kind) {
     case 'mention':
-      return `${who} mentioned you`;
+      return `${who} ${t('notif.mentioned')}`;
     case 'task_assignment':
-      return `${who} assigned you a task`;
+      return `${who} ${t('notif.assigned')}`;
     case 'review_request':
-      return 'A connection is waiting for review';
+      return t('notif.reviewWaiting');
   }
 }
 
@@ -20,6 +22,7 @@ export function NotificationsBell({ onOpenBlock }: { onOpenBlock: (id: string) =
   const [items, setItems] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   const load = () =>
     api
@@ -28,8 +31,8 @@ export function NotificationsBell({ onOpenBlock }: { onOpenBlock: (id: string) =
       .catch(() => undefined);
   useEffect(() => {
     void load();
-    const t = setInterval(load, 30_000);
-    return () => clearInterval(t);
+    const timer = setInterval(load, 30_000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -62,8 +65,8 @@ export function NotificationsBell({ onOpenBlock }: { onOpenBlock: (id: string) =
     <div className="bell menu" ref={ref}>
       <button
         className="icon"
-        title="Notifications"
-        aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
+        title={t('notif.title')}
+        aria-label={`${t('notif.title')}${unread > 0 ? `, ${unread} ${t('notif.unread')}` : ''}`}
         aria-expanded={open}
         onClick={toggle}
       >
@@ -72,14 +75,14 @@ export function NotificationsBell({ onOpenBlock }: { onOpenBlock: (id: string) =
       {open && (
         <div className="popover">
           <div className="head">
-            Notifications
+            {t('notif.title')}
             <span style={{ color: 'var(--text-faint)', fontWeight: 400, fontSize: 12 }}>
               {items.length}
             </span>
           </div>
           {items.length === 0 && (
             <div className="n-item" style={{ color: 'var(--text-faint)' }}>
-              You&apos;re all caught up.
+              {t('notif.caughtUp')}
             </div>
           )}
           {items.slice(0, 20).map((n) => {
@@ -91,7 +94,7 @@ export function NotificationsBell({ onOpenBlock }: { onOpenBlock: (id: string) =
                 style={openable ? undefined : { cursor: 'default' }}
                 {...(openable ? clickable(() => onOpenBlock(n.sourceBlockId as string)) : {})}
               >
-                {describe(n)}
+                {describe(n, t)}
                 <div
                   style={{ color: 'var(--text-faint)', fontSize: 11, marginTop: 2 }}
                   title={absoluteTime(n.createdAt)}

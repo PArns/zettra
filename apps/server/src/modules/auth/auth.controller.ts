@@ -22,7 +22,7 @@ class LoginBody {
 class SettingsBody {
   @IsOptional() @IsIn(['light', 'dark', 'system']) themeMode?: 'light' | 'dark' | 'system';
   @IsOptional() @IsString() accent?: string;
-  @IsOptional() @IsIn(['de', 'en']) language?: 'de' | 'en';
+  @IsOptional() @IsIn(['en', 'de', 'es', 'fr']) language?: 'en' | 'de' | 'es' | 'fr';
 }
 
 class ProfileBody {

@@ -4,6 +4,7 @@ import { api, getToken, setToken, type Space, type Tag, type View } from './lib/
 import { IconButton } from './ui';
 import { setMode } from './lib/theme';
 import { setAccent } from './lib/accent';
+import { useI18n } from './i18n';
 import { Auth } from './components/Auth';
 import { SettingsDialog } from './components/SettingsDialog';
 import { SupertagDialog } from './components/SupertagDialog';
@@ -40,6 +41,7 @@ export function App() {
   // null = closed; { tag: null } = create; { tag } = edit.
   const [tagEdit, setTagEdit] = useState<{ tag: Tag | null } | null>(null);
   const toast = useToast();
+  const { t, setLang } = useI18n();
 
   const refresh = useCallback(async () => {
     try {
@@ -79,10 +81,10 @@ export function App() {
       .then((s) => {
         if (s.themeMode) setMode(s.themeMode);
         if (s.accent) setAccent(s.accent);
-        if (s.language) document.documentElement.lang = s.language;
+        if (s.language) setLang(s.language);
       })
       .catch(() => undefined);
-  }, [authed]);
+  }, [authed, setLang]);
 
   async function capture() {
     if (capturing) return;
@@ -122,13 +124,13 @@ export function App() {
 
   const crumb =
     selected != null
-      ? 'Note'
+      ? t('top.note')
       : nav.kind === 'inbox'
-        ? 'Briefkasten'
+        ? t('nav.briefkasten')
         : nav.kind === 'review'
-          ? 'Connections'
+          ? t('nav.connections')
           : nav.kind === 'forReview'
-            ? 'For Review'
+            ? t('nav.forReview')
             : nav.name;
 
   return (
@@ -159,8 +161,8 @@ export function App() {
         <div className="topbar">
           <button
             className="icon mobile-toggle"
-            title="Menu"
-            aria-label="Open menu"
+            title={t('top.openMenu')}
+            aria-label={t('top.openMenu')}
             onClick={() => setNavOpen(true)}
           >
             ☰
@@ -168,8 +170,8 @@ export function App() {
           {selected && (
             <button
               className="icon"
-              title="Back"
-              aria-label="Back"
+              title={t('top.back')}
+              aria-label={t('top.back')}
               onClick={() => setSelected(null)}
             >
               ←
@@ -182,10 +184,10 @@ export function App() {
             <ApplyTagMenu blockId={selected} onApplied={() => setRailRefresh((n) => n + 1)} />
           )}
           <button className="ghost" onClick={capture} disabled={capturing}>
-            {capturing ? 'Capturing…' : '✎ Capture'}
+            {capturing ? t('top.capturing') : `✎ ${t('top.capture')}`}
           </button>
           <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
-          <IconButton label="Settings" onClick={() => setShowSettings(true)}>
+          <IconButton label={t('top.settings')} onClick={() => setShowSettings(true)}>
             ⚙
           </IconButton>
         </div>

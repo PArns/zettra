@@ -35,3 +35,7 @@ apps/client/.vite/
 
 # Ollama / docker volumes (if bind-mounted locally)
 .volumes/
+
+# Local Claude Code / impeccable harness tooling (installed per-developer, not product code).
+# Delete this line and commit .claude/skills to share the design detector with the team + CI.
+.claude/

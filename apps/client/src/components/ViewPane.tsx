@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ViewData } from '../lib/api';
 import { api } from '../lib/api';
+import { useT } from '../i18n';
 import { blockTitle } from '../lib/blocks';
 
 /**
@@ -8,6 +9,7 @@ import { blockTitle } from '../lib/blocks';
  * (rows + typed field values). groupBy drives board columns.
  */
 export function ViewPane({ viewId, onOpen }: { viewId: string; onOpen: (id: string) => void }) {
+  const t = useT();
   const [data, setData] = useState<ViewData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +26,12 @@ export function ViewPane({ viewId, onOpen }: { viewId: string; onOpen: (id: stri
     };
   }, [viewId]);
 
-  if (error) return <div className="empty">Could not load view: {error}</div>;
+  if (error)
+    return (
+      <div className="empty">
+        {t('view.loadError')}: {error}
+      </div>
+    );
   if (!data)
     return (
       <div className="empty">
@@ -35,7 +42,7 @@ export function ViewPane({ viewId, onOpen }: { viewId: string; onOpen: (id: stri
     return (
       <div className="empty">
         <div className="big">🗂️</div>
-        No items with this supertag yet.
+        {t('view.empty')}
       </div>
     );
   }
@@ -56,12 +63,13 @@ function fmt(v: unknown): string {
 }
 
 function Table({ data, onOpen }: { data: ViewData; onOpen: (id: string) => void }) {
+  const t = useT();
   return (
     <div className="table-wrap">
       <table className="zx">
         <thead>
           <tr>
-            <th>Name</th>
+            <th>{t('common.name')}</th>
             {data.fields.map((f) => (
               <th key={f.id}>{f.name}</th>
             ))}

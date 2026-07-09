@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, type UserSettings } from '../lib/api';
 import { getAccent, setAccent } from '../lib/accent';
+import { LANGUAGES, useI18n } from '../i18n';
 import { AccentPicker, Button, Field, Input, Segmented, ThemeSwitcher } from '../ui';
 import { useToast } from './Toast';
 
@@ -31,7 +32,10 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
       <div className="usage-track">
         <div
           className="usage-fill"
-          style={{ width: `${limit == null ? 4 : pct}%`, opacity: limit == null ? 0.4 : 1 }}
+          style={{
+            transform: `scaleX(${limit == null ? 0.04 : pct / 100})`,
+            opacity: limit == null ? 0.4 : 1,
+          }}
         />
       </div>
     </div>
@@ -55,9 +59,9 @@ export function SettingsDialog({
   onProfileSaved: (p: { email: string; displayName: string | null }) => void;
 }) {
   const toast = useToast();
+  const { t, lang, setLang } = useI18n();
   const [tab, setTab] = useState<Tab>('appearance');
   const [accent, setAccentState] = useState(getAccent());
-  const [language, setLanguage] = useState<'de' | 'en'>('en');
 
   const [name, setName] = useState(displayName);
   const [mail, setMail] = useState(email);
@@ -68,12 +72,6 @@ export function SettingsDialog({
   const [plan, setPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
-    api
-      .getSettings()
-      .then((s) => {
-        if (s.language) setLanguage(s.language);
-      })
-      .catch(() => undefined);
     api
       .tenantLimits()
       .then(setPlan)
@@ -128,7 +126,7 @@ export function SettingsDialog({
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="modal-head">
-          <span className="modal-title">Settings</span>
+          <span className="modal-title">{t('settings.title')}</span>
           <button className="icon" aria-label="Close" onClick={onClose}>
             ✕
           </button>
@@ -136,19 +134,19 @@ export function SettingsDialog({
 
         <div className="settings-body">
           <nav className="settings-tabs">
-            {(['appearance', 'profile', 'security', 'plan'] as Tab[]).map((t) => (
+            {(['appearance', 'profile', 'security', 'plan'] as Tab[]).map((tabId) => (
               <button
-                key={t}
-                className={`settings-tab ${tab === t ? 'active' : ''}`}
-                onClick={() => setTab(t)}
+                key={tabId}
+                className={`settings-tab ${tab === tabId ? 'active' : ''}`}
+                onClick={() => setTab(tabId)}
               >
-                {t === 'appearance'
-                  ? '🎨 Appearance'
-                  : t === 'profile'
-                    ? '👤 Profile'
-                    : t === 'security'
-                      ? '🔒 Security'
-                      : '💳 Plan'}
+                {tabId === 'appearance'
+                  ? `🎨 ${t('settings.appearance')}`
+                  : tabId === 'profile'
+                    ? `👤 ${t('settings.profile')}`
+                    : tabId === 'security'
+                      ? `🔒 ${t('settings.security')}`
+                      : `💳 ${t('settings.plan')}`}
               </button>
             ))}
           </nav>
@@ -157,11 +155,11 @@ export function SettingsDialog({
             {tab === 'appearance' && (
               <div className="stack">
                 <div>
-                  <div className="settings-label">Theme</div>
+                  <div className="settings-label">{t('settings.theme')}</div>
                   <ThemeSwitcher onChange={(m) => void persist({ themeMode: m })} />
                 </div>
                 <div>
-                  <div className="settings-label">Accent color</div>
+                  <div className="settings-label">{t('settings.accent')}</div>
                   <AccentPicker
                     value={accent}
                     onChange={(id) => {
@@ -172,19 +170,15 @@ export function SettingsDialog({
                   />
                 </div>
                 <div>
-                  <div className="settings-label">Language</div>
+                  <div className="settings-label">{t('settings.language')}</div>
                   <Segmented
-                    ariaLabel="Language"
-                    value={language}
+                    ariaLabel={t('settings.language')}
+                    value={lang}
                     onChange={(l) => {
-                      setLanguage(l);
-                      document.documentElement.lang = l;
+                      setLang(l);
                       void persist({ language: l });
                     }}
-                    options={[
-                      { value: 'en', label: 'English' },
-                      { value: 'de', label: 'Deutsch' },
-                    ]}
+                    options={LANGUAGES.map((l) => ({ value: l.id, label: l.label }))}
                   />
                 </div>
               </div>
@@ -192,10 +186,10 @@ export function SettingsDialog({
 
             {tab === 'profile' && (
               <div className="stack">
-                <Field label="Display name" htmlFor="set-name">
+                <Field label={t('settings.displayName')} htmlFor="set-name">
                   {(id) => <Input id={id} value={name} onChange={(e) => setName(e.target.value)} />}
                 </Field>
-                <Field label="Email" htmlFor="set-email">
+                <Field label={t('settings.email')} htmlFor="set-email">
                   {(id) => (
                     <Input
                       id={id}
@@ -206,14 +200,14 @@ export function SettingsDialog({
                   )}
                 </Field>
                 <Button variant="primary" onClick={saveProfile} disabled={savingProfile}>
-                  {savingProfile ? 'Saving…' : 'Save profile'}
+                  {savingProfile ? t('settings.saving') : t('settings.saveProfile')}
                 </Button>
               </div>
             )}
 
             {tab === 'security' && (
               <div className="stack">
-                <Field label="Current password" htmlFor="set-pw-cur">
+                <Field label={t('settings.currentPassword')} htmlFor="set-pw-cur">
                   {(id) => (
                     <Input
                       id={id}
@@ -223,7 +217,11 @@ export function SettingsDialog({
                     />
                   )}
                 </Field>
-                <Field label="New password" htmlFor="set-pw-new" hint="At least 8 characters">
+                <Field
+                  label={t('settings.newPassword')}
+                  htmlFor="set-pw-new"
+                  hint={t('auth.passwordHint')}
+                >
                   {(id) => (
                     <Input
                       id={id}
@@ -233,7 +231,7 @@ export function SettingsDialog({
                     />
                   )}
                 </Field>
-                <Field label="Confirm new password" htmlFor="set-pw-conf">
+                <Field label={t('settings.confirmPassword')} htmlFor="set-pw-conf">
                   {(id) => (
                     <Input
                       id={id}
@@ -244,7 +242,7 @@ export function SettingsDialog({
                   )}
                 </Field>
                 <Button variant="primary" onClick={savePassword} disabled={savingPw}>
-                  {savingPw ? 'Saving…' : 'Change password'}
+                  {savingPw ? t('settings.saving') : t('settings.changePassword')}
                 </Button>
               </div>
             )}
@@ -252,28 +250,34 @@ export function SettingsDialog({
             {tab === 'plan' && (
               <div className="stack">
                 <div className="plan-badge">
-                  Current plan: <strong>{plan ? plan.tier.toUpperCase() : '—'}</strong>
+                  {t('settings.currentPlan')}:{' '}
+                  <strong>{plan ? plan.tier.toUpperCase() : '—'}</strong>
                 </div>
                 {plan && (
                   <div className="stack" style={{ gap: 12 }}>
                     <UsageBar
-                      label="Members"
+                      label={t('settings.members')}
                       used={plan.usage.members}
                       limit={plan.limits.members}
                     />
-                    <UsageBar label="Spaces" used={plan.usage.spaces} limit={plan.limits.spaces} />
-                    <UsageBar label="Blocks" used={plan.usage.blocks} limit={plan.limits.blocks} />
                     <UsageBar
-                      label="Storage (MB)"
+                      label={t('settings.spaces')}
+                      used={plan.usage.spaces}
+                      limit={plan.limits.spaces}
+                    />
+                    <UsageBar
+                      label={t('settings.blocks')}
+                      used={plan.usage.blocks}
+                      limit={plan.limits.blocks}
+                    />
+                    <UsageBar
+                      label={t('settings.storage')}
                       used={plan.usage.storageMb}
                       limit={plan.limits.storageMb}
                     />
                   </div>
                 )}
-                <p className="text-xs text-faint">
-                  Limits are enforced when creating spaces and blocks. Change the tier on the tenant
-                  to upgrade.
-                </p>
+                <p className="text-xs text-faint">{t('settings.planNote')}</p>
               </div>
             )}
           </div>
