@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { Allow, IsString } from 'class-validator';
 import { DocBlock } from '@zettra/shared';
 import { InternalGuard } from '../../common/internal.guard';
@@ -25,5 +25,17 @@ export class SyncController {
   ): Promise<{ ok: true }> {
     await this.materialize.materialize(body.tenantId, blockId, body.doc);
     return { ok: true };
+  }
+
+  /**
+   * Content projection for the collab persistence hook to rebuild the Yjs doc on load (§8.7).
+   * Tenant-scoped so a doc load can't read another tenant's block.
+   */
+  @Get(':blockId')
+  async load(
+    @Param('blockId') blockId: string,
+    @Query('tenantId') tenantId: string,
+  ): Promise<{ doc: DocBlock[] }> {
+    return { doc: await this.materialize.getDoc(tenantId, blockId) };
   }
 }

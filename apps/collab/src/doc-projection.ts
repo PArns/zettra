@@ -23,3 +23,20 @@ export function yDocToBlocks(doc: Y.Doc): DocBlock[] {
     return [];
   }
 }
+
+/**
+ * Rebuild a Yjs document from the stored block tree (the inverse of {@link yDocToBlocks}), for
+ * onLoadDocument (§8.7): the Yjs doc is ephemeral, so on reopen it is reconstructed from the
+ * `block.content` projection. Returns null when there is nothing to load.
+ */
+export function blocksToYDoc(blocks: DocBlock[]): Y.Doc | null {
+  if (!Array.isArray(blocks) || blocks.length === 0) return null;
+  try {
+    return editor.blocksToYDoc(
+      blocks as unknown as Parameters<typeof editor.blocksToYDoc>[0],
+      'document',
+    );
+  } catch {
+    return null;
+  }
+}

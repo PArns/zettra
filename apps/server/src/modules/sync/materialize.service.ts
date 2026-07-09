@@ -37,6 +37,12 @@ export class MaterializeService {
         .findOne({ where: { id: blockId, tenantId } });
       if (!block) return;
 
+      // Persist the settled prose as the block's content projection (invariant 1: text-as-json).
+      // Without this the rich text lived only in the ephemeral Yjs doc and was lost on reload;
+      // onLoadDocument rebuilds the Yjs doc from this on reopen.
+      block.content = doc;
+      await manager.getRepository(Block).save(block);
+
       newMentions = await this.syncMentions(manager, tenantId, blockId, referenceIds);
       tagJobs = await this.syncTags(manager, tenantId, blockId, tagIds, block.createdBy);
     });
@@ -64,6 +70,14 @@ export class MaterializeService {
 
     // Re-embed after content settles (§8.7 step 4), debounced by blockId.
     await this.queue.enqueue(QUEUE.Embed, { tenantId, blockId }, `embed:${blockId}`);
+  }
+
+  /** The block's stored prose (DocBlock[]) for rebuilding its Yjs doc on load; [] if none. */
+  async getDoc(tenantId: string, blockId: string): Promise<DocBlock[]> {
+    const block = await this.dataSource
+      .getRepository(Block)
+      .findOne({ where: { id: blockId, tenantId } });
+    return Array.isArray(block?.content) ? (block.content as DocBlock[]) : [];
   }
 
   /** Returns the target ids of newly-created mention edges. */

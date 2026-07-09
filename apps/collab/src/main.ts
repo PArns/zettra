@@ -1,8 +1,10 @@
+import * as Y from 'yjs';
 import { Server } from '@hocuspocus/server';
 import { Redis } from '@hocuspocus/extension-redis';
 import jwt from 'jsonwebtoken';
+import { DocBlock } from '@zettra/shared';
 import { loadCollabConfig } from './config';
-import { yDocToBlocks } from './doc-projection';
+import { blocksToYDoc, yDocToBlocks } from './doc-projection';
 
 /**
  * Hocuspocus Yjs collaboration server (§13.1). Deployed separately from the API and
@@ -35,6 +37,29 @@ const server = Server.configure({
     }
     // Exposed to later hooks via `context`.
     return { userId: claims.sub, tenantId: claims.tid };
+  },
+
+  // Rebuild the Yjs doc from the stored `block.content` projection on first load (§8.7). The Yjs
+  // doc is ephemeral (unloaded once all clients leave), so without this a note reopened empty.
+  async onLoadDocument({ documentName, document, context }) {
+    const ctx = context as { tenantId?: string } | undefined;
+    const tenantId = ctx?.tenantId;
+    if (!tenantId) return document;
+    // Don't clobber a doc another client already populated in memory.
+    if (document.getXmlFragment('document').length > 0) return document;
+    try {
+      const res = await fetch(
+        `${config.serverInternalUrl}/api/internal/sync/${documentName}?tenantId=${encodeURIComponent(tenantId)}`,
+        { headers: { 'x-internal-secret': config.appSecret } },
+      );
+      if (!res.ok) return document;
+      const { doc } = (await res.json()) as { doc: DocBlock[] };
+      const src = blocksToYDoc(doc);
+      if (src) Y.applyUpdate(document, Y.encodeStateAsUpdate(src));
+    } catch (err) {
+      console.error(`load callback error for ${documentName}: ${(err as Error).message}`);
+    }
+    return document;
   },
 
   // Debounced by Hocuspocus (see `debounce`) so an edit storm collapses to one persist (§8.7).
