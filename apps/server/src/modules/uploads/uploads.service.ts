@@ -13,9 +13,9 @@ import { loadConfig } from '../../config/configuration';
 
 /**
  * Stores uploaded files on a mounted volume (§8.3 upload source). Files live under
- * `<uploadDir>/<tenantId>/<uuid.ext>` and are served back by an unguessable key. v1 serves
- * without per-request auth because <img src> cannot send an Authorization header; keys are
- * random UUIDs. SPEC-GAP: signed URLs / access-scoped downloads.
+ * `<uploadDir>/<tenantId>/<uuid.ext>` and are served back by an unguessable, HMAC-signed key.
+ * Serving carries no per-request auth header because <img src> cannot send one; instead the key
+ * is a random UUID and the served URL carries a tamper-proof `?sig=` (see `sign`/`verify`).
  */
 @Injectable()
 export class UploadsService {
