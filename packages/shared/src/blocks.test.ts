@@ -6,6 +6,7 @@ describe('BLOCK_TYPES', () => {
     for (const [key, value] of Object.entries(BLOCK_TYPES)) expect(value).toBe(key);
     expect(BLOCK_TYPES.math).toBe('math');
     expect(BLOCK_TYPES.mermaid).toBe('mermaid');
+    expect(BLOCK_TYPES.toggle).toBe('toggle');
   });
 });
 

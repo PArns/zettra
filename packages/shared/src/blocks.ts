@@ -7,8 +7,8 @@
  * These extend BlockNote's defaults with callout/admonition, blockquote, divider, web bookmark,
  * LaTeX math (KaTeX), and Mermaid diagram blocks.
  *
- * SPEC-GAP: toggle/collapsible blocks and promoting the kanban/formula-table widgets to
- * first-class block types remain — both need interactive (browser-driven) iteration.
+ * SPEC-GAP: promoting the kanban/formula-table widgets to first-class block types remains —
+ * it needs interactive (browser-driven) iteration.
  */
 
 export const CALLOUT_KINDS = ['info', 'tip', 'warning', 'danger', 'note'] as const;
@@ -48,6 +48,12 @@ export const BLOCK_TYPES = {
   bookmark: 'bookmark',
   math: 'math',
   mermaid: 'mermaid',
+  toggle: 'toggle',
+} as const;
+
+/** Collapsible toggle: an inline header whose nested child blocks hide when `open` is false. */
+export const togglePropSchema = {
+  open: { default: true as boolean },
 } as const;
 
 /** LaTeX math block (KaTeX renders it client-side; the server keeps the source as text). */

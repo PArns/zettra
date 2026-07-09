@@ -13,6 +13,7 @@ import {
   calloutPropSchema,
   mathPropSchema,
   mermaidPropSchema,
+  togglePropSchema,
 } from '@zettra/shared';
 
 /**
@@ -141,7 +142,23 @@ const mermaid = createBlockSpec(
   },
 );
 
+// Toggle: an inline header over nested children. The server only needs the header's inline
+// content preserved (its child blocks are separate rows); collapse is a client-only concern.
+const toggle = createBlockSpec(
+  { type: BLOCK_TYPES.toggle, propSchema: togglePropSchema, content: 'inline' } as const,
+  {
+    render: () => {
+      const dom = document.createElement('div');
+      dom.className = 'zx-toggle';
+      const body = document.createElement('div');
+      body.className = 'zx-toggle-summary';
+      dom.appendChild(body);
+      return { dom, contentDOM: body };
+    },
+  },
+);
+
 export const serverSchema = BlockNoteSchema.create({
-  blockSpecs: { ...defaultBlockSpecs, callout, quote, divider, bookmark, math, mermaid },
+  blockSpecs: { ...defaultBlockSpecs, callout, quote, divider, bookmark, math, mermaid, toggle },
   inlineContentSpecs: { ...defaultInlineContentSpecs, reference, tag },
 });

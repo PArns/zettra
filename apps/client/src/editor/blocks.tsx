@@ -10,6 +10,7 @@ import {
   calloutPropSchema,
   mathPropSchema,
   mermaidPropSchema,
+  togglePropSchema,
 } from '@zettra/shared';
 import { resolvedTheme } from '../lib/theme';
 
@@ -151,6 +152,37 @@ export const MermaidBlock = createReactBlockSpec(
           ) : (
             <div dangerouslySetInnerHTML={{ __html: svg }} />
           )}
+        </div>
+      );
+    },
+  },
+);
+
+/**
+ * Collapsible toggle: an inline header plus nested child blocks. Clicking the caret flips the
+ * `open` prop; BlockNote mirrors block props to `data-*` on `.bn-block-content`, so a CSS rule
+ * (styles.css) hides the sibling `.bn-block-group` (the children) when `data-open="false"`.
+ */
+export const ToggleBlock = createReactBlockSpec(
+  { type: BLOCK_TYPES.toggle, propSchema: togglePropSchema, content: 'inline' } as const,
+  {
+    render: ({ block, editor, contentRef }) => {
+      const open = block.props.open;
+      const toggle = () =>
+        editor.updateBlock(block, { type: BLOCK_TYPES.toggle, props: { open: !open } });
+      return (
+        <div className="zx-toggle" data-open={open}>
+          <button
+            type="button"
+            className="zx-toggle-caret"
+            contentEditable={false}
+            onClick={toggle}
+            aria-expanded={open}
+            title={open ? 'Collapse' : 'Expand'}
+          >
+            ▶
+          </button>
+          <div className="zx-toggle-summary" ref={contentRef} />
         </div>
       );
     },

@@ -1099,6 +1099,36 @@ body {
     font-size: 14px;
   }
 
+  /* ---------- Toggle / collapsible ---------- */
+  .zx-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .zx-toggle-caret {
+    flex: none;
+    margin-top: 2px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-faint, #9aa);
+    font-size: 11px;
+    line-height: 1;
+    transition: transform 0.12s ease;
+    transform: rotate(90deg);
+  }
+  .zx-toggle[data-open='false'] .zx-toggle-caret {
+    transform: rotate(0deg);
+  }
+  .zx-toggle-summary {
+    flex: 1 1 auto;
+  }
+  /* BlockNote mirrors block props to data-* on .bn-block-content; hide the children group
+     (a following sibling) when the toggle is closed. */
+  .bn-block-content[data-open='false'] ~ .bn-block-group {
+    display: none;
+  }
+
   /* ---------- Notifications ---------- */
   .bell {
     position: relative;

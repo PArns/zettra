@@ -7,6 +7,7 @@ import {
   MathBlock,
   MermaidBlock,
   QuoteBlock,
+  ToggleBlock,
 } from './blocks';
 
 /**
@@ -47,7 +48,7 @@ export const TagInline = createReactInlineContentSpec(
 
 /**
  * BlockNote schema extended with the reference + tag inline primitives and the custom blocks
- * (callout, quote, divider, bookmark, math, mermaid). Must mirror the collab server's
+ * (callout, quote, divider, bookmark, math, mermaid, toggle). Must mirror the collab server's
  * `serverSchema` so the Yjs round-trip preserves every node.
  */
 export const schema = BlockNoteSchema.create({
@@ -59,6 +60,7 @@ export const schema = BlockNoteSchema.create({
     bookmark: BookmarkBlock,
     math: MathBlock,
     mermaid: MermaidBlock,
+    toggle: ToggleBlock,
   },
   inlineContentSpecs: {
     ...defaultInlineContentSpecs,

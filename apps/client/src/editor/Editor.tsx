@@ -175,6 +175,13 @@ export function Editor({ blockId, userName = 'You' }: { blockId: string; userNam
           insertOrUpdateBlock(editor, { type: 'mermaid', props: { code: code ?? '' } });
         },
       },
+      {
+        title: 'Toggle',
+        subtext: 'Collapsible section (indent blocks under it)',
+        aliases: ['toggle', 'collapse', 'collapsible', 'details', 'accordion'],
+        group: 'Blocks',
+        onItemClick: () => insertOrUpdateBlock(editor, { type: 'toggle', props: { open: true } }),
+      },
     ];
     return filterSuggestionItems([...getDefaultReactSlashMenuItems(editor), ...custom], query);
   };
