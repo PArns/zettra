@@ -5,6 +5,7 @@ import { loadConfig } from '../config/configuration';
 import { InitialSchema1700000000000 } from './migrations/1700000000000-InitialSchema';
 import { Vector1700000000001 } from './migrations/1700000000001-Vector';
 import { Rls1700000000002 } from './migrations/1700000000002-Rls';
+import { Search1700000000003 } from './migrations/1700000000003-Search';
 
 const config = loadConfig();
 
@@ -17,7 +18,12 @@ export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   url: config.databaseUrl,
   entities: ALL_ENTITIES,
-  migrations: [InitialSchema1700000000000, Vector1700000000001, Rls1700000000002],
+  migrations: [
+    InitialSchema1700000000000,
+    Vector1700000000001,
+    Rls1700000000002,
+    Search1700000000003,
+  ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],
 };

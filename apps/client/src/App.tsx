@@ -10,6 +10,7 @@ import { ReviewQueue } from './components/ReviewQueue';
 import { RightRail } from './components/RightRail';
 import { NotificationsBell } from './components/NotificationsBell';
 import { ApplyTagMenu } from './components/ApplyTagMenu';
+import { SearchBox } from './components/SearchBox';
 import { Editor } from './editor/Editor';
 
 export function App() {
@@ -116,6 +117,7 @@ export function App() {
           )}
           <div className="crumb">{crumb}</div>
           <div className="spacer" />
+          <SearchBox onOpen={(id) => setSelected(id)} />
           {selected && <ApplyTagMenu blockId={selected} />}
           <button className="ghost" onClick={capture}>
             ✎ Capture

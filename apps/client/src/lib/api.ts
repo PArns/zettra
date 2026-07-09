@@ -113,6 +113,10 @@ export const api = {
 
   searchEntities: (q: string) =>
     request<EntityHit[]>(`/entities/search?q=${encodeURIComponent(q)}`),
+  search: (q: string) =>
+    request<{ blockId: string; score: number; preview: string }[]>(
+      `/search?q=${encodeURIComponent(q)}`,
+    ),
   createEntity: (i: { name: string; tagName?: string }) =>
     request<{ blockId: string; label: string }>('/entities', {
       method: 'POST',

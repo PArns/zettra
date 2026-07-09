@@ -64,6 +64,8 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
     const block = await this.blocks.findOne({ where: { id: blockId, tenantId } });
     if (!block) return;
     const text = extractPlainText(toDoc(block.content));
+    // Maintain the full-text column for hybrid search (§11); the tsvector is generated.
+    await this.blocks.update({ id: blockId }, { searchText: text });
     const chunks = chunkText(text);
     const vectors: number[][] = [];
     for (const chunk of chunks) {

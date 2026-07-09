@@ -39,6 +39,13 @@ export class Block {
   @Column({ type: 'jsonb', default: () => `'{}'::jsonb` })
   content!: unknown;
 
+  /**
+   * Extracted plaintext of `content`, maintained by the embed worker. Feeds the full-text
+   * half of hybrid search (§11); a generated `tsvector` + GIN index is added by migration.
+   */
+  @Column({ type: 'text', nullable: true, select: false })
+  searchText!: string | null;
+
   @Column({ type: 'enum', enum: BlockSource, default: BlockSource.Manual })
   source!: BlockSource;
 

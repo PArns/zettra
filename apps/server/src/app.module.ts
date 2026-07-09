@@ -25,6 +25,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { GraphModule } from './modules/graph/graph.module';
 import { SpaceModule } from './modules/space/space.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { SearchModule } from './modules/search/search.module';
 
 /**
  * Root module wiring the domain-focused feature modules (§3). Global modules (AI, Jobs,
@@ -59,6 +60,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     CaptureModule,
     CurationModule,
     GraphModule,
+    SearchModule,
     UploadsModule,
     SyncModule,
     WorkersModule,

@@ -605,6 +605,18 @@ table.zx tr:hover td {
   background: var(--accent-soft);
 }
 
+/* ---------- Search box ---------- */
+.search-box input {
+  width: 240px;
+  padding: 7px 12px;
+  background: var(--surface-2);
+  border-color: transparent;
+}
+.search-box input:focus {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+
 /* ---------- Tag menu ---------- */
 .menu {
   position: relative;
