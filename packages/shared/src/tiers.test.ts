@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { asTier, limitsFor, TenantTier, TIER_LIMITS, wouldExceed } from './tiers';
+import {
+  asTier,
+  bytesToMb,
+  BYTES_PER_MB,
+  limitsFor,
+  TenantTier,
+  TIER_LIMITS,
+  wouldExceed,
+} from './tiers';
 
 describe('asTier', () => {
   it('accepts valid tiers and falls back to Free', () => {
@@ -33,5 +41,19 @@ describe('wouldExceed', () => {
   it('honors a custom add amount', () => {
     expect(wouldExceed(1, 3, 2)).toBe(false); // 1 + 2 = 3 ≤ 3
     expect(wouldExceed(2, 3, 2)).toBe(true); // 2 + 2 = 4 > 3
+  });
+});
+
+describe('bytesToMb', () => {
+  it('converts bytes to mebibytes', () => {
+    expect(bytesToMb(0)).toBe(0);
+    expect(bytesToMb(BYTES_PER_MB)).toBe(1);
+    expect(bytesToMb(BYTES_PER_MB / 2)).toBe(0.5);
+  });
+
+  it('composes with wouldExceed to enforce a storage cap by incoming file size', () => {
+    // 499 MiB used against a 500 cap: a 2 MiB upload crosses it, a fit under does not.
+    expect(wouldExceed(499, 500, bytesToMb(2 * BYTES_PER_MB))).toBe(true);
+    expect(wouldExceed(497, 500, bytesToMb(2 * BYTES_PER_MB))).toBe(false);
   });
 });

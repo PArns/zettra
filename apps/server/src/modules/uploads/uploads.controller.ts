@@ -18,6 +18,7 @@ import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
 import { UploadsService } from './uploads.service';
 import { BlockService } from '../block/block.service';
+import { LimitsService } from '../limits/limits.service';
 
 /**
  * Upload + file serving (§8.3). `POST /uploads` backs BlockNote's `uploadFile` (inline image
@@ -29,11 +30,13 @@ export class UploadsController {
   constructor(
     private readonly uploads: UploadsService,
     private readonly blocks: BlockService,
+    private readonly limits: LimitsService,
   ) {}
 
   @Post('uploads')
   @UseGuards(AuthGuard)
   async upload(@Ctx() ctx: RequestContext, @Req() req: FastifyRequest): Promise<{ url: string }> {
+    await this.limits.assertCanUpload(ctx.tenantId, contentLength(req));
     const file = await (
       req as FastifyRequest & { file: () => Promise<MultipartFile | undefined> }
     ).file();
@@ -48,6 +51,7 @@ export class UploadsController {
     @Ctx() ctx: RequestContext,
     @Req() req: FastifyRequest,
   ): Promise<{ url: string; blockId: string }> {
+    await this.limits.assertCanUpload(ctx.tenantId, contentLength(req));
     const file = await (
       req as FastifyRequest & { file: () => Promise<MultipartFile | undefined> }
     ).file();
@@ -78,6 +82,14 @@ export class UploadsController {
     res.header('cache-control', 'private, max-age=86400');
     res.send(createReadStream(full));
   }
+}
+
+/** Best-effort incoming body size from Content-Length (multipart overhead over-counts slightly,
+ * which is safe for a cap check); 0 when the header is absent or unparseable. */
+function contentLength(req: FastifyRequest): number {
+  const raw = req.headers['content-length'];
+  const n = Number(Array.isArray(raw) ? raw[0] : raw);
+  return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
 /** Minimal BlockNote document embedding an uploaded image/file. */

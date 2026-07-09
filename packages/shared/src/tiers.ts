@@ -57,6 +57,14 @@ export function wouldExceed(current: number, limit: number | null, add = 1): boo
   return limit != null && current + add > limit;
 }
 
+/** Bytes in one mebibyte (MiB), the unit `storageMb` limits are expressed in. */
+export const BYTES_PER_MB = 1024 * 1024;
+
+/** Convert a raw byte count to (fractional) mebibytes for storage accounting. */
+export function bytesToMb(bytes: number): number {
+  return bytes / BYTES_PER_MB;
+}
+
 export interface TierUsage {
   members: number;
   spaces: number;
