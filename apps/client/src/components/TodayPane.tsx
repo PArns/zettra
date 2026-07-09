@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { BlockDto } from '@zettra/shared';
-import { api, type ReminderView } from '../lib/api';
+import { api, type AgendaItem, type ReminderView } from '../lib/api';
 import { blockTitle } from '../lib/blocks';
 import { relativeTime } from '../lib/time';
 import { clickable } from '../lib/a11y';
@@ -25,7 +25,8 @@ function fmt(iso: string): string {
 
 /**
  * The Today briefing (§6): a single-column agenda unifying due reminders (overdue / today /
- * upcoming) and the freshest captures. A calm daily start; grows to add calendar + mail sources.
+ * upcoming), date-field items scheduled today (pulled from the calendar agenda), and the freshest
+ * captures. A calm daily start gathered from all sources.
  */
 export function TodayPane({
   captures,
@@ -36,7 +37,9 @@ export function TodayPane({
 }) {
   const t = useT();
   const toast = useToast();
+  const today = todayIso();
   const [reminders, setReminders] = useState<ReminderView[]>([]);
+  const [scheduled, setScheduled] = useState<AgendaItem[]>([]);
 
   const load = () =>
     api
@@ -46,7 +49,12 @@ export function TodayPane({
 
   useEffect(() => {
     void load();
-  }, []);
+    // Date-field items due today, from the permission-scoped calendar agenda.
+    api
+      .calendarAgenda(today, today)
+      .then((a) => setScheduled(a.days[0]?.items.filter((i) => i.kind === 'field') ?? []))
+      .catch(() => undefined);
+  }, [today]);
 
   async function resolve(id: string, kind: 'done' | 'dismiss') {
     try {
@@ -57,11 +65,10 @@ export function TodayPane({
     }
   }
 
-  const today = todayIso();
   const overdue = reminders.filter((r) => dayOf(r.remindAt) < today);
   const dueToday = reminders.filter((r) => dayOf(r.remindAt) === today);
   const upcoming = reminders.filter((r) => dayOf(r.remindAt) > today);
-  const empty = reminders.length === 0 && captures.length === 0;
+  const empty = reminders.length === 0 && scheduled.length === 0 && captures.length === 0;
 
   const reminderGroup = (title: string, list: ReminderView[], tone: string) =>
     list.length > 0 && (
@@ -106,6 +113,24 @@ export function TodayPane({
       {reminderGroup(t('today.overdue'), overdue, 'overdue')}
       {reminderGroup(t('today.dueToday'), dueToday, 'due')}
       {reminderGroup(t('today.upcoming'), upcoming, 'upcoming')}
+
+      {scheduled.length > 0 && (
+        <div className="today-group">
+          <div className="today-group-head due">{t('today.scheduled')}</div>
+          {scheduled.map((it, i) => (
+            <div
+              key={`${it.blockId}:${i}`}
+              className="card today-item"
+              {...clickable(() => onOpen(it.blockId))}
+            >
+              <div style={{ flex: 1 }}>
+                <div className="today-title">📌 {it.title}</div>
+                {it.label && <div className="today-meta">{it.label}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {captures.length > 0 && (
         <div className="today-group">
