@@ -7,8 +7,17 @@ import { DocBlock, InlineNode } from './editor';
  */
 export function extractPlainText(blocks: DocBlock[]): string {
   const parts: string[] = [];
-  const visitInline = (nodes: InlineNode[] = []): void => {
-    for (const n of nodes) {
+  const visitInline = (nodes?: unknown): void => {
+    if (!Array.isArray(nodes)) {
+      // Non-array block content: a table (`{ rows: [{ cells: [[inline]] }] }`) — pull its cell
+      // text so tables are titled/previewed/searchable; other objects have no inline text.
+      const rows = (nodes as { rows?: Array<{ cells?: unknown[] }> } | null)?.rows;
+      if (Array.isArray(rows)) {
+        for (const row of rows) for (const cell of row?.cells ?? []) visitInline(cell);
+      }
+      return;
+    }
+    for (const n of nodes as InlineNode[]) {
       if (typeof n.text === 'string') parts.push(n.text);
       else if (n.props?.label) parts.push(String(n.props.label));
       if (n.content) visitInline(n.content);

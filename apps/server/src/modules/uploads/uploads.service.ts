@@ -23,15 +23,26 @@ export class UploadsService {
   private readonly secret = loadConfig().appSecret;
 
   private readonly allowed = new Set([
+    // images
     '.png',
     '.jpg',
     '.jpeg',
     '.gif',
     '.webp',
     '.svg',
+    '.avif',
+    '.heic',
+    '.bmp',
+    '.tiff',
+    // docs / data
     '.pdf',
     '.txt',
     '.md',
+    '.csv',
+    '.json',
+    '.docx',
+    '.xlsx',
+    '.pptx',
   ]);
 
   /** Persist a stream to disk, returning the public key + url. */

@@ -9,6 +9,7 @@ export * from './blocks';
 export * from './tag-tree';
 export * from './tiers';
 export * from './refs';
+export * from './csv';
 export * from './text';
 export * from './rrf';
 export * from './routing';
