@@ -30,6 +30,7 @@ import { NotificationsBell } from './components/NotificationsBell';
 import { ApplyTagMenu } from './components/ApplyTagMenu';
 import { SearchBox } from './components/SearchBox';
 import { useToast } from './components/Toast';
+import { useDialog } from './components/Dialog';
 import { Editor } from './editor/Editor';
 
 export function App() {
@@ -91,6 +92,7 @@ export function App() {
   // null = closed; { tag: null } = create; { tag } = edit.
   const [tagEdit, setTagEdit] = useState<{ tag: Tag | null } | null>(null);
   const toast = useToast();
+  const dialog = useDialog();
   const { t, setLang } = useI18n();
 
   const refresh = useCallback(async () => {
@@ -230,7 +232,13 @@ export function App() {
   async function createFolder(parentId: string | null) {
     const spaceId = spaces[0]?.id ?? me?.spaces[0];
     if (!spaceId) return toast.error('No space available.');
-    const name = window.prompt(t('folder.namePrompt'))?.trim();
+    const name = (
+      await dialog.prompt({
+        title: t('folder.create'),
+        placeholder: t('folder.namePrompt'),
+        confirmLabel: t('common.create'),
+      })
+    )?.trim();
     if (!name) return;
     try {
       await api.createFolder({ name, spaceId, parentId });
@@ -241,7 +249,14 @@ export function App() {
   }
 
   async function renameFolder(folder: FolderDto) {
-    const name = window.prompt(t('folder.renamePrompt'), folder.name)?.trim();
+    const name = (
+      await dialog.prompt({
+        title: t('folder.renamePrompt'),
+        defaultValue: folder.name,
+        placeholder: t('folder.namePrompt'),
+        confirmLabel: t('common.save'),
+      })
+    )?.trim();
     if (!name || name === folder.name) return;
     try {
       await api.renameFolder(folder.id, name);
@@ -252,7 +267,13 @@ export function App() {
   }
 
   async function deleteFolder(folder: FolderDto) {
-    if (!window.confirm(t('folder.deleteConfirm'))) return;
+    const ok = await dialog.confirm({
+      title: t('folder.delete'),
+      message: t('folder.deleteConfirm'),
+      confirmLabel: t('common.delete'),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.deleteFolder(folder.id);
       if (nav.kind === 'folder' && nav.id === folder.id) setNav({ kind: 'inbox' });
@@ -284,7 +305,13 @@ export function App() {
   }
 
   async function deleteNote(blockId: string) {
-    if (!window.confirm(t('note.deleteConfirm'))) return;
+    const ok = await dialog.confirm({
+      title: t('note.delete'),
+      message: t('note.deleteConfirm'),
+      confirmLabel: t('common.delete'),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.deleteBlock(blockId);
       setInbox((prev) => prev.filter((b) => b.id !== blockId));

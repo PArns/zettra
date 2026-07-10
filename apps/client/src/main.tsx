@@ -6,6 +6,7 @@ import { ShellPreview } from './ShellPreview';
 import { AnnotationLayer } from './annotate/AnnotationLayer';
 import { I18nProvider } from './i18n';
 import { ToastProvider } from './components/Toast';
+import { DialogProvider } from './components/Dialog';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initTheme, setMode } from './lib/theme';
 import { initAccent, isAccent, setAccent } from './lib/accent';
@@ -45,7 +46,9 @@ ReactDOM.createRoot(root).render(
           </ToastProvider>
         ) : (
           <ToastProvider>
-            <App />
+            <DialogProvider>
+              <App />
+            </DialogProvider>
           </ToastProvider>
         )}
         {/* Admin-only design annotation overlay (renders null unless admin mode is on). */}

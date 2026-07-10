@@ -46,6 +46,22 @@ const WEEKDAYS: Record<string, number> = {
   samstag: 6,
 };
 
+/** Month names → 1-12, English + German, with common abbreviations (lowercased keys). */
+const MONTHS: Record<string, number> = {
+  january: 1, jan: 1, januar: 1,
+  february: 2, feb: 2, februar: 2,
+  march: 3, mar: 3, märz: 3, maerz: 3,
+  april: 4, apr: 4,
+  may: 5, mai: 5,
+  june: 6, jun: 6, juni: 6,
+  july: 7, jul: 7, juli: 7,
+  august: 8, aug: 8,
+  september: 9, sep: 9, sept: 9,
+  october: 10, oct: 10, oktober: 10, okt: 10,
+  november: 11, nov: 11,
+  december: 12, dec: 12, dezember: 12, dez: 12,
+};
+
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
@@ -107,6 +123,25 @@ export function extractDueDates(text: string, refIso: string): ExtractedDate[] {
     let y = m[3] ? Number(m[3]) : Number(refIso.slice(0, 4));
     if (y < 100) y += 2000;
     if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) push(`${y}-${pad2(mo)}-${pad2(d)}`, m[0]);
+  }
+
+  // Named month, day-first (German): "30. September 2026" / "30 Sept" (year defaults to reference).
+  for (const m of text.matchAll(/\b(\d{1,2})\.?\s+([A-Za-zÄÖÜäöü]+)\.?(?:\s+(\d{4}))?/g)) {
+    const mo = MONTHS[m[2].toLowerCase()];
+    if (!mo) continue;
+    const d = Number(m[1]);
+    const y = m[3] ? Number(m[3]) : Number(refIso.slice(0, 4));
+    if (d >= 1 && d <= 31) push(`${y}-${pad2(mo)}-${pad2(d)}`, m[0].trim());
+  }
+
+  // Named month, month-first (English): "September 30, 2026" / "Sep 5". The `(?!\d)` after the day
+  // stops "September 2026" being read as month + day "20" (the year's first two digits).
+  for (const m of text.matchAll(/\b([A-Za-zÄÖÜäöü]+)\.?\s+(\d{1,2})(?!\d)(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?/g)) {
+    const mo = MONTHS[m[1].toLowerCase()];
+    if (!mo) continue;
+    const d = Number(m[2]);
+    const y = m[3] ? Number(m[3]) : Number(refIso.slice(0, 4));
+    if (d >= 1 && d <= 31) push(`${y}-${pad2(mo)}-${pad2(d)}`, m[0].trim());
   }
 
   return out.sort((a, b) => a.iso.localeCompare(b.iso));

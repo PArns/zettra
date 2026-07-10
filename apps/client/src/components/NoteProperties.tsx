@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, type EffectiveField, type EntityOption, type Member, type Tag } from '../lib/api';
 import { useToast } from './Toast';
-import { useT } from '../i18n';
+import { useI18n } from '../i18n';
+import { fieldLabel } from '../lib/field-labels';
+import { IconX } from '../ui';
 import { ApplyTagMenu } from './ApplyTagMenu';
 import { FieldInput, dedupe, firstNonNull, relationTargetId } from './FieldsPanel';
 
@@ -12,7 +14,7 @@ import { FieldInput, dedupe, firstNonNull, relationTargetId } from './FieldsPane
  * the supertag picker. Mirrors the right-rail FieldsPanel data, surfaced where the reading happens.
  */
 export function NoteProperties({ blockId }: { blockId: string }) {
-  const t = useT();
+  const { t, lang } = useI18n();
   const toast = useToast();
   const [tags, setTags] = useState<Tag[]>([]);
   const [fields, setFields] = useState<EffectiveField[]>([]);
@@ -98,14 +100,14 @@ export function NoteProperties({ blockId }: { blockId: string }) {
       <div className="note-props-tags">
         {tags.map((tg) => (
           <span key={tg.id} className="note-tag-pill">
-            <span className="note-tag-ico">{tg.icon ?? '#'}</span>
+            <span className="note-tag-hash">#</span>
             {tg.name}
             <button
               className="note-tag-x"
-              aria-label={`${t('common.remove')} ${tg.name}`}
+              aria-label={`${t('common.remove')} #${tg.name}`}
               onClick={() => removeTag(tg.id)}
             >
-              ✕
+              <IconX size={11} />
             </button>
           </span>
         ))}
@@ -117,7 +119,7 @@ export function NoteProperties({ blockId }: { blockId: string }) {
           {fields.map((f) => (
             <div key={f.id} className="note-prop-row">
               <label htmlFor={`np-${f.id}`} className="note-prop-label">
-                {f.name}
+                {fieldLabel(f.name, lang)}
               </label>
               <div className="note-prop-value">
                 <FieldInput

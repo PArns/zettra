@@ -32,6 +32,17 @@ describe('extractDueDates', () => {
     expect(isos('deadline 2026-08-01')).toEqual(['2026-08-01']);
   });
 
+  it('parses named-month dates (invoice deadlines), German and English', () => {
+    expect(isos('Fällig am 30. September 2026')).toEqual(['2026-09-30']);
+    expect(isos('Rechnung fällig am 5. Mai')).toEqual(['2026-05-05']); // year from reference
+    expect(isos('Payment due September 30, 2026')).toEqual(['2026-09-30']);
+    expect(isos('due Sep 5 2026')).toEqual(['2026-09-05']);
+  });
+
+  it('does not read a bare "Month YYYY" as a day', () => {
+    expect(isos('report for September 2026')).toEqual([]);
+  });
+
   it('finds several distinct dates, sorted, deduped', () => {
     expect(isos('call tomorrow, then again in 2 weeks and on 2026-07-10')).toEqual([
       '2026-07-10',

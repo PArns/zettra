@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, type EffectiveField, type EntityOption, type Member, type Tag } from '../lib/api';
-import { useT } from '../i18n';
+import { useI18n, useT } from '../i18n';
+import { fieldLabel } from '../lib/field-labels';
 import { clickable } from '../lib/a11y';
 import { DatePicker } from './DatePicker';
 import { useToast } from './Toast';
@@ -31,6 +32,7 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
   const [tagsByName, setTagsByName] = useState<Map<string, string>>(new Map());
   const toast = useToast();
   const t = useT();
+  const { lang } = useI18n();
 
   useEffect(() => {
     let live = true;
@@ -120,7 +122,7 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
       )}
       {fields.map((f) => (
         <div key={f.id} className="field" style={{ marginBottom: 10 }}>
-          <label htmlFor={`fld-${f.id}`}>{f.name}</label>
+          <label htmlFor={`fld-${f.id}`}>{fieldLabel(f.name, lang)}</label>
           <FieldInput
             id={`fld-${f.id}`}
             field={f}

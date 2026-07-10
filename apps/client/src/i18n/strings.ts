@@ -22,6 +22,7 @@ export const DEFAULT_LANG: Lang = 'en';
 
 const en = {
   'nav.createNew': 'Create new',
+  'workspace.new': 'New workspace',
   'nav.search': 'Search',
   'nav.briefkasten': 'Briefkasten',
   'nav.forReview': 'For Review',
@@ -37,6 +38,8 @@ const en = {
   'folder.empty': 'No folders yet — drag a note here to file it',
   'folder.namePrompt': 'Folder name',
   'folder.renamePrompt': 'Rename folder',
+  'folder.create': 'New folder',
+  'folder.delete': 'Delete folder',
   'folder.deleteConfirm': 'Delete this folder? Its notes move back to the Briefkasten.',
   'folder.emptyPane': 'This folder is empty. Drag notes onto it in the sidebar to file them here.',
   'folder.removeFromFolder': 'Remove from folder',
@@ -123,6 +126,7 @@ const en = {
   'settings.saving': 'Saving…',
 
   'common.cancel': 'Cancel',
+  'common.confirm': 'Confirm',
   'common.save': 'Save',
   'common.create': 'Create',
   'common.add': 'Add',
@@ -301,6 +305,7 @@ type Catalog = Record<StringKey, string>;
 
 const de: Catalog = {
   'nav.createNew': 'Neu erstellen',
+  'workspace.new': 'Neuer Workspace',
   'nav.search': 'Suchen',
   'nav.briefkasten': 'Briefkasten',
   'nav.forReview': 'Zu prüfen',
@@ -316,6 +321,8 @@ const de: Catalog = {
   'folder.empty': 'Noch keine Ordner — zieh eine Notiz hierher, um sie abzulegen',
   'folder.namePrompt': 'Ordnername',
   'folder.renamePrompt': 'Ordner umbenennen',
+  'folder.create': 'Neuer Ordner',
+  'folder.delete': 'Ordner löschen',
   'folder.deleteConfirm': 'Diesen Ordner löschen? Die Notizen wandern zurück in den Briefkasten.',
   'folder.emptyPane':
     'Dieser Ordner ist leer. Zieh Notizen in der Seitenleiste darauf, um sie hier abzulegen.',
@@ -404,6 +411,7 @@ const de: Catalog = {
   'settings.saving': 'Speichern…',
 
   'common.cancel': 'Abbrechen',
+  'common.confirm': 'Bestätigen',
   'common.save': 'Speichern',
   'common.create': 'Erstellen',
   'common.add': 'Hinzufügen',
@@ -580,6 +588,7 @@ const de: Catalog = {
 
 const es: Catalog = {
   'nav.createNew': 'Crear nuevo',
+  'workspace.new': 'Nuevo espacio',
   'nav.search': 'Buscar',
   'nav.briefkasten': 'Bandeja',
   'nav.forReview': 'Por revisar',
@@ -595,6 +604,8 @@ const es: Catalog = {
   'folder.empty': 'Aún no hay carpetas — arrastra una nota aquí para archivarla',
   'folder.namePrompt': 'Nombre de la carpeta',
   'folder.renamePrompt': 'Renombrar carpeta',
+  'folder.create': 'Nueva carpeta',
+  'folder.delete': 'Eliminar carpeta',
   'folder.deleteConfirm': '¿Eliminar esta carpeta? Sus notas vuelven al Briefkasten.',
   'folder.emptyPane':
     'Esta carpeta está vacía. Arrastra notas sobre ella en la barra lateral para archivarlas aquí.',
@@ -683,6 +694,7 @@ const es: Catalog = {
   'settings.saving': 'Guardando…',
 
   'common.cancel': 'Cancelar',
+  'common.confirm': 'Confirmar',
   'common.save': 'Guardar',
   'common.create': 'Crear',
   'common.add': 'Añadir',
@@ -858,6 +870,7 @@ const es: Catalog = {
 
 const fr: Catalog = {
   'nav.createNew': 'Créer',
+  'workspace.new': 'Nouvel espace',
   'nav.search': 'Rechercher',
   'nav.briefkasten': 'Boîte',
   'nav.forReview': 'À revoir',
@@ -873,6 +886,8 @@ const fr: Catalog = {
   'folder.empty': 'Aucun dossier — glissez une note ici pour la classer',
   'folder.namePrompt': 'Nom du dossier',
   'folder.renamePrompt': 'Renommer le dossier',
+  'folder.create': 'Nouveau dossier',
+  'folder.delete': 'Supprimer le dossier',
   'folder.deleteConfirm': 'Supprimer ce dossier ? Ses notes retournent au Briefkasten.',
   'folder.emptyPane':
     'Ce dossier est vide. Glissez des notes dessus dans la barre latérale pour les classer ici.',
@@ -961,6 +976,7 @@ const fr: Catalog = {
   'settings.saving': 'Enregistrement…',
 
   'common.cancel': 'Annuler',
+  'common.confirm': 'Confirmer',
   'common.save': 'Enregistrer',
   'common.create': 'Créer',
   'common.add': 'Ajouter',

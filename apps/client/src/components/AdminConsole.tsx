@@ -3,6 +3,7 @@ import { api, type AdminUser, type Space } from '../lib/api';
 import { useT } from '../i18n';
 import { Button, Field, Input } from '../ui';
 import { useToast } from './Toast';
+import { useDialog } from './Dialog';
 
 type Tab = 'users' | 'spaces';
 
@@ -21,6 +22,7 @@ export function AdminConsole({
 }) {
   const t = useT();
   const toast = useToast();
+  const dialog = useDialog();
   const [tab, setTab] = useState<Tab>('users');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [spaces, setSpaces] = useState<Space[]>([]);
@@ -89,7 +91,13 @@ export function AdminConsole({
   }
 
   async function removeUser(u: AdminUser) {
-    if (!window.confirm(t('admin.deleteUserConfirm').replace('{email}', u.email))) return;
+    const ok = await dialog.confirm({
+      title: t('common.delete'),
+      message: t('admin.deleteUserConfirm').replace('{email}', u.email),
+      confirmLabel: t('common.delete'),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.adminDeleteUser(u.id);
       await loadUsers();
@@ -122,7 +130,13 @@ export function AdminConsole({
   }
 
   async function removeSpace(s: Space) {
-    if (!window.confirm(t('admin.deleteSpaceConfirm').replace('{name}', s.name))) return;
+    const ok = await dialog.confirm({
+      title: t('common.delete'),
+      message: t('admin.deleteSpaceConfirm').replace('{name}', s.name),
+      confirmLabel: t('common.delete'),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.adminDeleteSpace(s.id);
       await loadSpaces();
