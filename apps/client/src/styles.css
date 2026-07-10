@@ -1929,6 +1929,31 @@ body {
   .bn-editor {
     background: transparent !important;
   }
+  /* Brief placeholder while the collab doc syncs before the editor mounts (see Editor.tsx). */
+  .editor-loading {
+    min-height: calc(100dvh - 150px);
+    background: linear-gradient(
+      100deg,
+      transparent 40%,
+      color-mix(in srgb, var(--text) 5%, transparent) 50%,
+      transparent 60%
+    );
+    background-size: 200% 100%;
+    animation: editor-shimmer 1.1s ease-in-out infinite;
+  }
+  @keyframes editor-shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .editor-loading {
+      animation: none;
+    }
+  }
 
   /* Suggestion menu (custom) */
   .suggest {

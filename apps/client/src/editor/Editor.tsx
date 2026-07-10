@@ -63,6 +63,12 @@ export function Editor({
 }) {
   const toast = useToast();
   const [sync, setSync] = useState<SyncState>('connecting');
+  // Gates the editor mount on the collab doc being present (see the effect + render below): custom
+  // React blocks (callout/quote/toggle) whose inline content arrives via a *post-mount* y-sync
+  // transaction never attach their contentDOM, so the text is in the model but renders blank. Only
+  // mounting BlockNoteView once the fragment is populated builds those node views with content in
+  // place — the same path as locally-typed blocks — so they render.
+  const [docReady, setDocReady] = useState(false);
   const theme = useResolvedTheme();
 
   const provider = useMemo(
@@ -83,17 +89,28 @@ export function Editor({
   );
 
   useEffect(() => {
+    setDocReady(false);
     const onStatus = (e: { status: string }) => {
       if (e.status === 'connected') setSync('synced');
-      else if (e.status === 'disconnected') setSync('offline');
-      else setSync('connecting');
+      else if (e.status === 'disconnected') {
+        setSync('offline');
+        setDocReady(true); // offline: show the (locally-available) doc rather than hang.
+      } else setSync('connecting');
     };
-    const onSynced = () => setSync('synced');
+    // The initial document sync completed — the fragment now holds the seeded content, so it is
+    // safe to mount the editor with it already in place.
+    const onSynced = () => {
+      setSync('synced');
+      setDocReady(true);
+    };
     provider.on('status', onStatus);
     provider.on('synced', onSynced);
+    // Safety net: never leave the editor hidden if the sync event is missed (flaky WS).
+    const failsafe = setTimeout(() => setDocReady(true), 4000);
     return () => {
       provider.off('status', onStatus);
       provider.off('synced', onSynced);
+      clearTimeout(failsafe);
       provider.destroy();
     };
   }, [provider]);
@@ -256,19 +273,23 @@ export function Editor({
         {sync !== 'synced' && <span className="sync-label">{syncLabel}</span>}
       </div>
       <div className="editor-host">
-        <BlockNoteView
-          editor={editor}
-          theme={theme}
-          slashMenu={false}
-          onChange={() => onTitle?.(firstLineTitle(editor))}
-        >
-          {/* / → block insert menu (defaults + custom blocks). */}
-          <SuggestionMenuController triggerCharacter="/" getItems={slashItems} />
-          {/* # → tag, @ → person reference, [ → general reference (§8.6). */}
-          <SuggestionMenuController triggerCharacter="#" getItems={referenceItems('tag')} />
-          <SuggestionMenuController triggerCharacter="@" getItems={referenceItems('reference')} />
-          <SuggestionMenuController triggerCharacter="[" getItems={referenceItems('reference')} />
-        </BlockNoteView>
+        {docReady ? (
+          <BlockNoteView
+            editor={editor}
+            theme={theme}
+            slashMenu={false}
+            onChange={() => onTitle?.(firstLineTitle(editor))}
+          >
+            {/* / → block insert menu (defaults + custom blocks). */}
+            <SuggestionMenuController triggerCharacter="/" getItems={slashItems} />
+            {/* # → tag, @ → person reference, [ → general reference (§8.6). */}
+            <SuggestionMenuController triggerCharacter="#" getItems={referenceItems('tag')} />
+            <SuggestionMenuController triggerCharacter="@" getItems={referenceItems('reference')} />
+            <SuggestionMenuController triggerCharacter="[" getItems={referenceItems('reference')} />
+          </BlockNoteView>
+        ) : (
+          <div className="editor-loading" aria-hidden />
+        )}
       </div>
       {/* Floating table tools (header row/col, formula summary, cross-reference) when a table is focused. */}
       <TableToolbar editor={editor as unknown as EditorLike} />
