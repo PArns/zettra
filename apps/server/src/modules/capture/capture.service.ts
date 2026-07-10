@@ -6,12 +6,14 @@ import {
   type AgendaItem,
   AiStakes,
   AiTaskType,
+  BlockSource,
   DocBlock,
   extractDueDates,
   extractPlainText,
   FieldType,
   nearestFreeDay,
   reconcile,
+  SEED_TAGS,
 } from '@zettra/shared';
 import { Block, FieldValue, Reminder, Space, Tag, TagField } from '../../entities/index';
 import { AiRouterService } from '../ai/ai-router.service';
@@ -70,6 +72,12 @@ export class CaptureService {
 
     // Detect deadlines / appointments in the captured text and surface them as reminders (§5).
     await this.detectDeadlines(block, text);
+
+    // Email / web-clip captures: pull concrete action items out of the body and file each as a
+    // #todo note, so tasks buried in an email surface in the global to-do list + daily briefing (§4).
+    await this.extractTasks(tenantId, block, text).catch((err) =>
+      this.logger.warn(`Task extraction failed for ${blockId}: ${(err as Error).message}`),
+    );
 
     // Ask the router to propose a supertag + fields.
     const tagList = await this.tags.find({ where: { tenantId } });
@@ -134,6 +142,103 @@ export class CaptureService {
     if (block.needsReview) return;
     block.needsReview = true;
     await this.blocks.save(block);
+  }
+
+  /** Capture sources whose bodies are worth mining for action items (messages, not files). */
+  private static readonly TASK_SOURCES = new Set<BlockSource>([
+    BlockSource.Email,
+    BlockSource.WebClip,
+  ]);
+
+  /**
+   * Extract concrete action items from a captured message and file each as a #todo note (tagged,
+   * with a due date when one is stated, linked back to the source). Owned by the source block's
+   * owner so the tasks land in their global to-do list + daily briefing. The created notes use
+   * `manual` source, so they don't re-enter this pipeline. Silent no-op on any failure.
+   */
+  private async extractTasks(tenantId: string, block: Block, text: string): Promise<void> {
+    if (!CaptureService.TASK_SOURCES.has(block.source)) return;
+    if (text.trim().length < 40) return;
+
+    const space = await this.spaces.findOne({ where: { id: block.spaceId } });
+    const privacyScope = space?.aiPolicy ?? AiPrivacyScope.Default;
+
+    let tasks: { title: string; due: string | null }[] = [];
+    try {
+      const raw = await this.ai.chat(
+        {
+          type: AiTaskType.Summarization,
+          privacyScope,
+          estimatedTokens: Math.ceil(text.length / 4) + 200,
+          stakes: AiStakes.Low,
+        },
+        [
+          {
+            role: 'system',
+            content:
+              'Extract concrete action items — things the reader must DO — from the message. ' +
+              'Reply ONLY with JSON: {"tasks":[{"title":"short imperative task","due":"YYYY-MM-DD or null"}]}. ' +
+              'Include only real, actionable tasks (max 5). If there are none, return {"tasks":[]}.',
+          },
+          { role: 'user', content: text.slice(0, 4000) },
+        ],
+      );
+      const parsed = JSON.parse(extractJson(raw)) as {
+        tasks?: { title?: string; due?: string | null }[];
+      };
+      tasks = (parsed?.tasks ?? [])
+        .filter((t): t is { title: string; due?: string | null } => Boolean(t?.title?.trim()))
+        .slice(0, 5)
+        .map((t) => ({ title: t.title.trim().slice(0, 200), due: normalizeDate(t.due) }));
+    } catch (err) {
+      this.logger.warn(`Task extraction LLM unavailable for ${block.id}: ${(err as Error).message}`);
+      return;
+    }
+    if (tasks.length === 0) return;
+
+    const todoTag = await this.ensureTodoTag(tenantId);
+    const fields = await this.tagService.resolveEffectiveFields(tenantId, todoTag.id);
+    const dueId = fields.find((f) => f.name === 'due')?.id;
+    const statusId = fields.find((f) => f.name === 'status')?.id;
+
+    for (const task of tasks) {
+      const todo = await this.blocks.save(
+        this.blocks.create({
+          tenantId,
+          spaceId: block.spaceId,
+          content: taskContent(task.title),
+          source: BlockSource.Manual,
+          ownerUserId: block.ownerUserId,
+          createdBy: block.ownerUserId,
+          contributorIds: block.ownerUserId ? [block.ownerUserId] : [],
+        }),
+      );
+      // Set the field values BEFORE applying the tag: applyTag's async default-backfill is
+      // missing-only, so it then skips these instead of racing our inserts (uq_fv_block_field).
+      if (statusId) await this.fieldValues.set(tenantId, todo.id, statusId, 'open', null);
+      if (dueId && task.due) await this.fieldValues.set(tenantId, todo.id, dueId, task.due, null);
+      await this.tagService.applyTag(tenantId, todo.id, todoTag.id, block.ownerUserId ?? null);
+    }
+    this.logger.log(`Extracted ${tasks.length} task(s) from ${block.source} ${block.id}`);
+  }
+
+  /** Find the tenant's #todo supertag, creating it from the seed (fields included) if absent. */
+  private async ensureTodoTag(tenantId: string): Promise<Tag> {
+    const existing = await this.tags.findOne({ where: { tenantId, name: 'todo' } });
+    if (existing) return existing;
+    const seed = SEED_TAGS.find((s) => s.name === 'todo');
+    if (!seed) throw new Error('todo seed missing');
+    return this.tagService.create(tenantId, {
+      name: seed.name,
+      icon: seed.icon,
+      color: seed.color,
+      fields: seed.fields.map((f, i) => ({
+        name: f.name,
+        type: f.type,
+        config: f.config as Record<string, unknown> | undefined,
+        position: i,
+      })),
+    });
   }
 
   /**
@@ -286,4 +391,20 @@ function parseTagProposal(raw: string): TagProposal {
 
 function toDoc(content: unknown): DocBlock[] {
   return Array.isArray(content) ? (content as DocBlock[]) : [];
+}
+
+/** Accept only a well-formed ISO date (YYYY-MM-DD) from the model; anything else → null. */
+function normalizeDate(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== 'string') return null;
+  const m = /^(\d{4}-\d{2}-\d{2})/.exec(raw.trim());
+  return m ? m[1] : null;
+}
+
+/**
+ * BlockNote content for an extracted task: just the task line, so it reads cleanly as the title in
+ * the #todo list and daily briefing. (extractPlainText flattens the whole doc, so any extra text —
+ * a back-reference — would leak into the title; the origin link is a later refinement.)
+ */
+function taskContent(title: string): unknown {
+  return [{ type: 'paragraph', content: [{ type: 'text', text: title, styles: {} }] }];
 }
