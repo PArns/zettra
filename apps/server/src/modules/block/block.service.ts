@@ -156,6 +156,18 @@ export class BlockService {
     return this.blocks.save(block);
   }
 
+  /** Set a note's Notion-style header (emoji icon + cover image URL); either may be null to clear. */
+  async setHeader(
+    ctx: RequestContext,
+    id: string,
+    patch: { icon?: string | null; coverImageUrl?: string | null },
+  ): Promise<Block> {
+    const block = await this.get(ctx, id);
+    if (patch.icon !== undefined) block.icon = patch.icon;
+    if (patch.coverImageUrl !== undefined) block.coverImageUrl = patch.coverImageUrl;
+    return this.blocks.save(block);
+  }
+
   /** Clear the review flag after a capture has been triaged (§8.3). */
   async markReviewed(ctx: RequestContext, id: string): Promise<Block> {
     const block = await this.get(ctx, id);

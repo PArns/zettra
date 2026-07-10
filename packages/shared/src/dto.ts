@@ -68,6 +68,9 @@ export interface BlockDto {
   source: BlockSource;
   sourceRef: string | null;
   visibility: BlockVisibility;
+  /** Notion-style page header (§4): emoji icon + cover image URL; null when unset. */
+  icon: string | null;
+  coverImageUrl: string | null;
   /** Awaiting human triage in the "For Review" bucket (§8.3): capture couldn't auto-tag it. */
   needsReview: boolean;
   ownerUserId: string | null;

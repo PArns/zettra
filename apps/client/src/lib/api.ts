@@ -210,6 +210,9 @@ export const api = {
   }) => request<BlockDto>('/blocks', { method: 'POST', body: JSON.stringify(i) }),
 
   deleteBlock: (id: string) => request<{ ok: true }>(`/blocks/${id}`, { method: 'DELETE' }),
+  /** Set a note's Notion-style header (emoji icon + cover image); either field may be null to clear. */
+  setNoteHeader: (id: string, patch: { icon?: string | null; coverImageUrl?: string | null }) =>
+    request<BlockDto>(`/blocks/${id}/header`, { method: 'PUT', body: JSON.stringify(patch) }),
 
   related: (id: string) => request<RelatedResult[]>(`/blocks/${id}/related`),
   backlinks: (id: string) => request<BacklinkResult[]>(`/blocks/${id}/backlinks`),

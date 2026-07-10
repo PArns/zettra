@@ -13,6 +13,7 @@ import { SupertagDialog } from './components/SupertagDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
 import { FolderPane } from './components/FolderPane';
+import { NoteHeader } from './components/NoteHeader';
 import { TodayPane } from './components/TodayPane';
 import { CalendarPane } from './components/CalendarPane';
 import { AiChatPanel } from './components/AiChatPanel';
@@ -409,6 +410,7 @@ export function App() {
           <div className="content">
             <div className="pane">
               <div className="pane-narrow">
+                <NoteHeader key={selected} blockId={selected} />
                 <Editor
                   blockId={selected}
                   userName={email || 'You'}

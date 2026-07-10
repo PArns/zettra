@@ -13,6 +13,8 @@ export function toBlockDto(b: Block, tagIds: string[]): BlockDto {
     source: b.source,
     sourceRef: b.sourceRef,
     visibility: b.visibility,
+    icon: b.icon ?? null,
+    coverImageUrl: b.coverImageUrl ?? null,
     needsReview: b.needsReview,
     ownerUserId: b.ownerUserId,
     createdBy: b.createdBy,

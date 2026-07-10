@@ -2463,6 +2463,130 @@ body {
     flex: 1;
   }
 
+  /* --- Notion-style note header (§4): cover image + overlaid emoji icon --- */
+  .note-header {
+    position: relative;
+  }
+  .note-cover {
+    height: 200px;
+    margin: -8px -8px 0;
+    border-radius: var(--radius-lg);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .note-cover-actions {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  .note-cover:hover .note-cover-actions {
+    opacity: 1;
+  }
+  .note-cover-actions button {
+    padding: 5px 10px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+  .note-header-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    min-height: 26px;
+    padding-left: 4px;
+  }
+  .note-icon-wrap {
+    position: relative;
+  }
+  .note-icon {
+    font-size: 60px;
+    line-height: 1;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    border-radius: var(--radius);
+  }
+  .note-icon:hover {
+    background: var(--surface-2);
+  }
+  /* The icon overlaps the cover's bottom edge, Notion-style. */
+  .note-header.has-cover .note-header-bar {
+    margin-top: -38px;
+  }
+  .note-header.has-cover .note-icon {
+    background: var(--surface);
+    padding: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+  .note-emoji-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 2px;
+    width: 320px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-md, 0 6px 20px rgba(0, 0, 0, 0.16));
+  }
+  .note-emoji {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  .note-emoji:hover {
+    background: var(--surface-2);
+  }
+  .note-emoji-clear {
+    font-size: 14px;
+    color: var(--text-faint);
+  }
+  .note-header-add {
+    display: flex;
+    gap: 6px;
+    padding-bottom: 6px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  .note-header:hover .note-header-add {
+    opacity: 1;
+  }
+  .note-header-add button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-faint);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .note-header-add button:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
   /* --- Floating table toolbar (§4): header row/col, formula summary, cross-reference --- */
   .table-toolbar {
     position: fixed;

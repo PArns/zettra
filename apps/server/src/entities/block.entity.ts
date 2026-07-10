@@ -36,6 +36,13 @@ export class Block {
   @Index()
   folderId!: string | null;
 
+  /** Notion-style page header: an emoji icon and a cover image URL. Display metadata, not prose. */
+  @Column({ type: 'text', nullable: true })
+  icon!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  coverImageUrl!: string | null;
+
   /** Fractional index for sibling ordering (§6.1). */
   @Column({ type: 'text', default: 'a0' })
   position!: string;

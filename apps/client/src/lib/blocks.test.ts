@@ -14,6 +14,8 @@ function makeBlock(content: unknown): BlockDto {
     source: BlockSource.Manual,
     sourceRef: null,
     visibility: BlockVisibility.Space,
+    icon: null,
+    coverImageUrl: null,
     needsReview: false,
     ownerUserId: 'u1',
     createdBy: 'u1',

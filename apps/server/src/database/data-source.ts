@@ -15,6 +15,7 @@ import { TenantTier1700000000009 } from './migrations/1700000000009-TenantTier';
 import { UserRole1700000000010 } from './migrations/1700000000010-UserRole';
 import { Reminders1700000000011 } from './migrations/1700000000011-Reminders';
 import { Folders1700000000012 } from './migrations/1700000000012-Folders';
+import { NoteHeader1700000000013 } from './migrations/1700000000013-NoteHeader';
 
 const config = loadConfig();
 
@@ -41,6 +42,7 @@ export const dataSourceOptions: DataSourceOptions = {
     UserRole1700000000010,
     Reminders1700000000011,
     Folders1700000000012,
+    NoteHeader1700000000013,
   ],
   synchronize: false,
   logging: ['error', 'warn', 'migration'],

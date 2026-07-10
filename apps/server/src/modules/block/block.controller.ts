@@ -24,6 +24,11 @@ class SetVisibilityBody {
   @IsEnum(BlockVisibility) visibility!: BlockVisibility;
 }
 
+class SetHeaderBody {
+  @IsOptional() @IsString() icon?: string | null;
+  @IsOptional() @IsString() coverImageUrl?: string | null;
+}
+
 @Controller('blocks')
 @UseGuards(AuthGuard)
 export class BlockController {
@@ -71,6 +76,17 @@ export class BlockController {
     @Body() body: SetVisibilityBody,
   ): Promise<BlockDto> {
     const block = await this.blocks.setVisibility(ctx, id, body.visibility);
+    return toBlockDto(block, await this.blocks.tagIdsFor(id));
+  }
+
+  /** Set a note's Notion-style header (emoji icon + cover image) (§4). */
+  @Put(':id/header')
+  async setHeader(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+    @Body() body: SetHeaderBody,
+  ): Promise<BlockDto> {
+    const block = await this.blocks.setHeader(ctx, id, body);
     return toBlockDto(block, await this.blocks.tagIdsFor(id));
   }
 
