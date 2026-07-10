@@ -251,6 +251,15 @@ export const api = {
     }),
   folderNotes: (id: string) => request<BlockDto[]>(`/folders/${id}/notes`),
 
+  // Proactive daily briefing (§4): AI summary of today's to-dos, reminders, and fresh notes.
+  dailyBriefing: () =>
+    request<{
+      briefing: string;
+      dueTodos: TodoItem[];
+      reminderCount: number;
+      updatedCount: number;
+    }>('/ai/briefing'),
+
   // AI chat over the index (§1).
   aiChat: (question: string, spaceId?: string) =>
     request<{ answer: string; sources: { blockId: string; title: string }[] }>('/ai/chat', {

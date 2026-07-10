@@ -6,6 +6,7 @@ import { relativeTime } from '../lib/time';
 import { clickable } from '../lib/a11y';
 import { useT } from '../i18n';
 import { EmptyState, IconCheck, IconX } from '../ui';
+import { BriefingCard } from './BriefingCard';
 import { recurrenceLabel } from './RemindersPanel';
 import { useToast } from './Toast';
 
@@ -107,11 +108,17 @@ export function TodayPane({ onOpen }: { onOpen: (id: string) => void }) {
     );
 
   if (empty) {
-    return <EmptyState glyph="☀️" title={t('today.emptyTitle')} hint={t('today.emptyHint')} />;
+    return (
+      <div className="today">
+        <BriefingCard onOpen={onOpen} />
+        <EmptyState glyph="☀️" title={t('today.emptyTitle')} hint={t('today.emptyHint')} />
+      </div>
+    );
   }
 
   return (
     <div className="today">
+      <BriefingCard onOpen={onOpen} />
       {reminderGroup(t('today.overdue'), overdue, 'overdue')}
       {reminderGroup(t('today.dueToday'), dueToday, 'due')}
       {reminderGroup(t('today.upcoming'), upcoming, 'upcoming')}

@@ -2838,6 +2838,130 @@ body {
     opacity: 0.7;
   }
 
+  /* --- Proactive daily briefing (§4): the AI "here's your day" card atop Today --- */
+  .briefing {
+    max-width: 720px;
+    margin: 0 auto 22px;
+    padding: 18px 20px 16px;
+    border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 9%, var(--surface)),
+      var(--surface) 62%
+    );
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
+  }
+  .briefing-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .briefing-spark {
+    color: var(--accent);
+    font-size: 14px;
+  }
+  .briefing-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .briefing-refresh {
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    color: var(--text-faint);
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .briefing-refresh:hover:not(:disabled) {
+    color: var(--text);
+  }
+  .briefing-refresh:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .briefing-text {
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  .briefing-todos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .briefing-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 12.5px;
+    cursor: pointer;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .briefing-chip:hover {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  }
+  .briefing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .briefing-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .briefing-skeleton span {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(
+      90deg,
+      var(--surface-2) 25%,
+      color-mix(in srgb, var(--accent) 12%, var(--surface-2)) 50%,
+      var(--surface-2) 75%
+    );
+    background-size: 200% 100%;
+    animation: briefing-shimmer 1.3s ease-in-out infinite;
+  }
+  .briefing-skeleton span:nth-child(1) {
+    width: 92%;
+  }
+  .briefing-skeleton span:nth-child(2) {
+    width: 100%;
+  }
+  .briefing-skeleton span:nth-child(3) {
+    width: 64%;
+  }
+  @keyframes briefing-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .briefing-skeleton span {
+      animation: none;
+    }
+  }
+
   /* --- Global #todo list (§4): grouped by due date, with a completion checkbox --- */
   .todo-list {
     max-width: 720px;
