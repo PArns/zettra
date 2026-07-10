@@ -1319,6 +1319,48 @@ body {
     border-top: 1px solid var(--border-strong);
     margin: 0;
   }
+  /* Embedded PDF block (§4): inline browser viewer with a header (name + open link). */
+  .zx-pdf {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface-2);
+    margin: 4px 0;
+  }
+  .zx-pdf-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+  }
+  .zx-pdf-ico {
+    font-size: 15px;
+  }
+  .zx-pdf-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .zx-pdf-open {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .zx-pdf-open:hover {
+    text-decoration: underline;
+  }
+  .zx-pdf-frame {
+    width: 100%;
+    height: 520px;
+    border: 0;
+    display: block;
+    background: #fff;
+  }
+
   .zx-bookmark {
     display: block;
     text-decoration: none;

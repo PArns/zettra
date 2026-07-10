@@ -13,6 +13,7 @@ import {
   calloutPropSchema,
   mathPropSchema,
   mermaidPropSchema,
+  pdfPropSchema,
   togglePropSchema,
 } from '@zettra/shared';
 
@@ -158,7 +159,31 @@ const toggle = createBlockSpec(
   },
 );
 
+// Embedded PDF: the server keeps the file name as text so the projection indexes it; the PDF's
+// own text layer is extracted separately by the embed worker (unpdf).
+const pdf = createBlockSpec(
+  { type: BLOCK_TYPES.pdf, propSchema: pdfPropSchema, content: 'none' } as const,
+  {
+    render: (block) => {
+      const dom = document.createElement('div');
+      dom.className = 'zx-pdf';
+      dom.textContent = String(block.props.name ?? '');
+      return { dom };
+    },
+  },
+);
+
 export const serverSchema = BlockNoteSchema.create({
-  blockSpecs: { ...defaultBlockSpecs, callout, quote, divider, bookmark, math, mermaid, toggle },
+  blockSpecs: {
+    ...defaultBlockSpecs,
+    callout,
+    quote,
+    divider,
+    bookmark,
+    math,
+    mermaid,
+    toggle,
+    pdf,
+  },
   inlineContentSpecs: { ...defaultInlineContentSpecs, reference, tag },
 });

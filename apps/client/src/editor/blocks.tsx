@@ -10,6 +10,7 @@ import {
   calloutPropSchema,
   mathPropSchema,
   mermaidPropSchema,
+  pdfPropSchema,
   togglePropSchema,
 } from '@zettra/shared';
 import { resolvedTheme } from '../lib/theme';
@@ -183,6 +184,31 @@ export const ToggleBlock = createReactBlockSpec(
             ▶
           </button>
           <div className="zx-toggle-summary" ref={contentRef} />
+        </div>
+      );
+    },
+  },
+);
+
+export const PdfBlock = createReactBlockSpec(
+  { type: BLOCK_TYPES.pdf, propSchema: pdfPropSchema, content: 'none' } as const,
+  {
+    render: ({ block }) => {
+      const { url, name } = block.props;
+      return (
+        <div className="zx-pdf" contentEditable={false}>
+          <div className="zx-pdf-head">
+            <span className="zx-pdf-ico" aria-hidden>
+              📄
+            </span>
+            <span className="zx-pdf-name">{name || 'PDF'}</span>
+            <a className="zx-pdf-open" href={url} target="_blank" rel="noreferrer">
+              Öffnen ↗
+            </a>
+          </div>
+          {url ? (
+            <iframe className="zx-pdf-frame" src={`${url}#toolbar=0`} title={name || 'PDF'} />
+          ) : null}
         </div>
       );
     },

@@ -52,6 +52,30 @@ export function extractImageUrls(doc: DocBlock[]): string[] {
   return urls;
 }
 
+/** Whether a filename / URL points at a PDF (whose embedded text we extract for search, §11). */
+export function isPdf(urlOrName: string): boolean {
+  const clean = urlOrName.split('?')[0].split('#')[0];
+  return clean.slice(clean.lastIndexOf('.') + 1).toLowerCase() === 'pdf';
+}
+
+/** Collect distinct PDF URLs from a document tree (BlockNote `file`/`pdf` blocks carry `props.url`). */
+export function extractPdfUrls(doc: DocBlock[]): string[] {
+  const urls: string[] = [];
+  const seen = new Set<string>();
+  const visit = (blocks: DocBlock[] | undefined): void => {
+    for (const block of blocks ?? []) {
+      const url = block.props?.url;
+      if (typeof url === 'string' && isPdf(url) && !seen.has(url)) {
+        seen.add(url);
+        urls.push(url);
+      }
+      visit(block.children);
+    }
+  };
+  visit(doc);
+  return urls;
+}
+
 /**
  * Normalize raw OCR output: collapse runs of whitespace, drop lines that are pure noise (no
  * alphanumerics), and trim. Keeps line breaks between surviving lines so structure is preserved.

@@ -133,14 +133,16 @@ function mimeFor(name: string): string {
   return map[ext] ?? 'application/octet-stream';
 }
 
-/** Minimal BlockNote document embedding an uploaded image/file. */
+/** Minimal BlockNote document embedding an uploaded image / PDF / file. */
 function uploadDocument(filename: string, url: string): unknown {
-  const isImage = /\.(png|jpe?g|gif|webp|svg)$/i.test(filename);
-  return [
-    isImage
-      ? { type: 'image', props: { url, caption: filename } }
-      : { type: 'file', props: { url, name: filename } },
-  ];
+  if (/\.(png|jpe?g|gif|webp|svg)$/i.test(filename)) {
+    return [{ type: 'image', props: { url, caption: filename } }];
+  }
+  // PDFs get the custom `pdf` block so they preview inline (browser viewer) + are text-extracted.
+  if (/\.pdf$/i.test(filename)) {
+    return [{ type: 'pdf', props: { url, name: filename } }];
+  }
+  return [{ type: 'file', props: { url, name: filename } }];
 }
 
 interface MultipartFile {

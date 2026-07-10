@@ -7,6 +7,7 @@ import {
   chunkText,
   DocBlock,
   extractImageUrls,
+  extractPdfUrls,
   extractPlainText,
   mergeSearchText,
 } from '@zettra/shared';
@@ -19,6 +20,7 @@ import { FieldValueService } from '../field/field-value.service';
 import { CaptureService } from '../capture/capture.service';
 import { CurationService } from '../curation/curation.service';
 import { OcrService } from '../ocr/ocr.service';
+import { PdfService } from '../ocr/pdf.service';
 import { UploadsService } from '../uploads/uploads.service';
 
 /**
@@ -41,6 +43,7 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
     private readonly capture: CaptureService,
     private readonly curation: CurationService,
     private readonly ocr: OcrService,
+    private readonly pdf: PdfService,
     private readonly uploads: UploadsService,
   ) {
     this.connection = new IORedis(loadConfig().redisUrl, { maxRetriesPerRequest: null });
@@ -77,7 +80,10 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
     // OCR pass (§5/§6): fold any recognized image text into the block's search text so scanned
     // documents / screenshots become findable. No-op unless OCR_ENABLED and tesseract.js present.
     const ocrTexts = await this.ocrTextsFor(tenantId, block);
-    const text = mergeSearchText(base, ocrTexts);
+    // PDF pass: fold the text layer of any attached PDF into search text (§11), so a dropped
+    // invoice/contract is findable by its content and its deadlines are detected.
+    const pdfTexts = await this.pdfTextsFor(tenantId, block);
+    const text = mergeSearchText(base, [...ocrTexts, ...pdfTexts]);
     // Maintain the full-text column for hybrid search (§11); the tsvector is generated.
     await this.blocks.update({ id: blockId }, { searchText: text });
     // Content-based reminders (§5): detect explicit deadlines in the note's own text (and any OCR
@@ -117,6 +123,24 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
         if (recognized) texts.push(recognized);
       } catch {
         // Missing/altered file → skip; OCR must never fail the embed job.
+      }
+    }
+    return texts;
+  }
+
+  /** Extracted text-layer content of every PDF the block attaches, tenant-scoped like the OCR pass. */
+  private async pdfTextsFor(tenantId: string, block: Block): Promise<string[]> {
+    const urls = extractPdfUrls(toDoc(block.content));
+    const texts: string[] = [];
+    for (const url of urls) {
+      const key = fileKeyFromUrl(url);
+      if (!key || !key.startsWith(`${tenantId}/`)) continue;
+      try {
+        const path = await this.uploads.resolve(key);
+        const extracted = await this.pdf.extractText(path);
+        if (extracted) texts.push(extracted);
+      } catch {
+        // Missing/altered file → skip; extraction must never fail the embed job.
       }
     }
     return texts;

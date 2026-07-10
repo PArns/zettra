@@ -49,6 +49,13 @@ export const BLOCK_TYPES = {
   math: 'math',
   mermaid: 'mermaid',
   toggle: 'toggle',
+  pdf: 'pdf',
+} as const;
+
+/** Embedded PDF: rendered inline via the browser's PDF viewer; text is extracted server-side. */
+export const pdfPropSchema = {
+  url: { default: '' as string },
+  name: { default: '' as string },
 } as const;
 
 /** Collapsible toggle: an inline header whose nested child blocks hide when `open` is false. */

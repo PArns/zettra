@@ -6,6 +6,7 @@ import {
   DividerBlock,
   MathBlock,
   MermaidBlock,
+  PdfBlock,
   QuoteBlock,
   ToggleBlock,
 } from './blocks';
@@ -61,6 +62,7 @@ export const schema = BlockNoteSchema.create({
     math: MathBlock,
     mermaid: MermaidBlock,
     toggle: ToggleBlock,
+    pdf: PdfBlock,
   },
   inlineContentSpecs: {
     ...defaultInlineContentSpecs,

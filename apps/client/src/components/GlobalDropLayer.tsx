@@ -7,6 +7,8 @@ import { useT } from '../i18n';
 /** BlockNote content for an uploaded file, chosen by mime type. */
 function fileContent(url: string, file: File): unknown {
   if (file.type.startsWith('image/')) return [{ type: 'image', props: { url } }];
+  if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name))
+    return [{ type: 'pdf', props: { url, name: file.name } }];
   if (file.type.startsWith('audio/')) return [{ type: 'audio', props: { url } }];
   if (file.type.startsWith('video/')) return [{ type: 'video', props: { url } }];
   return [{ type: 'file', props: { url, name: file.name } }];

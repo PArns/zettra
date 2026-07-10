@@ -16,6 +16,8 @@ function mediaLabel(block: BlockDto): string | null {
   switch (first?.type) {
     case 'image':
       return first.props?.caption || '🖼 Bild';
+    case 'pdf':
+      return `📄 ${first.props?.name || 'PDF'}`;
     case 'file':
       return first.props?.name || '📎 Datei';
     case 'audio':
