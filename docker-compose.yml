@@ -63,6 +63,8 @@ services:
     entrypoint:
       - /bin/sh
       - -c
+      # OCR defaults to the tesseract backend (CPU, small footprint). Only pull the vision model
+      # when OCR_BACKEND=ollama is explicitly chosen (and enough RAM exists beside the LLM).
       - 'ollama pull ${EMBEDDING_MODEL:-bge-m3} && ollama pull ${LLM_MODEL:-qwen2.5:7b-instruct}'
     restart: 'no'
 
