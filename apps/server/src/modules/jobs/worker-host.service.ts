@@ -80,10 +80,12 @@ export class WorkerHost implements OnModuleInit, OnModuleDestroy {
     const text = mergeSearchText(base, ocrTexts);
     // Maintain the full-text column for hybrid search (§11); the tsvector is generated.
     await this.blocks.update({ id: blockId }, { searchText: text });
-    // A deadline photographed in a scanned letter should remind too: run detection over the OCR
-    // text (idempotent, so it never double-books a date the capture pass already found).
-    if (ocrTexts.length) {
-      await this.capture.detectDeadlines(block, ocrTexts.join('\n')).catch(() => undefined);
+    // Content-based reminders (§5): detect explicit deadlines in the note's own text (and any OCR
+    // text) and auto-create reminders. Runs on every content settle — not just at capture — so an
+    // *edited* note that mentions "Termin am 24.07." reminds too. Idempotent (skips a date already
+    // reminded on this block) and deterministic (explicit dates only = high confidence).
+    if (text.trim()) {
+      await this.capture.detectDeadlines(block, text).catch(() => undefined);
     }
     const chunks = chunkText(text);
     const vectors: number[][] = [];
