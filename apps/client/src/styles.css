@@ -2587,6 +2587,74 @@ body {
     color: var(--text);
   }
 
+  /* --- In-page note properties (§8.1): supertag pills + editable fields, under the header --- */
+  .note-props {
+    padding: 4px 4px 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .note-props-empty {
+    border-bottom: 0;
+  }
+  .note-props-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .note-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 6px 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-2);
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+  .note-tag-ico {
+    font-size: 13px;
+  }
+  .note-tag-x {
+    display: inline-grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-faint);
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .note-tag-x:hover {
+    background: var(--surface-3, var(--border));
+    color: var(--text);
+  }
+  .note-props-fields {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 16px;
+    align-items: center;
+    max-width: 640px;
+  }
+  .note-prop-label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .note-prop-value {
+    min-width: 0;
+  }
+  /* Compact the reused field inputs when inline in the page. */
+  .note-prop-value input,
+  .note-prop-value select {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+
   /* --- Floating table toolbar (§4): header row/col, formula summary, cross-reference --- */
   .table-toolbar {
     position: fixed;

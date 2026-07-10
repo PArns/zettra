@@ -317,6 +317,8 @@ export const api = {
 
   applyTag: (tagId: string, blockId: string) =>
     request(`/tags/${tagId}/apply/${blockId}`, { method: 'POST' }),
+  removeTag: (tagId: string, blockId: string) =>
+    request<{ ok: true }>(`/tags/${tagId}/apply/${blockId}`, { method: 'DELETE' }),
   setTagParent: (tagId: string, parentId: string | null) =>
     request<Tag>(`/tags/${tagId}/parent`, {
       method: 'PATCH',

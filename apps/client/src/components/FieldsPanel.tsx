@@ -6,7 +6,7 @@ import { DatePicker } from './DatePicker';
 import { useToast } from './Toast';
 
 /** Resolve a relation field's target supertag id from its config (id preferred, else by name). */
-function relationTargetId(
+export function relationTargetId(
   field: EffectiveField,
   tagsByName: Map<string, string>,
 ): string | undefined {
@@ -135,7 +135,7 @@ export function FieldsPanel({ blockId }: { blockId: string }) {
   );
 }
 
-function FieldInput({
+export function FieldInput({
   id,
   field,
   value,
@@ -427,12 +427,12 @@ function DateField({
   );
 }
 
-function dedupe(fields: EffectiveField[]): EffectiveField[] {
+export function dedupe(fields: EffectiveField[]): EffectiveField[] {
   const byId = new Map(fields.map((f) => [f.id, f]));
   return [...byId.values()];
 }
 
-function firstNonNull(v: {
+export function firstNonNull(v: {
   valueText: string | null;
   valueNumber: string | null;
   valueDate: string | null;
