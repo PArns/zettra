@@ -2,6 +2,16 @@ import type { FolderDto } from '@zettra/shared';
 import type { Space, Tag, View } from '../lib/api';
 import { clickable } from '../lib/a11y';
 import { useT } from '../i18n';
+import {
+  IconCalendar,
+  IconInbox,
+  IconPlus,
+  IconReview,
+  IconSearch,
+  IconSpace,
+  IconSparkles,
+  IconToday,
+} from '../ui';
 import { TagTree } from './TagTree';
 import { FolderTree } from './FolderTree';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
@@ -56,7 +66,7 @@ export function Sidebar(props: {
           <span>✎</span> {t('nav.createNew')}
         </button>
         <button className="side-search" aria-label={t('nav.search')} title={t('nav.search')}>
-          🔍
+          <IconSearch />
         </button>
       </div>
 
@@ -66,13 +76,19 @@ export function Sidebar(props: {
             className={`nav-item ${isActive({ kind: 'today' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'today' }))}
           >
-            <span className="emoji">☀️</span> {t('nav.today')}
+            <span className="nav-ico">
+              <IconToday />
+            </span>{' '}
+            {t('nav.today')}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'calendar' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'calendar' }))}
           >
-            <span className="emoji">🗓️</span> {t('nav.calendar')}
+            <span className="nav-ico">
+              <IconCalendar />
+            </span>{' '}
+            {t('nav.calendar')}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'inbox' }) ? 'active' : ''}`}
@@ -86,21 +102,30 @@ export function Sidebar(props: {
             }}
             {...clickable(() => props.onNav({ kind: 'inbox' }))}
           >
-            <span className="emoji">📥</span> {t('nav.briefkasten')}
+            <span className="nav-ico">
+              <IconInbox />
+            </span>{' '}
+            {t('nav.briefkasten')}
             {props.inboxCount > 0 && <span className="count">{props.inboxCount}</span>}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'forReview' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'forReview' }))}
           >
-            <span className="emoji">🗂️</span> {t('nav.forReview')}
+            <span className="nav-ico">
+              <IconReview />
+            </span>{' '}
+            {t('nav.forReview')}
             {props.forReviewCount > 0 && <span className="count">{props.forReviewCount}</span>}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'review' }) ? 'active' : ''}`}
             {...clickable(() => props.onNav({ kind: 'review' }))}
           >
-            <span className="emoji">✨</span> {t('nav.connections')}
+            <span className="nav-ico">
+              <IconSparkles />
+            </span>{' '}
+            {t('nav.connections')}
             {props.reviewCount > 0 && <span className="count">{props.reviewCount}</span>}
           </div>
         </div>
@@ -114,7 +139,7 @@ export function Sidebar(props: {
               title={t('nav.newSupertag')}
               onClick={props.onCreateTag}
             >
-              +
+              <IconPlus size={15} />
             </button>
           </div>
           <TagTree
@@ -136,7 +161,7 @@ export function Sidebar(props: {
               title={t('folder.new')}
               onClick={() => props.onCreateFolder(null)}
             >
-              +
+              <IconPlus size={15} />
             </button>
           </div>
           <FolderTree
@@ -155,7 +180,10 @@ export function Sidebar(props: {
           <div className="label">{t('nav.spaces')}</div>
           {props.spaces.map((s) => (
             <div key={s.id} className="nav-item static" title={s.name}>
-              <span className="emoji">{s.aiPolicy === 'local_only' ? '🔒' : '#'}</span> {s.name}
+              <span className="nav-ico">
+                {s.aiPolicy === 'local_only' ? '🔒' : <IconSpace size={16} />}
+              </span>{' '}
+              {s.name}
             </div>
           ))}
         </div>

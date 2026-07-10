@@ -11,4 +11,16 @@ export { Segmented, type SegmentedOption } from './Segmented';
 export { ThemeSwitcher } from './ThemeSwitcher';
 export { AccentPicker } from './AccentPicker';
 export { IconButton } from './IconButton';
-export { IconCheck, IconX } from './icons';
+export {
+  IconCheck,
+  IconX,
+  IconToday,
+  IconCalendar,
+  IconInbox,
+  IconReview,
+  IconSparkles,
+  IconSearch,
+  IconPlus,
+  IconFolder,
+  IconSpace,
+} from './icons';

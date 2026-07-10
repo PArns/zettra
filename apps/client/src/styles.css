@@ -348,6 +348,23 @@ body {
     width: 18px;
     text-align: center;
   }
+  /* Line-icon slot for the nav — inherits the item's currentColor (muted → text on hover/active). */
+  .nav-item .nav-ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    flex-shrink: 0;
+    color: var(--text-faint);
+  }
+  .nav-item:hover .nav-ico,
+  .nav-item.active .nav-ico {
+    color: currentColor;
+  }
+  .label-add svg,
+  .side-search svg {
+    display: block;
+  }
   .nav-item .count {
     margin-left: auto;
     font-size: 11px;
