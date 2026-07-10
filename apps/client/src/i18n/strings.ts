@@ -165,6 +165,10 @@ const en = {
 
   'view.loadError': 'Could not load view',
   'view.empty': 'No items with this supertag yet.',
+  'view.table': 'Table',
+  'view.board': 'Board',
+  'view.groupBy': 'Group by',
+  'view.boardNeedsSelect': 'Add a select field to group a board by',
 
   'rail.related': 'Related',
   'rail.nothingSimilar': 'Nothing similar yet.',
@@ -426,6 +430,10 @@ const de: Catalog = {
 
   'view.loadError': 'Ansicht konnte nicht geladen werden',
   'view.empty': 'Noch keine Einträge mit diesem Supertag.',
+  'view.table': 'Tabelle',
+  'view.board': 'Board',
+  'view.groupBy': 'Gruppieren nach',
+  'view.boardNeedsSelect': 'Für ein Board ein Auswahlfeld hinzufügen',
 
   'rail.related': 'Verwandt',
   'rail.nothingSimilar': 'Noch nichts Ähnliches.',
@@ -685,6 +693,10 @@ const es: Catalog = {
 
   'view.loadError': 'No se pudo cargar la vista',
   'view.empty': 'Aún no hay elementos con esta superetiqueta.',
+  'view.table': 'Tabla',
+  'view.board': 'Tablero',
+  'view.groupBy': 'Agrupar por',
+  'view.boardNeedsSelect': 'Añade un campo de selección para agrupar un tablero',
 
   'rail.related': 'Relacionado',
   'rail.nothingSimilar': 'Nada similar todavía.',
@@ -943,6 +955,10 @@ const fr: Catalog = {
 
   'view.loadError': 'Impossible de charger la vue',
   'view.empty': 'Aucun élément avec ce supertag pour le moment.',
+  'view.table': 'Tableau',
+  'view.board': 'Board',
+  'view.groupBy': 'Grouper par',
+  'view.boardNeedsSelect': 'Ajoutez un champ de sélection pour grouper un board',
 
   'rail.related': 'Associé',
   'rail.nothingSimilar': 'Rien de similaire pour le moment.',

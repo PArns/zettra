@@ -644,27 +644,151 @@ body {
   }
 
   /* ---------- Board view ---------- */
+  /* View toolbar: layout switcher + group-field picker (kanban). */
+  .view-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .view-toolbar .seg {
+    display: inline-flex;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+  }
+  .view-toolbar .seg button {
+    padding: 4px 12px;
+    border: 0;
+    border-radius: calc(var(--radius-sm) - 2px);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .view-toolbar .seg button.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
+  }
+  .view-toolbar .seg button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .view-groupby {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .view-groupby select {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+  }
+
   .board {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     overflow-x: auto;
     padding-bottom: 12px;
+    align-items: flex-start;
   }
   .board-col {
-    min-width: 280px;
-    width: 280px;
+    min-width: 272px;
+    width: 272px;
     background: var(--surface-2);
-    border-radius: var(--radius);
-    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 8px;
     flex-shrink: 0;
+    transition:
+      background 0.12s ease,
+      box-shadow 0.12s ease;
   }
   .board-col > .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 6px 10px;
+  }
+  .board-col-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 650;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .board-col-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: hsl(var(--col-accent, 250) 65% 58%);
+    flex-shrink: 0;
+  }
+  .board-col-count {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .board-col-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 8px;
+  }
+  /* Kanban: cards drag between columns; the target column lights up on drag-over. */
+  .board-col.drop-target {
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .board-card {
+    padding: 11px 12px;
+    cursor: grab;
+    transition:
+      transform 0.1s ease,
+      box-shadow 0.12s ease,
+      border-color 0.12s ease;
+  }
+  .board-card:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
+  }
+  .board-card:active {
+    cursor: grabbing;
+    transform: none;
+  }
+  .board-card-title {
     font-weight: 600;
     font-size: 13px;
-    padding: 4px 6px 10px;
-    color: var(--text-muted);
+    line-height: 1.35;
+  }
+  .board-card-badges {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+  }
+  .board-badge {
+    font-size: 11px;
   }
 
   /* ---------- Gallery ---------- */

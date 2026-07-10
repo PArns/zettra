@@ -194,6 +194,8 @@ export const api = {
   tags: () => request<Tag[]>('/tags'),
   views: () => request<View[]>('/views'),
   viewData: (id: string) => request<ViewData>(`/views/${id}/data`),
+  updateView: (id: string, patch: { layout?: string; groupBy?: string | null }) =>
+    request<View>(`/views/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
 
   inbox: () => request<BlockDto[]>('/views/inbox'),
   todayItems: () => request<BlockDto[]>('/views/today-items'),
