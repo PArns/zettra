@@ -5,7 +5,7 @@ import { blockTitle } from '../lib/blocks';
 import { relativeTime } from '../lib/time';
 import { clickable } from '../lib/a11y';
 import { useT } from '../i18n';
-import { EmptyState } from '../ui';
+import { EmptyState, IconCheck, IconX } from '../ui';
 import { recurrenceLabel } from './RemindersPanel';
 import { useToast } from './Toast';
 
@@ -91,14 +91,14 @@ export function TodayPane({ onOpen }: { onOpen: (id: string) => void }) {
                 aria-label={t('reminder.done')}
                 onClick={() => resolve(r.id, 'done')}
               >
-                ✓
+                <IconCheck />
               </button>
               <button
                 className="icon-sm"
                 aria-label={t('reminder.dismiss')}
                 onClick={() => resolve(r.id, 'dismiss')}
               >
-                ✕
+                <IconX />
               </button>
             </div>
           </div>

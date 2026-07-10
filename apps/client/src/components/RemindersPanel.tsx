@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { RECURRENCE_RULES } from '@zettra/shared';
 import { api, type ReminderView } from '../lib/api';
 import { useT, type TFn } from '../i18n';
+import { IconCheck, IconX } from '../ui';
 import { DatePicker } from './DatePicker';
 import { useToast } from './Toast';
 
@@ -97,14 +98,14 @@ export function RemindersPanel({ blockId }: { blockId: string }) {
               aria-label={t('reminder.done')}
               onClick={() => resolve(r.id, 'done')}
             >
-              ✓
+              <IconCheck />
             </button>
             <button
               className="icon-sm"
               aria-label={t('reminder.dismiss')}
               onClick={() => resolve(r.id, 'dismiss')}
             >
-              ✕
+              <IconX />
             </button>
           </div>
         </div>
