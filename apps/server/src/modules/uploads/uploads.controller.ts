@@ -94,6 +94,9 @@ export class UploadsController {
     this.uploads.verify(key, sig); // Reject tampered/unsigned URLs (§8.3).
     const full = await this.uploads.resolve(key);
     res.header('cache-control', 'private, max-age=86400');
+    // Set a content-type from the extension so images render inline and PDFs preview instead of
+    // downloading as octet-stream (Fastify sends streams as octet-stream by default).
+    res.header('content-type', mimeFor(name));
     res.send(createReadStream(full));
   }
 }
@@ -104,6 +107,30 @@ function contentLength(req: FastifyRequest): number {
   const raw = req.headers['content-length'];
   const n = Number(Array.isArray(raw) ? raw[0] : raw);
   return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+/** Map a file extension to a MIME type for inline serving; unknown → octet-stream. */
+function mimeFor(name: string): string {
+  const ext = extname(name).toLowerCase();
+  const map: Record<string, string> = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml',
+    '.pdf': 'application/pdf',
+    '.mp3': 'audio/mpeg',
+    '.wav': 'audio/wav',
+    '.ogg': 'audio/ogg',
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.mov': 'video/quicktime',
+    '.csv': 'text/csv; charset=utf-8',
+    '.txt': 'text/plain; charset=utf-8',
+    '.json': 'application/json',
+  };
+  return map[ext] ?? 'application/octet-stream';
 }
 
 /** Minimal BlockNote document embedding an uploaded image/file. */

@@ -90,70 +90,72 @@ export function CalendarPane({
 
   return (
     <div className="calendar">
-      <div className="cal-head">
-        <button
-          className="icon-sm"
-          aria-label={t('date.prevMonth')}
-          onClick={() => setView(addMonths(view.year, view.month, -1))}
-        >
-          ‹
-        </button>
-        <span className="cal-title">{monthLabel(view.year, view.month)}</span>
-        <button
-          className="icon-sm"
-          aria-label={t('date.nextMonth')}
-          onClick={() => setView(addMonths(view.year, view.month, 1))}
-        >
-          ›
-        </button>
-        <div className="spacer" />
-        <button
-          className="ghost"
-          onClick={() => {
-            setView({ year: Number(today.slice(0, 4)), month: Number(today.slice(5, 7)) - 1 });
-            setSelected(today);
-          }}
-        >
-          {t('date.today')}
-        </button>
+      <div className="cal-main">
+        <div className="cal-head">
+          <span className="cal-title">{monthLabel(view.year, view.month)}</span>
+          <div className="spacer" />
+          <button
+            className="icon-sm"
+            aria-label={t('date.prevMonth')}
+            onClick={() => setView(addMonths(view.year, view.month, -1))}
+          >
+            ‹
+          </button>
+          <button
+            className="ghost cal-today-btn"
+            onClick={() => {
+              setView({ year: Number(today.slice(0, 4)), month: Number(today.slice(5, 7)) - 1 });
+              setSelected(today);
+            }}
+          >
+            {t('date.today')}
+          </button>
+          <button
+            className="icon-sm"
+            aria-label={t('date.nextMonth')}
+            onClick={() => setView(addMonths(view.year, view.month, 1))}
+          >
+            ›
+          </button>
+        </div>
+
+        <div className="cal-grid">
+          {weekdays().map((w, i) => (
+            <div key={i} className="cal-wd">
+              {w}
+            </div>
+          ))}
+          {grid.flat().map((c) => {
+            const items = byDay.get(c.iso) ?? [];
+            return (
+              <button
+                key={c.iso}
+                type="button"
+                className={
+                  'cal-day' +
+                  (c.inMonth ? '' : ' out') +
+                  (c.iso === selected ? ' sel' : '') +
+                  (c.iso === today ? ' today' : '') +
+                  (conflicts.has(c.iso) ? ' conflict' : '')
+                }
+                onClick={() => setSelected(c.iso)}
+                aria-label={`${c.iso}${items.length ? ` · ${items.length}` : ''}`}
+              >
+                <span className="cal-daynum">{c.day}</span>
+                {items.length > 0 && (
+                  <span className="cal-dots">
+                    {items.slice(0, 4).map((it, i) => (
+                      <span key={i} className={`cal-dot ${it.kind}`} />
+                    ))}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="cal-grid">
-        {weekdays().map((w, i) => (
-          <div key={i} className="cal-wd">
-            {w}
-          </div>
-        ))}
-        {grid.flat().map((c) => {
-          const items = byDay.get(c.iso) ?? [];
-          return (
-            <button
-              key={c.iso}
-              type="button"
-              className={
-                'cal-day' +
-                (c.inMonth ? '' : ' out') +
-                (c.iso === selected ? ' sel' : '') +
-                (c.iso === today ? ' today' : '') +
-                (conflicts.has(c.iso) ? ' conflict' : '')
-              }
-              onClick={() => setSelected(c.iso)}
-              aria-label={`${c.iso}${items.length ? ` · ${items.length}` : ''}`}
-            >
-              <span className="cal-daynum">{c.day}</span>
-              {items.length > 0 && (
-                <span className="cal-dots">
-                  {items.slice(0, 3).map((it, i) => (
-                    <span key={i} className={`cal-dot ${it.kind}`} />
-                  ))}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="cal-day-detail">
+      <aside className="cal-day-detail">
         <div className="cal-day-title">
           {longDay(selected)}
           {conflicts.has(selected) && (
@@ -163,23 +165,25 @@ export function CalendarPane({
         {dayItems.length === 0 ? (
           <EmptyState glyph="🗓️" title={t('calendar.emptyDay')} />
         ) : (
-          dayItems.map((it, i) => (
-            <div
-              key={`${it.blockId}:${i}`}
-              className="card cal-item"
-              {...clickable(() => onOpen(it.blockId))}
-            >
-              <span className={`cal-item-icon ${it.kind}`}>
-                {it.kind === 'reminder' ? '🔔' : '📌'}
-              </span>
-              <div style={{ flex: 1 }}>
-                <div className="cal-item-title">{it.title}</div>
-                {it.label && <div className="cal-item-label">{it.label}</div>}
+          <div className="cal-day-items">
+            {dayItems.map((it, i) => (
+              <div
+                key={`${it.blockId}:${i}`}
+                className="card cal-item"
+                {...clickable(() => onOpen(it.blockId))}
+              >
+                <span className={`cal-item-icon ${it.kind}`}>
+                  {it.kind === 'reminder' ? '🔔' : '📌'}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="cal-item-title">{it.title}</div>
+                  {it.label && <div className="cal-item-label">{it.label}</div>}
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
-      </div>
+      </aside>
     </div>
   );
 }
