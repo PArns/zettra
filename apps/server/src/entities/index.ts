@@ -5,6 +5,7 @@ import { BlockEmbedding } from './block-embedding.entity';
 import { BlockRelation } from './block-relation.entity';
 import { BlockTag } from './block-tag.entity';
 import { FieldValue } from './field-value.entity';
+import { Folder } from './folder.entity';
 import { Membership } from './membership.entity';
 import { Notification } from './notification.entity';
 export type { NotificationKind } from './notification.entity';
@@ -24,6 +25,7 @@ export {
   BlockRelation,
   BlockTag,
   FieldValue,
+  Folder,
   Membership,
   Notification,
   Reminder,
@@ -53,4 +55,5 @@ export const ALL_ENTITIES = [
   UserBlockState,
   Notification,
   Reminder,
+  Folder,
 ];

@@ -1,4 +1,4 @@
-import type { AuthTokenDto, BlockDto, LoginResultDto } from '@zettra/shared';
+import type { AuthTokenDto, BlockDto, FolderDto, LoginResultDto } from '@zettra/shared';
 
 /** Typed API client. Same-origin `/api` (dev proxy / prod nginx). JWT in localStorage (§2). */
 const TOKEN_KEY = 'zettra.token';
@@ -16,7 +16,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,
     headers: {
-      'content-type': 'application/json',
+      // Only declare a JSON body when one is actually sent — Fastify's parser rejects a request
+      // that advertises `application/json` but has an empty body (bodyless DELETE/POST → 400).
+      ...(init.body != null ? { 'content-type': 'application/json' } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...(init.headers ?? {}),
     },
@@ -205,8 +207,30 @@ export const api = {
     sourceRef?: string;
   }) => request<BlockDto>('/blocks', { method: 'POST', body: JSON.stringify(i) }),
 
+  deleteBlock: (id: string) => request<{ ok: true }>(`/blocks/${id}`, { method: 'DELETE' }),
+
   related: (id: string) => request<RelatedResult[]>(`/blocks/${id}/related`),
   backlinks: (id: string) => request<BacklinkResult[]>(`/blocks/${id}/backlinks`),
+
+  // Note folders — the sidebar organization tree (§8.2).
+  folders: () => request<FolderDto[]>('/folders'),
+  createFolder: (i: { name: string; spaceId: string; parentId?: string | null }) =>
+    request<FolderDto>('/folders', { method: 'POST', body: JSON.stringify(i) }),
+  renameFolder: (id: string, name: string) =>
+    request<FolderDto>(`/folders/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+  setFolderParent: (id: string, parentId: string | null) =>
+    request<FolderDto>(`/folders/${id}/parent`, {
+      method: 'PATCH',
+      body: JSON.stringify({ parentId }),
+    }),
+  deleteFolder: (id: string) => request<{ ok: true }>(`/folders/${id}`, { method: 'DELETE' }),
+  /** File a note into a folder (or back to the Briefkasten with `folderId: null`). */
+  fileNote: (blockId: string, folderId: string | null) =>
+    request<{ ok: true }>(`/folders/file/${blockId}`, {
+      method: 'POST',
+      body: JSON.stringify({ folderId }),
+    }),
+  folderNotes: (id: string) => request<BlockDto[]>(`/folders/${id}/notes`),
 
   // AI chat over the index (§1).
   aiChat: (question: string, spaceId?: string) =>

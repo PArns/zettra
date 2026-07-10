@@ -31,6 +31,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { ReminderModule } from './modules/reminder/reminder.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
 import { AiChatModule } from './modules/ai-chat/ai-chat.module';
+import { FolderModule } from './modules/folder/folder.module';
 
 /**
  * Root module wiring the domain-focused feature modules (§3). Global modules (AI, Jobs,
@@ -64,6 +65,7 @@ import { AiChatModule } from './modules/ai-chat/ai-chat.module';
     FieldModule,
     BlockModule,
     ViewModule,
+    FolderModule,
     EmbeddingModule,
     LinkingModule,
     ApprovalModule,

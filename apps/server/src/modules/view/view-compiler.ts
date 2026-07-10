@@ -173,6 +173,16 @@ function compileStructural(
       // The "For Review" bucket: captures awaiting human triage (§8.3).
       wheres.push(`${BLOCK}."needsReview" = true`);
       return;
+    case 'unfiled':
+      // The Briefkasten: block not filed into any folder (§8.2).
+      wheres.push(`${BLOCK}."folderId" IS NULL`);
+      return;
+    case 'in_folder': {
+      const p = `struct${i}_folder`;
+      params[p] = s.folderId;
+      wheres.push(`${BLOCK}."folderId" = :${p}`);
+      return;
+    }
   }
 }
 

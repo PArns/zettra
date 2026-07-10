@@ -35,7 +35,11 @@ export type StructuralFilter =
   | { kind: 'untagged' }
   | { kind: 'owned_by'; userId: string }
   | { kind: 'in_space'; spaceId: string }
-  | { kind: 'needs_review' };
+  | { kind: 'needs_review' }
+  /** Not filed into any folder — `block.folderId IS NULL` (Briefkasten, §8.2). */
+  | { kind: 'unfiled' }
+  /** Filed into a specific folder — `block.folderId = folderId` (§8.2). */
+  | { kind: 'in_folder'; folderId: string };
 
 export interface ViewDefinition {
   tagId: string | null;

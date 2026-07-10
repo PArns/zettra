@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { BlockDto } from '@zettra/shared';
+import type { BlockDto, FolderDto } from '@zettra/shared';
 import { api, getToken, setToken, type Space, type Tag, type View } from './lib/api';
 import { clearSessions } from './lib/session';
 import { IconButton } from './ui';
@@ -12,11 +12,13 @@ import { AdminConsole } from './components/AdminConsole';
 import { SupertagDialog } from './components/SupertagDialog';
 import { Sidebar, type Nav } from './components/Sidebar';
 import { InboxPane } from './components/InboxPane';
+import { FolderPane } from './components/FolderPane';
 import { TodayPane } from './components/TodayPane';
 import { CalendarPane } from './components/CalendarPane';
 import { AiChatPanel } from './components/AiChatPanel';
 import { WelcomePane } from './components/WelcomePane';
 import { DropZone } from './components/DropZone';
+import { GlobalDropLayer } from './components/GlobalDropLayer';
 import { ForReviewPane } from './components/ForReviewPane';
 import { ViewPane } from './components/ViewPane';
 import { ReviewQueue } from './components/ReviewQueue';
@@ -72,6 +74,9 @@ export function App() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [views, setViews] = useState<View[]>([]);
   const [spaces, setSpaces] = useState<Space[]>([]);
+  const [folders, setFolders] = useState<FolderDto[]>([]);
+  // Bumped whenever a note is filed/removed so an open FolderPane re-fetches.
+  const [folderRefresh, setFolderRefresh] = useState(0);
   const [inbox, setInbox] = useState<BlockDto[]>([]);
   const [forReview, setForReview] = useState<BlockDto[]>([]);
   const [reviewCount, setReviewCount] = useState(0);
@@ -87,7 +92,7 @@ export function App() {
 
   const refresh = useCallback(async () => {
     try {
-      const [meRes, t, v, s, i, fr, r] = await Promise.all([
+      const [meRes, t, v, s, i, fr, r, f] = await Promise.all([
         api.me(),
         api.tags(),
         api.views(),
@@ -95,6 +100,7 @@ export function App() {
         api.inbox(),
         api.forReview().catch(() => []),
         api.review().catch(() => []),
+        api.folders().catch(() => []),
       ]);
       setMe(meRes);
       if (meRes.email) setEmail(meRes.email);
@@ -106,6 +112,7 @@ export function App() {
       setInbox(i);
       setForReview(fr);
       setReviewCount(r.length);
+      setFolders(f);
     } catch {
       setToken(null);
       setAuthed(false);
@@ -148,6 +155,14 @@ export function App() {
     }
   }
 
+  // Stable so GlobalDropLayer's window listeners aren't re-bound every render. A file dropped
+  // anywhere outside a note lands in the Briefkasten; it may auto-tag out, so reconcile shortly.
+  const onGlobalCapture = useCallback((b: BlockDto) => {
+    setInbox((prev) => [b, ...prev]);
+    window.setTimeout(() => void refresh(), 1500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function signOut() {
     clearSessions();
     setImpersonatorToken(null);
@@ -185,6 +200,77 @@ export function App() {
     }
   }
 
+  const reloadFolders = async () => setFolders(await api.folders().catch(() => folders));
+
+  async function createFolder(parentId: string | null) {
+    const spaceId = spaces[0]?.id ?? me?.spaces[0];
+    if (!spaceId) return toast.error('No space available.');
+    const name = window.prompt(t('folder.namePrompt'))?.trim();
+    if (!name) return;
+    try {
+      await api.createFolder({ name, spaceId, parentId });
+      await reloadFolders();
+    } catch (err) {
+      toast.error(`Could not create folder: ${(err as Error).message}`);
+    }
+  }
+
+  async function renameFolder(folder: FolderDto) {
+    const name = window.prompt(t('folder.renamePrompt'), folder.name)?.trim();
+    if (!name || name === folder.name) return;
+    try {
+      await api.renameFolder(folder.id, name);
+      await reloadFolders();
+    } catch (err) {
+      toast.error(`Could not rename folder: ${(err as Error).message}`);
+    }
+  }
+
+  async function deleteFolder(folder: FolderDto) {
+    if (!window.confirm(t('folder.deleteConfirm'))) return;
+    try {
+      await api.deleteFolder(folder.id);
+      if (nav.kind === 'folder' && nav.id === folder.id) setNav({ kind: 'inbox' });
+      await Promise.all([reloadFolders(), refresh()]);
+    } catch (err) {
+      toast.error(`Could not delete folder: ${(err as Error).message}`);
+    }
+  }
+
+  async function reparentFolder(folderId: string, parentId: string | null) {
+    try {
+      await api.setFolderParent(folderId, parentId);
+      await reloadFolders();
+    } catch (err) {
+      toast.error(`Could not move folder: ${(err as Error).message}`);
+    }
+  }
+
+  async function fileNote(blockId: string, folderId: string | null) {
+    try {
+      await api.fileNote(blockId, folderId);
+      // Filing a note out of the Briefkasten removes it from that list; reconcile everything.
+      setInbox((prev) => (folderId ? prev.filter((b) => b.id !== blockId) : prev));
+      setFolderRefresh((n) => n + 1);
+      await refresh();
+    } catch (err) {
+      toast.error(`Could not file note: ${(err as Error).message}`);
+    }
+  }
+
+  async function deleteNote(blockId: string) {
+    if (!window.confirm(t('note.deleteConfirm'))) return;
+    try {
+      await api.deleteBlock(blockId);
+      setInbox((prev) => prev.filter((b) => b.id !== blockId));
+      if (selected === blockId) closeTab(blockId);
+      setFolderRefresh((n) => n + 1);
+      await refresh();
+    } catch (err) {
+      toast.error(`Could not delete note: ${(err as Error).message}`);
+    }
+  }
+
   const crumb =
     selected != null
       ? noteTitle || t('top.note')
@@ -198,15 +284,22 @@ export function App() {
               ? t('nav.connections')
               : nav.kind === 'forReview'
                 ? t('nav.forReview')
-                : nav.name;
+                : nav.kind === 'folder'
+                  ? nav.name
+                  : nav.name;
 
   return (
     <div className={`app${navOpen ? ' nav-open' : ''}`}>
       <div className="mobile-backdrop" onClick={() => setNavOpen(false)} />
+      <GlobalDropLayer
+        spaceId={spaces[0]?.id ?? me?.spaces[0]}
+        onCaptured={onGlobalCapture}
+      />
       <Sidebar
         tags={tags}
         views={views}
         spaces={spaces}
+        folders={folders}
         inboxCount={inbox.length}
         reviewCount={reviewCount}
         forReviewCount={forReview.length}
@@ -219,6 +312,11 @@ export function App() {
         onReparentTag={reparentTag}
         onCreateTag={() => setTagEdit({ tag: null })}
         onEditTag={(t) => setTagEdit({ tag: t })}
+        onCreateFolder={createFolder}
+        onRenameFolder={renameFolder}
+        onDeleteFolder={deleteFolder}
+        onReparentFolder={reparentFolder}
+        onFileNote={fileNote}
         onCapture={capture}
         email={email || 'you'}
         onSignOut={signOut}
@@ -351,8 +449,17 @@ export function App() {
                         window.setTimeout(() => void refresh(), 1500);
                       }}
                     />
-                    <InboxPane blocks={inbox} onOpen={openNote} />
+                    <InboxPane blocks={inbox} onOpen={openNote} onDelete={deleteNote} />
                   </>
+                )}
+                {nav.kind === 'folder' && (
+                  <FolderPane
+                    folderId={nav.id}
+                    refreshKey={folderRefresh}
+                    onOpen={openNote}
+                    onDelete={deleteNote}
+                    onRemoveFromFolder={(id) => void fileNote(id, null)}
+                  />
                 )}
                 {nav.kind === 'forReview' && (
                   <ForReviewPane

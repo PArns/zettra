@@ -163,6 +163,33 @@ export class BlockService {
     return this.blocks.save(block);
   }
 
+  /**
+   * Permanently delete a note and its projected rows (§8.7 — rows/fields/refs/embeddings are
+   * projections of the Yjs doc, so they go with it). Permission-checked via {@link get}. Runs in
+   * one transaction so a note never half-deletes; the Yjs doc in Redis is orphaned and GC'd by
+   * Hocuspocus. Child rows are removed explicitly (no FK cascades in the schema).
+   */
+  async remove(ctx: RequestContext, id: string): Promise<void> {
+    // Enforces tenant + space + visibility; throws NotFound if the caller can't see it.
+    await this.get(ctx, id);
+    await this.blocks.manager.transaction(async (m) => {
+      const t = ctx.tenantId;
+      await m.delete('block_tag', { tenantId: t, blockId: id });
+      await m.delete('field_value', { tenantId: t, blockId: id });
+      await m.delete('block_embedding', { tenantId: t, blockId: id });
+      await m.delete('reminder', { tenantId: t, blockId: id });
+      await m.delete('user_block_state', { blockId: id });
+      await m.delete('block_relation', [
+        { tenantId: t, sourceId: id },
+        { tenantId: t, targetId: id },
+      ]);
+      // Re-parent any children to this note's parent so they don't dangle (§6.1).
+      const block = await m.findOne(Block, { where: { id, tenantId: t } });
+      await m.update(Block, { tenantId: t, parentId: id }, { parentId: block?.parentId ?? null });
+      await m.delete(Block, { id, tenantId: t });
+    });
+  }
+
   private enqueueEmbed(tenantId: string, blockId: string): Promise<void> {
     // Debounced by blockId so an edit storm collapses to one embed job (§8.7).
     return this.queue.enqueue(QUEUE.Embed, { tenantId, blockId }, `embed:${blockId}`);

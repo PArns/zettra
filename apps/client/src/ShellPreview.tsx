@@ -167,6 +167,7 @@ export function ShellPreview() {
         tags={TAGS}
         views={VIEWS}
         spaces={SPACES}
+        folders={[]}
         inboxCount={3}
         reviewCount={2}
         forReviewCount={4}
@@ -175,6 +176,11 @@ export function ShellPreview() {
         onReparentTag={() => undefined}
         onCreateTag={() => setTagEdit({ tag: null })}
         onEditTag={(t) => setTagEdit({ tag: t })}
+        onCreateFolder={() => undefined}
+        onRenameFolder={() => undefined}
+        onDeleteFolder={() => undefined}
+        onReparentFolder={() => undefined}
+        onFileNote={() => undefined}
         onCapture={() => undefined}
         email="patrick@zettra.app"
         onSignOut={() => undefined}

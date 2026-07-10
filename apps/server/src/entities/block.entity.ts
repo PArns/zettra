@@ -31,6 +31,11 @@ export class Block {
   @Index()
   parentId!: string | null;
 
+  /** Organizational folder this note is filed into (§8.2); null = unfiled (shows in Briefkasten). */
+  @Column({ type: 'uuid', nullable: true })
+  @Index()
+  folderId!: string | null;
+
   /** Fractional index for sibling ordering (§6.1). */
   @Column({ type: 'text', default: 'a0' })
   position!: string;

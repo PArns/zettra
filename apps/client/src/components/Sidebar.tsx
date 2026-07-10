@@ -1,7 +1,9 @@
+import type { FolderDto } from '@zettra/shared';
 import type { Space, Tag, View } from '../lib/api';
 import { clickable } from '../lib/a11y';
 import { useT } from '../i18n';
 import { TagTree } from './TagTree';
+import { FolderTree } from './FolderTree';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 
 export type Nav =
@@ -10,12 +12,14 @@ export type Nav =
   | { kind: 'inbox' }
   | { kind: 'review' }
   | { kind: 'forReview' }
+  | { kind: 'folder'; id: string; name: string }
   | { kind: 'view'; id: string; name: string };
 
 export function Sidebar(props: {
   tags: Tag[];
   views: View[];
   spaces: Space[];
+  folders: FolderDto[];
   inboxCount: number;
   reviewCount: number;
   forReviewCount: number;
@@ -24,6 +28,11 @@ export function Sidebar(props: {
   onReparentTag: (tagId: string, parentId: string | null) => void;
   onCreateTag: () => void;
   onEditTag: (tag: Tag) => void;
+  onCreateFolder: (parentId: string | null) => void;
+  onRenameFolder: (folder: FolderDto) => void;
+  onDeleteFolder: (folder: FolderDto) => void;
+  onReparentFolder: (folderId: string, parentId: string | null) => void;
+  onFileNote: (blockId: string, folderId: string | null) => void;
   onCapture: () => void;
   email: string;
   onSignOut: () => void;
@@ -36,6 +45,7 @@ export function Sidebar(props: {
     (n.kind === 'view' && nav.kind === 'view' && n.id === nav.id);
 
   const activeViewId = nav.kind === 'view' ? nav.id : null;
+  const activeFolderId = nav.kind === 'folder' ? nav.id : null;
 
   return (
     <aside className="sidebar">
@@ -66,6 +76,14 @@ export function Sidebar(props: {
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'inbox' }) ? 'active' : ''}`}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              const noteId = e.dataTransfer.getData('application/x-zettra-note');
+              if (noteId) {
+                e.preventDefault();
+                props.onFileNote(noteId, null); // Drop a note here → un-file back to the Briefkasten.
+              }
+            }}
             {...clickable(() => props.onNav({ kind: 'inbox' }))}
           >
             <span className="emoji">📥</span> {t('nav.briefkasten')}
@@ -106,6 +124,30 @@ export function Sidebar(props: {
             onOpenView={(v) => props.onNav({ kind: 'view', id: v.id, name: v.name })}
             onReparent={props.onReparentTag}
             onEdit={props.onEditTag}
+          />
+        </div>
+
+        <div className="nav-section">
+          <div className="label">
+            <span>{t('nav.folders')}</span>
+            <button
+              className="label-add"
+              aria-label={t('folder.new')}
+              title={t('folder.new')}
+              onClick={() => props.onCreateFolder(null)}
+            >
+              +
+            </button>
+          </div>
+          <FolderTree
+            folders={props.folders}
+            activeFolderId={activeFolderId}
+            onOpen={(f) => props.onNav({ kind: 'folder', id: f.id, name: f.name })}
+            onReparent={props.onReparentFolder}
+            onFileNote={props.onFileNote}
+            onCreateChild={(parentId) => props.onCreateFolder(parentId)}
+            onRename={props.onRenameFolder}
+            onDelete={props.onDeleteFolder}
           />
         </div>
 

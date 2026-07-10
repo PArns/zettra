@@ -28,6 +28,14 @@ export interface LoginResultDto {
   sessions: WorkspaceSessionDto[];
 }
 
+/** A note-organization folder (§8.2). */
+export interface FolderDto {
+  id: string;
+  name: string;
+  parentId: string | null;
+  position: number;
+}
+
 export interface UserDto {
   id: string;
   tenantId: string;

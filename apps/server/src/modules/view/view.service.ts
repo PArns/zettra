@@ -154,7 +154,7 @@ export class ViewService {
     return blocks.map((b) => ({ blockId: b.id, title: entityTitle(b) }));
   }
 
-  /** The Briefkasten: untagged blocks owned by the acting user (§8.2, §15.3). */
+  /** The Briefkasten: untagged, unfiled blocks owned by the acting user (§8.2, §15.3). */
   async inbox(ctx: RequestContext): Promise<Block[]> {
     const def: ViewDefinition = {
       tagId: null,
@@ -163,8 +163,21 @@ export class ViewService {
       groupBy: null,
       structural: [
         { kind: 'untagged' },
+        { kind: 'unfiled' },
         ...(ctx.userId ? [{ kind: 'owned_by' as const, userId: ctx.userId }] : []),
       ],
+    };
+    return this.runDefinition(ctx, def);
+  }
+
+  /** Notes filed into a specific folder (§8.2). Permission-scoped like every read path. */
+  async folderContents(ctx: RequestContext, folderId: string): Promise<Block[]> {
+    const def: ViewDefinition = {
+      tagId: null,
+      filters: [],
+      sorts: [],
+      groupBy: null,
+      structural: [{ kind: 'in_folder', folderId }],
     };
     return this.runDefinition(ctx, def);
   }

@@ -1975,25 +1975,43 @@ body {
 
   /* ---------- Calendar surface (§3) ---------- */
   .calendar {
-    max-width: 720px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 28px;
+    max-width: 1100px;
     margin: 0 auto;
     user-select: none;
+    align-items: start;
+  }
+  /* Modern side-by-side: month grid left, the selected day's agenda in its own right column. */
+  @media (max-width: 900px) {
+    .calendar {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+  .cal-main {
+    min-width: 0;
   }
   .cal-head {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 6px;
+    margin-bottom: 16px;
   }
   .cal-title {
     font-weight: 700;
-    font-size: 16px;
+    font-size: 20px;
+    letter-spacing: -0.01em;
     text-transform: capitalize;
+  }
+  .cal-today-btn {
+    margin: 0 2px;
   }
   .cal-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
+    gap: 6px;
   }
   .cal-wd {
     text-align: center;
@@ -2058,16 +2076,35 @@ body {
     background: var(--red);
   }
   .cal-day-detail {
-    margin-top: 20px;
+    position: sticky;
+    top: 16px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
+  }
+  @media (max-width: 900px) {
+    .cal-day-detail {
+      position: static;
+    }
   }
   .cal-day-title {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 15px;
     text-transform: capitalize;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cal-day-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
   .cal-conflict-tag {
     font-size: 10px;
@@ -2083,7 +2120,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 6px;
+    padding: 10px 12px;
     cursor: pointer;
   }
   .cal-item-icon {
@@ -2283,5 +2320,85 @@ body {
   }
   .ai-chat-input input {
     flex: 1;
+  }
+
+  /* --- Note row actions (delete / remove-from-folder), revealed on hover (§8.2) --- */
+  .inbox-item {
+    position: relative;
+  }
+  .card-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-faint);
+    font-size: 13px;
+    cursor: pointer;
+    opacity: 0;
+    transition:
+      opacity 0.12s ease,
+      background 0.12s ease,
+      color 0.12s ease;
+  }
+  /* A second action button sits to the left of the first. */
+  .card-delete + .card-delete {
+    right: 40px;
+  }
+  .inbox-item:hover .card-delete,
+  .card-delete:focus-visible {
+    opacity: 1;
+  }
+  .card-delete:hover {
+    background: var(--surface-3, var(--surface));
+    color: var(--text);
+  }
+
+  /* --- App-wide file drop overlay (§8.3): shown while OS files are dragged over the window --- */
+  .global-drop-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    backdrop-filter: blur(1.5px);
+  }
+  .global-drop-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 28px 40px;
+    border: 2px dashed var(--accent);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg, 0 12px 40px rgba(0, 0, 0, 0.25));
+  }
+  .global-drop-glyph {
+    font-size: 30px;
+  }
+  .global-drop-title {
+    font-weight: 650;
+    font-size: 15px;
+  }
+  .global-drop-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Keep the reminder check/dismiss buttons on one baseline regardless of glyph metrics. */
+  .reminder-actions {
+    align-items: center;
+  }
+  .reminder-actions .icon-sm {
+    line-height: 1;
+    font-size: 14px;
   }
 }

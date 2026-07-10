@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { Allow, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { BlockDto, BlockSource, BlockVisibility } from '@zettra/shared';
 import { BlockService } from './block.service';
@@ -79,5 +79,12 @@ export class BlockController {
   async markReviewed(@Ctx() ctx: RequestContext, @Param('id') id: string): Promise<BlockDto> {
     const block = await this.blocks.markReviewed(ctx, id);
     return toBlockDto(block, await this.blocks.tagIdsFor(id));
+  }
+
+  /** Permanently delete a note and its projections (§8.7). */
+  @Delete(':id')
+  async remove(@Ctx() ctx: RequestContext, @Param('id') id: string): Promise<{ ok: true }> {
+    await this.blocks.remove(ctx, id);
+    return { ok: true };
   }
 }
