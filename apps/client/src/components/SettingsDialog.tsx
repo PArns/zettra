@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, type UserSettings } from '../lib/api';
 import { getAccent, setAccent } from '../lib/accent';
 import { LANGUAGES, useI18n } from '../i18n';
 import { AccentPicker, Button, Field, Input, Segmented, ThemeSwitcher } from '../ui';
 import { useToast } from './Toast';
 
-type Tab = 'appearance' | 'profile' | 'security' | 'plan';
+type Tab = 'appearance' | 'profile' | 'security' | 'clipper' | 'plan';
 
 interface Plan {
   tier: 'free' | 'pro' | 'team';
@@ -134,7 +134,7 @@ export function SettingsDialog({
 
         <div className="settings-body">
           <nav className="settings-tabs">
-            {(['appearance', 'profile', 'security', 'plan'] as Tab[]).map((tabId) => (
+            {(['appearance', 'profile', 'security', 'clipper', 'plan'] as Tab[]).map((tabId) => (
               <button
                 key={tabId}
                 className={`settings-tab ${tab === tabId ? 'active' : ''}`}
@@ -146,7 +146,9 @@ export function SettingsDialog({
                     ? `👤 ${t('settings.profile')}`
                     : tabId === 'security'
                       ? `🔒 ${t('settings.security')}`
-                      : `💳 ${t('settings.plan')}`}
+                      : tabId === 'clipper'
+                        ? `✂️ ${t('settings.clipper')}`
+                        : `💳 ${t('settings.plan')}`}
               </button>
             ))}
           </nav>
@@ -247,6 +249,8 @@ export function SettingsDialog({
               </div>
             )}
 
+            {tab === 'clipper' && <WebClipperPanel />}
+
             {tab === 'plan' && (
               <div className="stack">
                 <div className="plan-badge">
@@ -281,6 +285,71 @@ export function SettingsDialog({
               </div>
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Web clipper setup (§8.3): a drag-to-bookmark-bar bookmarklet + a manual URL clip field. */
+function WebClipperPanel() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const [url, setUrl] = useState('');
+  const [busy, setBusy] = useState(false);
+  const bmRef = useRef<HTMLAnchorElement>(null);
+  const origin = window.location.origin;
+  // Runs on any page: opens Zettra with the current URL, which the app clips server-side.
+  const bookmarklet = `javascript:(function(){window.open('${origin}/?clipUrl='+encodeURIComponent(location.href),'zettra');})();`;
+
+  // React sanitizes a `javascript:` href in JSX (→ an error stub), so set it on the DOM directly.
+  // The link stays draggable to the bookmarks bar with the real bookmarklet URL.
+  useEffect(() => {
+    bmRef.current?.setAttribute('href', bookmarklet);
+  }, [bookmarklet]);
+
+  const clip = async () => {
+    const u = url.trim();
+    if (!u) return;
+    setBusy(true);
+    try {
+      await api.clip(u);
+      setUrl('');
+      toast.success(t('clipper.clipped'));
+    } catch (err) {
+      toast.error(`${t('clipper.failed')}: ${(err as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="stack">
+      <div>
+        <div className="settings-label">{t('clipper.bookmarkletTitle')}</div>
+        <p className="settings-hint">{t('clipper.bookmarkletHelp')}</p>
+        {/* Draggable to the bookmarks bar (real href set via ref); clicking it here is a no-op. */}
+        <a
+          ref={bmRef}
+          className="clipper-bookmarklet"
+          onClick={(e) => e.preventDefault()}
+          draggable
+        >
+          ✂️ {t('clipper.button')}
+        </a>
+      </div>
+      <div>
+        <div className="settings-label">{t('clipper.manualTitle')}</div>
+        <div className="clipper-manual">
+          <Input
+            value={url}
+            placeholder="https://…"
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && void clip()}
+          />
+          <Button onClick={() => void clip()} disabled={busy || !url.trim()}>
+            {busy ? t('common.saving') : t('clipper.clip')}
+          </Button>
         </div>
       </div>
     </div>

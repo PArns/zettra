@@ -59,9 +59,8 @@ export function DropZone({
       }
       const text = items.text.trim();
       if (text) {
-        const block = URL_RE.test(text)
-          ? await api.capture({ text, url: text })
-          : await api.capture({ text });
+        // A dropped URL is clipped (fetched + article-extracted); plain text is a note capture.
+        const block = URL_RE.test(text) ? await api.clip(text) : await api.capture({ text });
         onCaptured(block);
         count++;
       }

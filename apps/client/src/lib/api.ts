@@ -387,6 +387,9 @@ export const api = {
   capture: (i: { text: string; title?: string; url?: string }) =>
     request<BlockDto>('/capture', { method: 'POST', body: JSON.stringify(i) }),
 
+  /** Web clipper (§8.3): fetch + extract a URL server-side into a readable web_clip block. */
+  clip: (url: string) => request<BlockDto>('/clip', { method: 'POST', body: JSON.stringify({ url }) }),
+
   /** Upload a file (image) → returns its served URL. Backs BlockNote's uploadFile. */
   async upload(file: File): Promise<string> {
     const form = new FormData();

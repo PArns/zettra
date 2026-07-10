@@ -32,6 +32,7 @@ import { ReminderModule } from './modules/reminder/reminder.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
 import { AiChatModule } from './modules/ai-chat/ai-chat.module';
 import { FolderModule } from './modules/folder/folder.module';
+import { ClipModule } from './modules/clip/clip.module';
 
 /**
  * Root module wiring the domain-focused feature modules (§3). Global modules (AI, Jobs,
@@ -66,6 +67,7 @@ import { FolderModule } from './modules/folder/folder.module';
     BlockModule,
     ViewModule,
     FolderModule,
+    ClipModule,
     EmbeddingModule,
     LinkingModule,
     ApprovalModule,

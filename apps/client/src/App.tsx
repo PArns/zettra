@@ -126,6 +126,28 @@ export function App() {
     if (authed) void refresh();
   }, [authed, refresh]);
 
+  // Web clipper: the bookmarklet opens the app at `?clipUrl=…`. Fetch + extract it server-side,
+  // open the clipped note, and strip the param so a reload doesn't re-clip.
+  useEffect(() => {
+    if (!authed) return;
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get('clipUrl');
+    if (!url) return;
+    params.delete('clipUrl');
+    const rest = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (rest ? `?${rest}` : ''));
+    toast.success('Seite wird geclippt…');
+    api
+      .clip(url)
+      .then((block) => {
+        openNote(block.id);
+        void refresh();
+        toast.success('Seite geclippt');
+      })
+      .catch((err) => toast.error(`Clippen fehlgeschlagen: ${(err as Error).message}`));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed]);
+
   useEffect(() => {
     // Apply the user's server-side theme + accent preferences after sign-in.
     if (!authed) return;
