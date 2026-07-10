@@ -77,7 +77,7 @@ export function TodayPane({ onOpen }: { onOpen: (id: string) => void }) {
       <div className="today-group">
         <div className={`today-group-head ${tone}`}>{title}</div>
         {list.map((r) => (
-          <div key={r.id} className="card today-item">
+          <div key={r.id} className="today-item">
             <div {...clickable(() => onOpen(r.blockId))} style={{ cursor: 'pointer', flex: 1 }}>
               <div className="today-title">🔔 {r.title}</div>
               <div className="today-meta">
@@ -129,7 +129,7 @@ export function TodayPane({ onOpen }: { onOpen: (id: string) => void }) {
           {scheduled.map((it, i) => (
             <div
               key={`${it.blockId}:${i}`}
-              className="card today-item"
+              className="today-item"
               {...clickable(() => onOpen(it.blockId))}
             >
               <div style={{ flex: 1 }}>
@@ -147,7 +147,7 @@ export function TodayPane({ onOpen }: { onOpen: (id: string) => void }) {
           {todayBlocks.map((b) => {
             const created = dayOf(b.createdAt) === today;
             return (
-              <div key={b.id} className="card today-item" {...clickable(() => onOpen(b.id))}>
+              <div key={b.id} className="today-item" {...clickable(() => onOpen(b.id))}>
                 <div style={{ flex: 1 }}>
                   <div className="today-title">{blockTitle(b)}</div>
                   <div className="today-meta">
