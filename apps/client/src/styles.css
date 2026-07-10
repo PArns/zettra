@@ -2463,6 +2463,132 @@ body {
     flex: 1;
   }
 
+  /* --- Floating table toolbar (§4): header row/col, formula summary, cross-reference --- */
+  .table-toolbar {
+    position: fixed;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-md, 0 6px 20px rgba(0, 0, 0, 0.16));
+  }
+  .tt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .tt-btn:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .tt-btn.on {
+    background: var(--accent-soft);
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .tt-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 2px;
+  }
+  .tt-menuwrap {
+    position: relative;
+  }
+  .tt-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 200px;
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-md, 0 6px 20px rgba(0, 0, 0, 0.16));
+    z-index: 61;
+  }
+  .tt-menu-head {
+    padding: 4px 8px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-faint);
+  }
+  .tt-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 7px 8px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .tt-menu-item:hover {
+    background: var(--surface-2);
+  }
+  .tt-help {
+    width: 300px;
+  }
+  .tt-help p {
+    margin: 0;
+    padding: 5px 8px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+  .tt-help b {
+    color: var(--text);
+  }
+  .tt-help code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--surface-2);
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+  .tt-xref-input {
+    width: 100%;
+    margin-bottom: 4px;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 13px;
+  }
+  .tt-menu-empty {
+    padding: 8px;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  /* Frozen header: a marked header row stays put while a large table scrolls (§4). BlockNote sets
+     the cells to position:relative, so override it. The scroll container is `.pane`, so top:0
+     freezes the header just under the app topbar. */
+  .bn-block-content[data-content-type='table'] th {
+    position: sticky !important;
+    top: 0;
+    z-index: 3;
+    background: var(--surface-2);
+  }
+
   /* --- Note row actions (delete / remove-from-folder), revealed on hover (§8.2) --- */
   .inbox-item {
     position: relative;

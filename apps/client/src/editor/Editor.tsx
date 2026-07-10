@@ -15,6 +15,7 @@ import { api, getToken } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { resolvedTheme } from '../lib/theme';
 import { schema } from './inline';
+import { TableToolbar, type EditorLike } from './TableToolbar';
 
 /** The note's title: the first non-empty line of the document, trimmed to 80 chars. */
 function firstLineTitle(editor: { document: Array<{ content?: unknown }> }): string {
@@ -260,6 +261,8 @@ export function Editor({
           <SuggestionMenuController triggerCharacter="[" getItems={referenceItems('reference')} />
         </BlockNoteView>
       </div>
+      {/* Floating table tools (header row/col, formula summary, cross-reference) when a table is focused. */}
+      <TableToolbar editor={editor as unknown as EditorLike} />
     </div>
   );
 }
