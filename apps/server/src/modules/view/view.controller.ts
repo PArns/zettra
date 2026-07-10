@@ -4,7 +4,7 @@ import { ViewFilter, ViewLayout, ViewSort } from '@zettra/shared';
 import { AuthGuard } from '../auth/auth.guard';
 import { Ctx } from '../../common/current-context.decorator';
 import { RequestContext } from '../../common/request-context';
-import { BlockDto } from '@zettra/shared';
+import { BlockDto, TodoItemDto } from '@zettra/shared';
 import { ViewData, ViewService } from './view.service';
 import { Block, View } from '../../entities/index';
 import { BlockService } from '../block/block.service';
@@ -67,6 +67,23 @@ export class ViewController {
     const blocks = await this.views.forReview(ctx);
     const tags = await this.blocks.tagIdsForMany(blocks.map((b) => b.id));
     return blocks.map((b) => toBlockDto(b, tags.get(b.id) ?? []));
+  }
+
+  /** The global #todo list — every #todo note with due date, follow-up, and status (§4). */
+  @Get('todos')
+  todos(@Ctx() ctx: RequestContext): Promise<TodoItemDto[]> {
+    return this.views.todos(ctx);
+  }
+
+  /** Toggle a #todo note's status (done-checkbox in the global list). */
+  @Post('todos/:blockId/status')
+  async setTodoStatus(
+    @Ctx() ctx: RequestContext,
+    @Param('blockId') blockId: string,
+    @Body() body: { status: string },
+  ): Promise<{ ok: true }> {
+    await this.views.setTodoStatus(ctx, blockId, body.status);
+    return { ok: true };
   }
 
   /** The Today feed — everything the acting user can see that was created or updated today (§6). */

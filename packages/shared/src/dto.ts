@@ -36,6 +36,16 @@ export interface FolderDto {
   position: number;
 }
 
+/** One row of the global #todo list: a #todo-tagged note with its due date, follow-up, and status. */
+export interface TodoItemDto {
+  blockId: string;
+  title: string;
+  due: string | null;
+  followUp: string | null;
+  status: string | null;
+  done: boolean;
+}
+
 export interface UserDto {
   id: string;
   tenantId: string;

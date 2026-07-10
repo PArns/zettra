@@ -4,6 +4,7 @@ import { clickable } from '../lib/a11y';
 import { useT } from '../i18n';
 import {
   IconCalendar,
+  IconCheck,
   IconInbox,
   IconPlus,
   IconReview,
@@ -19,6 +20,7 @@ import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 export type Nav =
   | { kind: 'today' }
   | { kind: 'calendar' }
+  | { kind: 'todo' }
   | { kind: 'inbox' }
   | { kind: 'review' }
   | { kind: 'forReview' }
@@ -89,6 +91,15 @@ export function Sidebar(props: {
               <IconCalendar />
             </span>{' '}
             {t('nav.calendar')}
+          </div>
+          <div
+            className={`nav-item ${isActive({ kind: 'todo' }) ? 'active' : ''}`}
+            {...clickable(() => props.onNav({ kind: 'todo' }))}
+          >
+            <span className="nav-ico">
+              <IconCheck size={18} />
+            </span>{' '}
+            {t('nav.todo')}
           </div>
           <div
             className={`nav-item ${isActive({ kind: 'inbox' }) ? 'active' : ''}`}

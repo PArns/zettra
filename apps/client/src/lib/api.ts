@@ -1,4 +1,12 @@
-import type { AuthTokenDto, BlockDto, FolderDto, LoginResultDto } from '@zettra/shared';
+import type {
+  AuthTokenDto,
+  BlockDto,
+  FolderDto,
+  LoginResultDto,
+  TodoItemDto,
+} from '@zettra/shared';
+
+export type TodoItem = TodoItemDto;
 
 /** Typed API client. Same-origin `/api` (dev proxy / prod nginx). JWT in localStorage (§2). */
 const TOKEN_KEY = 'zettra.token';
@@ -199,6 +207,12 @@ export const api = {
 
   inbox: () => request<BlockDto[]>('/views/inbox'),
   todayItems: () => request<BlockDto[]>('/views/today-items'),
+  todos: () => request<TodoItem[]>('/views/todos'),
+  setTodoStatus: (blockId: string, status: string) =>
+    request<{ ok: true }>(`/views/todos/${blockId}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    }),
   forReview: () => request<BlockDto[]>('/views/for-review'),
   markReviewed: (id: string) => request<BlockDto>(`/blocks/${id}/reviewed`, { method: 'POST' }),
   block: (id: string) => request<BlockDto>(`/blocks/${id}`),

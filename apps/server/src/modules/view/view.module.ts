@@ -6,6 +6,7 @@ import { ViewController } from './view.controller';
 import { TagModule } from '../tag/tag.module';
 import { AuthModule } from '../auth/auth.module';
 import { BlockModule } from '../block/block.module';
+import { FieldModule } from '../field/field.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { BlockModule } from '../block/block.module';
     TagModule,
     AuthModule,
     BlockModule,
+    FieldModule,
   ],
   providers: [ViewService],
   controllers: [ViewController],

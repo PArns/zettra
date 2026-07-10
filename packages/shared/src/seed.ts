@@ -96,6 +96,21 @@ export const SEED_TAGS: SeedTag[] = [
     ],
   },
   {
+    // #todo backs the global to-do list: a due date ("zu tun bis") + a follow-up (Wiedervorlage).
+    name: 'todo',
+    icon: '☑️',
+    color: '#0d9488',
+    fields: [
+      {
+        name: 'status',
+        type: FieldType.Select,
+        config: { options: ['open', 'doing', 'done'] },
+      },
+      { name: 'due', type: FieldType.Date },
+      { name: 'Wiedervorlage', type: FieldType.Date },
+    ],
+  },
+  {
     // #meeting extends #event-like fields directly; kept flat here to avoid a synthetic
     // #event seed. `attendees` is a multi-relation to #person.
     name: 'meeting',

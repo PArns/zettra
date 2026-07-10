@@ -16,6 +16,7 @@ import { FolderPane } from './components/FolderPane';
 import { NoteHeader } from './components/NoteHeader';
 import { NoteProperties } from './components/NoteProperties';
 import { TodayPane } from './components/TodayPane';
+import { TodoPane } from './components/TodoPane';
 import { CalendarPane } from './components/CalendarPane';
 import { AiChatPanel } from './components/AiChatPanel';
 import { WelcomePane } from './components/WelcomePane';
@@ -280,7 +281,9 @@ export function App() {
         ? t('nav.today')
         : nav.kind === 'calendar'
           ? t('nav.calendar')
-          : nav.kind === 'inbox'
+          : nav.kind === 'todo'
+            ? t('nav.todo')
+            : nav.kind === 'inbox'
             ? t('nav.briefkasten')
             : nav.kind === 'review'
               ? t('nav.connections')
@@ -437,6 +440,7 @@ export function App() {
                   <TodayPane onOpen={openNote} />
                 )}
                 {nav.kind === 'calendar' && <CalendarPane onOpen={openNote} />}
+                {nav.kind === 'todo' && <TodoPane onOpen={openNote} />}
                 {nav.kind === 'inbox' && (
                   <>
                     {inbox.length === 0 && tags.length === 0 && (
