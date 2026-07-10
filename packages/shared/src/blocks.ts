@@ -50,12 +50,18 @@ export const BLOCK_TYPES = {
   mermaid: 'mermaid',
   toggle: 'toggle',
   pdf: 'pdf',
+  spreadsheet: 'spreadsheet',
 } as const;
 
 /** Embedded PDF: rendered inline via the browser's PDF viewer; text is extracted server-side. */
 export const pdfPropSchema = {
   url: { default: '' as string },
   name: { default: '' as string },
+} as const;
+
+/** Spreadsheet block: the whole grid (cells + formulas + conditional formatting) as JSON in `data`. */
+export const spreadsheetPropSchema = {
+  data: { default: '' as string },
 } as const;
 
 /** Collapsible toggle: an inline header whose nested child blocks hide when `open` is false. */

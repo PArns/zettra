@@ -21,3 +21,4 @@ export * from './calendar-agenda';
 export * from './date-extract';
 export * from './recurrence';
 export * from './ocr';
+export * from './spreadsheet';

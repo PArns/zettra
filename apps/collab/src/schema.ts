@@ -14,6 +14,7 @@ import {
   mathPropSchema,
   mermaidPropSchema,
   pdfPropSchema,
+  spreadsheetPropSchema,
   togglePropSchema,
 } from '@zettra/shared';
 
@@ -173,6 +174,18 @@ const pdf = createBlockSpec(
   },
 );
 
+// Spreadsheet: the whole grid lives as JSON in `data`; the server keeps it opaque (round-trip only).
+const spreadsheet = createBlockSpec(
+  { type: BLOCK_TYPES.spreadsheet, propSchema: spreadsheetPropSchema, content: 'none' } as const,
+  {
+    render: () => {
+      const dom = document.createElement('div');
+      dom.className = 'zx-sheet';
+      return { dom };
+    },
+  },
+);
+
 export const serverSchema = BlockNoteSchema.create({
   blockSpecs: {
     ...defaultBlockSpecs,
@@ -184,6 +197,7 @@ export const serverSchema = BlockNoteSchema.create({
     mermaid,
     toggle,
     pdf,
+    spreadsheet,
   },
   inlineContentSpecs: { ...defaultInlineContentSpecs, reference, tag },
 });

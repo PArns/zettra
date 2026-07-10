@@ -228,6 +228,15 @@ export function Editor({
         icon: <span className="zx-slash-ico">▸</span>,
         onItemClick: () => insertOrUpdateBlock(editor, { type: 'toggle', props: { open: true } }),
       },
+      {
+        title: 'Spreadsheet',
+        subtext: 'Grid with =formulas, cell refs & conditional formatting',
+        aliases: ['spreadsheet', 'formula', 'formel', 'sheet', 'excel', 'calc', 'tabelle'],
+        group: 'Blocks',
+        icon: <span className="zx-slash-ico">🔢</span>,
+        onItemClick: () =>
+          insertOrUpdateBlock(editor, { type: 'spreadsheet', props: { data: '' } }),
+      },
     ];
     return filterSuggestionItems([...getDefaultReactSlashMenuItems(editor), ...custom], query);
   };

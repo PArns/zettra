@@ -1319,6 +1319,199 @@ body {
     border-top: 1px solid var(--border-strong);
     margin: 0;
   }
+  /* Spreadsheet block (§4): editable grid with =formulas + conditional formatting. */
+  .zx-sheet {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+    margin: 4px 0;
+  }
+  .zx-sheet-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    flex-wrap: wrap;
+  }
+  .zx-sheet-bar > button,
+  .zx-sheet-menuwrap > button {
+    padding: 4px 9px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .zx-sheet-bar > button:hover,
+  .zx-sheet-menuwrap > button:hover {
+    background: var(--surface);
+    color: var(--text);
+  }
+  .zx-sheet-menuwrap > button.on {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+  .zx-sheet-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+    margin: 0 2px;
+  }
+  .zx-sheet-menuwrap {
+    position: relative;
+  }
+  .zx-sheet-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    min-width: 260px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-md, 0 6px 20px rgba(0, 0, 0, 0.16));
+  }
+  .zx-sheet-menu-head {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+  .zx-cf-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .zx-cf-row select,
+  .zx-cf-row input {
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 12px;
+  }
+  .zx-cf-row input {
+    width: 64px;
+  }
+  .zx-cf-colors {
+    display: flex;
+    gap: 3px;
+  }
+  .zx-cf-color {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .zx-cf-color.on {
+    border-color: var(--text);
+  }
+  .zx-cf-add {
+    padding: 3px 8px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  .zx-cf-rule {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 3px 0;
+  }
+  .zx-cf-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  .zx-cf-del {
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    color: var(--text-faint);
+    cursor: pointer;
+  }
+  .zx-sheet-help {
+    width: 300px;
+  }
+  .zx-sheet-help p {
+    margin: 0 0 6px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+  .zx-sheet-help code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--surface-2);
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+  .zx-sheet-scroll {
+    overflow-x: auto;
+  }
+  .zx-sheet-table {
+    border-collapse: collapse;
+    font-size: 13px;
+    width: 100%;
+  }
+  .zx-sheet-table th {
+    background: var(--surface-2);
+    color: var(--text-faint);
+    font-weight: 600;
+    font-size: 11px;
+    text-align: center;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    min-width: 28px;
+  }
+  .zx-sheet-corner,
+  .zx-sheet-rowhead {
+    width: 34px;
+    min-width: 34px;
+  }
+  .zx-sheet-table td {
+    border: 1px solid var(--border);
+    padding: 0;
+    min-width: 84px;
+    height: 30px;
+    cursor: cell;
+  }
+  .zx-sheet-val {
+    display: block;
+    padding: 5px 8px;
+    min-height: 20px;
+    white-space: nowrap;
+  }
+  .zx-sheet-err .zx-sheet-val {
+    color: var(--red);
+    font-weight: 600;
+  }
+  .zx-sheet-input {
+    width: 100%;
+    height: 100%;
+    padding: 5px 8px;
+    border: 2px solid var(--accent);
+    border-radius: 0;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--mono);
+  }
+
   /* Embedded PDF block (§4): inline browser viewer with a header (name + open link). */
   .zx-pdf {
     border: 1px solid var(--border);

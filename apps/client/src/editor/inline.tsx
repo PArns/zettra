@@ -10,6 +10,7 @@ import {
   QuoteBlock,
   ToggleBlock,
 } from './blocks';
+import { SpreadsheetBlock } from './SpreadsheetBlock';
 
 /**
  * The reference inline primitive (§8.6, invariant 4): `#tags` and `[[references]]` are the
@@ -63,6 +64,7 @@ export const schema = BlockNoteSchema.create({
     mermaid: MermaidBlock,
     toggle: ToggleBlock,
     pdf: PdfBlock,
+    spreadsheet: SpreadsheetBlock,
   },
   inlineContentSpecs: {
     ...defaultInlineContentSpecs,
