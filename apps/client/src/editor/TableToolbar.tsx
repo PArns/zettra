@@ -75,8 +75,14 @@ export function TableToolbar({ editor }: { editor: EditorLike }) {
 
   const locate = useMemo(
     () => () => {
+      // Only while the table is actually being worked in — the editor (or this toolbar) holds
+      // focus. Otherwise the bar would linger on load and over other UI even when nothing's
+      // selected. Text formatting is BlockNote's own toolbar on cell selection; this bar is only
+      // the structural/formula controls.
+      const active = document.activeElement as HTMLElement | null;
+      const focused = !!active?.closest?.('.bn-editor, .table-toolbar');
       const block = editor.getTextCursorPosition?.()?.block as TableBlock | undefined;
-      if (!block || block.type !== 'table') {
+      if (!focused || !block || block.type !== 'table') {
         setTable(null);
         setPos(null);
         setMenu(null);
@@ -92,6 +98,18 @@ export function TableToolbar({ editor }: { editor: EditorLike }) {
   );
 
   useEditorContentOrSelectionChange(() => locate(), editor as never);
+
+  // Show/hide as focus enters or leaves the editor (locate() gates on focus). Deferred so
+  // document.activeElement reflects the *new* focus target before we read it.
+  useEffect(() => {
+    const onFocus = () => setTimeout(locate, 0);
+    document.addEventListener('focusin', onFocus);
+    document.addEventListener('focusout', onFocus);
+    return () => {
+      document.removeEventListener('focusin', onFocus);
+      document.removeEventListener('focusout', onFocus);
+    };
+  }, [locate]);
 
   // Keep the toolbar pinned to the table while the page scrolls / resizes.
   useEffect(() => {
