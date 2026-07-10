@@ -416,6 +416,58 @@ body {
   .content.no-rail {
     grid-template-columns: 1fr;
   }
+
+  /* Note tabs (open several notes at once) */
+  .tab-bar {
+    display: flex;
+    gap: 2px;
+    padding: 5px 10px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--glass);
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px 8px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    max-width: 220px;
+    border: 1px solid transparent;
+    border-bottom: none;
+  }
+  .tab:hover {
+    background: var(--surface-2);
+  }
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .tab-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tab-close {
+    border: none;
+    background: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 3px;
+    border-radius: 4px;
+    flex: none;
+  }
+  .tab-close:hover {
+    background: var(--border-strong);
+    color: var(--text);
+  }
   .pane {
     overflow-y: auto;
     min-height: 0;

@@ -33,6 +33,27 @@ export function App() {
   const [addingWorkspace, setAddingWorkspace] = useState(false);
   // Live title of the open note (its first line), for the topbar crumb.
   const [noteTitle, setNoteTitle] = useState('');
+  // Open notes as tabs (ids) + their last-known titles, so several notes stay open at once.
+  const [tabs, setTabs] = useState<string[]>([]);
+  const [tabTitles, setTabTitles] = useState<Record<string, string>>({});
+
+  const openNote = useCallback((id: string) => {
+    setSelected(id);
+    setTabs((t) => (t.includes(id) ? t : [...t, id]));
+  }, []);
+
+  const closeTab = (id: string) => {
+    setTabs((t) => {
+      const next = t.filter((x) => x !== id);
+      setSelected((cur) => (cur === id ? (next[next.length - 1] ?? null) : cur));
+      return next;
+    });
+    setTabTitles((m) => {
+      const rest = { ...m };
+      delete rest[id];
+      return rest;
+    });
+  };
   const [me, setMe] = useState<{
     tenantId: string;
     spaces: string[];
@@ -119,7 +140,7 @@ export function App() {
     try {
       const block = await api.createBlock({ spaceId });
       setInbox((prev) => [block, ...prev]);
-      setSelected(block.id);
+      openNote(block.id);
     } catch (err) {
       toast.error(`Capture failed: ${(err as Error).message}`);
     } finally {
@@ -227,7 +248,7 @@ export function App() {
           <div className="crumb">{crumb}</div>
           <div className="spacer" />
           <SearchBox
-            onOpen={(id) => setSelected(id)}
+            onOpen={openNote}
             onAskAi={(question) => {
               setChatQuestion(question);
               setShowChat(true);
@@ -248,7 +269,7 @@ export function App() {
           >
             ✦
           </IconButton>
-          <NotificationsBell onOpenBlock={(id) => setSelected(id)} />
+          <NotificationsBell onOpenBlock={openNote} />
           {role === 'admin' && !impersonatorToken && (
             <IconButton label={t('admin.open')} onClick={() => setShowAdmin(true)}>
               🛡️
@@ -259,6 +280,33 @@ export function App() {
           </IconButton>
         </div>
 
+        {tabs.length > 0 && (
+          <div className="tab-bar" role="tablist">
+            {tabs.map((id) => (
+              <div
+                key={id}
+                role="tab"
+                aria-selected={id === selected}
+                className={`tab ${id === selected ? 'active' : ''}`}
+                onClick={() => setSelected(id)}
+              >
+                <span className="tab-title">{tabTitles[id] || t('top.note')}</span>
+                <button
+                  type="button"
+                  className="tab-close"
+                  aria-label={t('top.back')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeTab(id);
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {selected ? (
           <div className="content">
             <div className="pane">
@@ -266,14 +314,17 @@ export function App() {
                 <Editor
                   blockId={selected}
                   userName={email || 'You'}
-                  onTitle={setNoteTitle}
+                  onTitle={(tt) => {
+                    setNoteTitle(tt);
+                    setTabTitles((m) => ({ ...m, [selected]: tt }));
+                  }}
                 />
               </div>
             </div>
             <RightRail
               key={`${selected}:${railRefresh}`}
               blockId={selected}
-              onOpen={(id) => setSelected(id)}
+              onOpen={openNote}
             />
           </div>
         ) : (
@@ -281,9 +332,9 @@ export function App() {
             <div className="pane">
               <div className="pane-narrow">
                 {nav.kind === 'today' && (
-                  <TodayPane onOpen={(id) => setSelected(id)} />
+                  <TodayPane onOpen={openNote} />
                 )}
-                {nav.kind === 'calendar' && <CalendarPane onOpen={(id) => setSelected(id)} />}
+                {nav.kind === 'calendar' && <CalendarPane onOpen={openNote} />}
                 {nav.kind === 'inbox' && (
                   <>
                     {inbox.length === 0 && tags.length === 0 && (
@@ -300,19 +351,19 @@ export function App() {
                         window.setTimeout(() => void refresh(), 1500);
                       }}
                     />
-                    <InboxPane blocks={inbox} onOpen={(id) => setSelected(id)} />
+                    <InboxPane blocks={inbox} onOpen={openNote} />
                   </>
                 )}
                 {nav.kind === 'forReview' && (
                   <ForReviewPane
                     blocks={forReview}
-                    onOpen={(id) => setSelected(id)}
+                    onOpen={openNote}
                     onResolved={refresh}
                   />
                 )}
                 {nav.kind === 'review' && <ReviewQueue onChange={refresh} />}
                 {nav.kind === 'view' && (
-                  <ViewPane viewId={nav.id} onOpen={(id) => setSelected(id)} />
+                  <ViewPane viewId={nav.id} onOpen={openNote} />
                 )}
               </div>
             </div>
@@ -326,7 +377,7 @@ export function App() {
           initialQuestion={chatQuestion}
           onClose={() => setShowChat(false)}
           onOpenBlock={(id) => {
-            setSelected(id);
+            openNote(id);
             setShowChat(false);
           }}
         />
