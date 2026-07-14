@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'node:crypto';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import {
+  BlockSource,
   BlockVisibility,
   CreateViewDto,
   DocBlock,
@@ -16,6 +18,7 @@ import { Block, FieldValue, Tag, View } from '../../entities/index';
 import { RequestContext } from '../../common/request-context';
 import { TagService, EffectiveField } from '../tag/tag.service';
 import { FieldValueService } from '../field/field-value.service';
+import { BlockService } from '../block/block.service';
 import { CompiledQuery, compileView } from './view-compiler';
 
 /** A view row = a block plus its structured field values, for table/board rendering. */
@@ -44,6 +47,7 @@ export class ViewService {
     @InjectRepository(FieldValue) private readonly fieldValues: Repository<FieldValue>,
     private readonly tags: TagService,
     private readonly fieldValueService: FieldValueService,
+    private readonly blockService: BlockService,
   ) {}
 
   // --- CRUD ---
@@ -237,6 +241,26 @@ export class ViewService {
     await this.fieldValueService.set(ctx.tenantId, blockId, statusId, status, ctx.userId);
   }
 
+  /**
+   * Quick-add a #todo from the global list (§4): create a plain note whose single line is the
+   * title, then apply the #todo supertag. Undated, so it lands in "Later" until the owner sets a
+   * due date. Returns the new item so the list can prepend it optimistically.
+   */
+  async createTodo(ctx: RequestContext, title: string): Promise<TodoItemDto> {
+    const trimmed = title.trim();
+    if (!trimmed) throw new BadRequestException('Title required');
+    const spaceId = ctx.visibleSpaceIds[0];
+    if (!spaceId) throw new BadRequestException('No space available');
+    const todoTag = await this.ensureTodoTag(ctx);
+    const block = await this.blockService.create(ctx, {
+      spaceId,
+      content: todoContent(trimmed),
+      source: BlockSource.Manual,
+    });
+    await this.tags.applyTag(ctx.tenantId, block.id, todoTag.id, ctx.userId);
+    return { blockId: block.id, title: trimmed, due: null, followUp: null, status: null, done: false };
+  }
+
   /** Find the tenant's #todo supertag, creating it from the seed (fields included) if absent. */
   async ensureTodoTag(ctx: RequestContext): Promise<Tag> {
     const all = await this.tags.list(ctx.tenantId);
@@ -342,6 +366,19 @@ function firstNonNull(v: FieldValue): unknown {
 }
 
 /** First non-empty line of a block's prose, capped — the display label for an entity. */
+/** A single-paragraph BlockNote doc holding the todo's title (so {@link entityTitle} reads it). */
+function todoContent(title: string): DocBlock[] {
+  return [
+    {
+      id: randomUUID(),
+      type: 'paragraph',
+      props: { textColor: 'default', textAlignment: 'left', backgroundColor: 'default' },
+      content: [{ type: 'text', text: title, styles: {} }],
+      children: [],
+    },
+  ] as unknown as DocBlock[];
+}
+
 function entityTitle(block: Block): string {
   const doc: DocBlock[] = Array.isArray(block.content) ? (block.content as DocBlock[]) : [];
   const text = extractPlainText(doc).trim();

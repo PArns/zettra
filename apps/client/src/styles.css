@@ -2214,8 +2214,8 @@ body {
 
   /* ---------- First-run welcome (§8.2) ---------- */
   .welcome {
-    max-width: 720px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     padding: 8px 0 24px;
   }
   .welcome-hero {
@@ -2426,8 +2426,8 @@ body {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
     gap: 28px;
-    max-width: 1100px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     user-select: none;
     align-items: start;
   }
@@ -2646,8 +2646,8 @@ body {
 
   /* ---------- Today briefing (§6) ---------- */
   .today {
-    max-width: 640px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
   }
   .today-group {
     margin-bottom: 16px;
@@ -2957,8 +2957,8 @@ body {
 
   /* --- Proactive daily briefing (§4): the AI "here's your day" card atop Today --- */
   .briefing {
-    max-width: 720px;
-    margin: 0 auto 22px;
+    max-width: none;
+    margin: 0 0 22px;
     padding: 18px 20px 16px;
     border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
     border-radius: var(--radius-lg);
@@ -3081,8 +3081,8 @@ body {
 
   /* --- Global #todo list (§4): grouped by due date, with a completion checkbox --- */
   .todo-list {
-    max-width: 720px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -3098,9 +3098,56 @@ body {
   .todo-group-head.overdue {
     color: var(--red);
   }
+  .todo-quickadd {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    transition: border-color 0.12s ease;
+  }
+  .todo-quickadd:focus-within {
+    border-color: var(--accent);
+  }
+  .todo-quickadd-ico {
+    display: grid;
+    place-items: center;
+    color: var(--text-faint);
+    flex: none;
+  }
+  .todo-quickadd-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    padding: 0;
+    outline: none;
+  }
+  .todo-quickadd-input::placeholder {
+    color: var(--text-faint);
+  }
+  .todo-quickadd-btn {
+    flex: none;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: var(--accent-contrast, #fff);
+    border: 1px solid transparent;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .todo-quickadd-btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
   .todo-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
     padding: 12px 14px;
     margin-bottom: 8px;
@@ -3109,7 +3156,7 @@ body {
     flex-shrink: 0;
     width: 20px;
     height: 20px;
-    margin-top: 1px;
+    padding: 0; /* reset the base button padding so place-items can center the ✓ (border-box) */
     display: inline-grid;
     place-items: center;
     border: 1.5px solid var(--border);

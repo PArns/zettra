@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { api, type TodoItem } from '../lib/api';
 import { clickable } from '../lib/a11y';
 import { useT, type StringKey } from '../i18n';
-import { EmptyState, IconCheck } from '../ui';
+import { EmptyState, IconCheck, IconPlus } from '../ui';
+import { useToast } from './Toast';
 
 function todayIso(): string {
   const d = new Date();
@@ -47,7 +48,10 @@ function bucketOf(item: TodoItem, today: string, weekEnd: string): Bucket {
  */
 export function TodoPane({ onOpen }: { onOpen: (id: string) => void }) {
   const t = useT();
+  const toast = useToast();
   const [items, setItems] = useState<TodoItem[] | null>(null);
+  const [draft, setDraft] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const load = () =>
     api
@@ -58,6 +62,22 @@ export function TodoPane({ onOpen }: { onOpen: (id: string) => void }) {
   useEffect(() => {
     void load();
   }, []);
+
+  const addTodo = async () => {
+    const title = draft.trim();
+    if (!title || adding) return;
+    setAdding(true);
+    try {
+      const created = await api.createTodo(title);
+      setDraft('');
+      setItems((prev) => (prev ? [created, ...prev] : [created]));
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setAdding(false);
+      void load();
+    }
+  };
 
   const toggle = async (item: TodoItem) => {
     const next = item.done ? 'open' : 'done';
@@ -76,9 +96,6 @@ export function TodoPane({ onOpen }: { onOpen: (id: string) => void }) {
   };
 
   if (items === null) return <div className="empty">…</div>;
-  if (items.length === 0) {
-    return <EmptyState glyph="☑️" title={t('todo.empty')} />;
-  }
 
   const today = todayIso();
   const weekEnd = plusDaysIso(today, 7);
@@ -90,6 +107,32 @@ export function TodoPane({ onOpen }: { onOpen: (id: string) => void }) {
 
   return (
     <div className="todo-list">
+      <div className="todo-quickadd">
+        <span className="todo-quickadd-ico" aria-hidden>
+          <IconPlus size={16} />
+        </span>
+        <input
+          className="todo-quickadd-input"
+          value={draft}
+          placeholder={t('todo.quickAdd')}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void addTodo();
+          }}
+        />
+        {draft.trim() && (
+          <button
+            className="todo-quickadd-btn"
+            onClick={() => void addTodo()}
+            disabled={adding}
+          >
+            {adding ? '…' : t('common.add')}
+          </button>
+        )}
+      </div>
+
+      {items.length === 0 && <EmptyState glyph="☑️" title={t('todo.empty')} />}
+
       {ORDER.filter((b) => groups.get(b)?.length).map((b) => (
         <div key={b} className="todo-group">
           <div className={`todo-group-head ${b}`}>{t(HEAD[b])}</div>

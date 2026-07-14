@@ -10,6 +10,10 @@ import { Block, View } from '../../entities/index';
 import { BlockService } from '../block/block.service';
 import { toBlockDto } from '../../common/block-dto';
 
+class CreateTodoBody {
+  @IsString() @MinLength(1) title!: string;
+}
+
 class CreateViewBody {
   @IsString() @MinLength(1) name!: string;
   @IsOptional() @IsUUID() spaceId?: string;
@@ -73,6 +77,12 @@ export class ViewController {
   @Get('todos')
   todos(@Ctx() ctx: RequestContext): Promise<TodoItemDto[]> {
     return this.views.todos(ctx);
+  }
+
+  /** Quick-add a #todo from the global list (title only; lands undated in "Later"). */
+  @Post('todos')
+  createTodo(@Ctx() ctx: RequestContext, @Body() body: CreateTodoBody): Promise<TodoItemDto> {
+    return this.views.createTodo(ctx, body.title);
   }
 
   /** Toggle a #todo note's status (done-checkbox in the global list). */

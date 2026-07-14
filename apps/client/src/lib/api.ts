@@ -208,6 +208,8 @@ export const api = {
   inbox: () => request<BlockDto[]>('/views/inbox'),
   todayItems: () => request<BlockDto[]>('/views/today-items'),
   todos: () => request<TodoItem[]>('/views/todos'),
+  createTodo: (title: string) =>
+    request<TodoItem>('/views/todos', { method: 'POST', body: JSON.stringify({ title }) }),
   setTodoStatus: (blockId: string, status: string) =>
     request<{ ok: true }>(`/views/todos/${blockId}/status`, {
       method: 'POST',
